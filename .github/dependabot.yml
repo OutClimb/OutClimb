@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "nicholemattera"
+    labels:
+      - "go-dependencies"
+    commit-message:
+      prefix: "fix"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "nicholemattera"
+    labels:
+      - "github-actions-dependencies"
+    commit-message:
+      prefix: "ci"
