@@ -1,5 +1,5 @@
 //
-// Ping Route
+// Error Response
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,14 @@
 // limitations under the License.
 //
 
-package http
+package responses
 
-import (
-	"github.com/OutClimb/OutClimb/internal/http/responses"
-	"github.com/gin-gonic/gin"
-)
+type error struct {
+	Error *string `json:"error"`
+}
 
-func (h *httpLayer) getPing(c *gin.Context) {
-	c.JSON(200, responses.Ping())
+func Error(err string) *error {
+	return &error{
+		Error: &err,
+	}
 }

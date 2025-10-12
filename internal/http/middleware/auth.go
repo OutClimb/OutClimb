@@ -1,3 +1,20 @@
+//
+// Auth Middleware
+// Copyright 2025 OutClimb
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package middleware
 
 import (
@@ -5,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -28,13 +46,13 @@ func Auth(config *utils.HttpConfig, role *string, resetAllowed bool) gin.Handler
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		if authorization == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization header required"})
+			c.JSON(http.StatusBadRequest, responses.Error("Authorization header required"))
 			c.Abort()
 			return
 		}
 
 		if !strings.HasPrefix("Bearer ", authorization) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Bearer scheme required"})
+			c.JSON(http.StatusBadRequest, responses.Error("Bearer scheme required"))
 			c.Abort()
 			return
 		}
@@ -44,22 +62,22 @@ func Auth(config *utils.HttpConfig, role *string, resetAllowed bool) gin.Handler
 		})
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims, ok := token.Claims.(*JwtClaims); !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims.Audience != c.ClientIP() {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else if userId, err := strconv.Atoi(claims.Subject); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims.User.Role != *role {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else if claims.User.RequirePasswordReset && !resetAllowed {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else {
 			c.Set("user_id", uint(userId))
