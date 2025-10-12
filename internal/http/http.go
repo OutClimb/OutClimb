@@ -21,6 +21,7 @@ import (
 	"log"
 
 	"github.com/OutClimb/OutClimb/internal/app"
+	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +46,24 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig) *httpLayer {
 		}
 	}
 
+	h.setupFrontendRoutes()
+	h.setupV1ApiRoutes()
+
 	return h
+}
+
+func (h *httpLayer) setupFrontendRoutes() {
+	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
+	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
+	h.engine.Static("/manage", "./assets/manage")
+	h.engine.GET("/b/:slug", h.redirect).Use(middleware.Domain(h.config.RedirectDomain))
+}
+
+func (h *httpLayer) setupV1ApiRoutes() {
+	api := h.engine.Group("/api/v1")
+	{
+		api.GET("/ping", h.getPing)
+	}
 }
 
 func (h *httpLayer) Run() {

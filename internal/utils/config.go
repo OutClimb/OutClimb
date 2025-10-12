@@ -41,6 +41,8 @@ type DatabaseConfig struct {
 type HttpConfig struct {
 	Jwt              JwtConfig
 	ListeningAddress string
+	RedirectDomain   string
+	RegisterDomain   string
 	TrustedProxies   []string
 }
 
@@ -85,6 +87,8 @@ func LoadConfig(env *string) *Config {
 				Secret:   os.Getenv("JWT_SECRET"),
 			},
 			ListeningAddress: os.Getenv("HTTP_LISTENING_ADDRESS"),
+			RedirectDomain:   os.Getenv("HTTP_REDIRECT_DOMAIN"),
+			RegisterDomain:   os.Getenv("HTTP_REGISTER_DOMAIN"),
 			TrustedProxies:   strings.Split(os.Getenv("HTTP_TRUSTED_PROXIES"), ","),
 		},
 	}
@@ -117,6 +121,14 @@ func (c *Config) Validate() error {
 
 	if len(c.Http.ListeningAddress) == 0 {
 		return errors.New("no listening address provided")
+	}
+
+	if len(c.Http.RedirectDomain) == 0 {
+		return errors.New("no domain for redirect provided")
+	}
+
+	if len(c.Http.RegisterDomain) == 0 {
+		return errors.New("no domain for register provided")
 	}
 
 	return nil
