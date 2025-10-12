@@ -18,6 +18,8 @@
 package http
 
 import (
+	"log"
+
 	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -37,12 +39,18 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig) *httpLayer {
 	}
 
 	if len(config.TrustedProxies) > 0 {
-		h.engine.SetTrustedProxies(config.TrustedProxies)
+		err := h.engine.SetTrustedProxies(config.TrustedProxies)
+		if err != nil {
+			log.Print("Error while setting trusted proxies: " + err.Error())
+		}
 	}
 
 	return h
 }
 
 func (h *httpLayer) Run() {
-	h.engine.Run(h.config.ListeningAddress)
+	err := h.engine.Run(h.config.ListeningAddress)
+	if err != nil {
+		log.Fatal("Error while calling run on gin framework: " + err.Error())
+	}
 }
