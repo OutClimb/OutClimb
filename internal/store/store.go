@@ -62,5 +62,8 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 }
 
 func (s *storeLayer) Migrate() {
-	s.db.AutoMigrate(&User{})
+	err := s.db.AutoMigrate(&User{})
+	if err != nil {
+		log.Fatal("Error: There was an error while migrating the User table", err)
+	}
 }
