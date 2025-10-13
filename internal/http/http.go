@@ -81,6 +81,8 @@ func (h *httpLayer) setupV1ApiRoutes() {
 	api := h.engine.Group("/api/v1")
 	{
 		api.GET("/ping", h.getPing)
+
+		api.POST("/token", h.createToken)
 	}
 }
 

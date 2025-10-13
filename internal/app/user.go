@@ -26,6 +26,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func (a *appLayer) AuthenticateUser(username string, password string) (*models.UserInternal, error) {
+	if user, err := a.store.GetUserWithUsername(username); err != nil {
+		return &models.UserInternal{}, err
+	} else if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return &models.UserInternal{}, errors.New("invalid password")
+	} else {
+		userInternal := models.UserInternal{}
+		userInternal.Internalize(user)
+
+		return &userInternal, nil
+	}
+}
+
 func (a *appLayer) GetUser(userId uint) (*models.UserInternal, error) {
 	if user, err := a.store.GetUser(userId); err != nil {
 		return &models.UserInternal{}, err

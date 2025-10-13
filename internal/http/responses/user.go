@@ -1,5 +1,5 @@
 //
-// App Layer
+// User Response
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,25 +15,22 @@
 // limitations under the License.
 //
 
-package app
+package responses
 
-import (
-	"github.com/OutClimb/OutClimb/internal/app/models"
-	"github.com/OutClimb/OutClimb/internal/store"
-)
+import "github.com/OutClimb/OutClimb/internal/app/models"
 
-type AppLayer interface {
-	AuthenticateUser(username string, password string) (*models.UserInternal, error)
-	GetUser(userId uint) (*models.UserInternal, error)
-	ValidatePassword(user *models.UserInternal, password string) error
+type UserPublic struct {
+	Username             string `json:"username"`
+	Role                 string `json:"role"`
+	Name                 string `json:"name"`
+	Email                string `json:"email"`
+	RequirePasswordReset bool   `json:"requirePasswordReset"`
 }
 
-type appLayer struct {
-	store store.StoreLayer
-}
-
-func New(storeLayer store.StoreLayer) *appLayer {
-	return &appLayer{
-		store: storeLayer,
-	}
+func (u *UserPublic) Publicize(user *models.UserInternal) {
+	u.Username = user.Username
+	u.Role = user.Role
+	u.Name = user.Name
+	u.Email = user.Email
+	u.RequirePasswordReset = user.RequirePasswordReset
 }
