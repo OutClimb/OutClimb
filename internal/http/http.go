@@ -69,6 +69,12 @@ func (h *httpLayer) setupFrontendRoutes() {
 		redirect.GET("/:slug", h.redirect)
 		redirect.HEAD("/:slug", h.redirect)
 	}
+
+	form := h.engine.Group("/form")
+	{
+		form.Use(middleware.Domain(h.config.RegisterDomain))
+		form.Static("/", "./assets/form")
+	}
 }
 
 func (h *httpLayer) setupV1ApiRoutes() {
