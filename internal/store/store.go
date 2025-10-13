@@ -49,6 +49,9 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 	if len(databaseConfig.TimeZone) > 0 {
 		dsn = dsn + " TimeZone=" + databaseConfig.TimeZone
 	}
+	if databaseConfig.SslDisabled {
+		dsn = dsn + " sslmode=disable"
+	}
 
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {

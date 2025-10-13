@@ -46,7 +46,7 @@ func main() {
 
 	storeLayer := store.New(&config.Database)
 	appLayer := app.New(storeLayer)
-	httpLayer := http.New(appLayer, &config.Http)
+	httpLayer := http.New(appLayer, &config.Http, &env)
 
 	httpLayer.Run()
 }

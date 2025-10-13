@@ -32,7 +32,13 @@ type httpLayer struct {
 	engine *gin.Engine
 }
 
-func New(appLayer app.AppLayer, config *utils.HttpConfig) *httpLayer {
+func New(appLayer app.AppLayer, config *utils.HttpConfig, env *string) *httpLayer {
+	if *env == "prod" {
+		gin.SetMode("release")
+	} else {
+		gin.SetMode("debug")
+	}
+
 	h := &httpLayer{
 		app:    appLayer,
 		config: config,
@@ -56,7 +62,13 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./assets/manage")
-	h.engine.GET("/b/:slug", h.redirect).Use(middleware.Domain(h.config.RedirectDomain))
+
+	redirect := h.engine.Group("/b")
+	{
+		redirect.Use(middleware.Domain(h.config.RedirectDomain))
+		redirect.GET("/:slug", h.redirect)
+		redirect.HEAD("/:slug", h.redirect)
+	}
 }
 
 func (h *httpLayer) setupV1ApiRoutes() {

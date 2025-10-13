@@ -25,7 +25,7 @@ import (
 
 func Domain(domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Host != domain {
+		if c.Request.Host != domain {
 			c.Status(http.StatusNotFound)
 			c.Abort()
 			return

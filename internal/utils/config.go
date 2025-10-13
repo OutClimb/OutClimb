@@ -33,12 +33,13 @@ type AppConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string
-	Name     string
-	Password string
-	Port     string
-	TimeZone string
-	Username string
+	Host        string
+	Name        string
+	Password    string
+	Port        string
+	SslDisabled bool
+	TimeZone    string
+	Username    string
 }
 
 type HttpConfig struct {
@@ -78,18 +79,30 @@ func LoadConfig(env *string) *Config {
 		lifespan = 0
 	}
 
+	sslDisabled, err := strconv.Atoi(os.Getenv("DATABASE_SSL_MODE_DISABLED"))
+	if err != nil {
+		sslDisabled = 0
+	}
+
+	trustProxies := []string{}
+	trustedProxiesString := os.Getenv("HTTP_TRUSTED_PROXIES")
+	if len(trustedProxiesString) != 0 {
+		trustProxies = strings.Split(trustedProxiesString, ",")
+	}
+
 	return &Config{
 		App: AppConfig{
 			PasswordCost:       passwordCost,
 			RecaptchaSecretKey: os.Getenv("RECAPTCHA_SECRET_KEY"),
 		},
 		Database: DatabaseConfig{
-			Host:     os.Getenv("DATABASE_HOST"),
-			Name:     os.Getenv("DATABASE_NAME"),
-			Password: os.Getenv("DATABASE_PASSWORD"),
-			Port:     os.Getenv("DATABASE_PORT"),
-			TimeZone: os.Getenv("DATABASE_TIMEZONE"),
-			Username: os.Getenv("DATABASE_USERNAME"),
+			Host:        os.Getenv("DATABASE_HOST"),
+			Name:        os.Getenv("DATABASE_NAME"),
+			Password:    os.Getenv("DATABASE_PASSWORD"),
+			Port:        os.Getenv("DATABASE_PORT"),
+			SslDisabled: sslDisabled > 0,
+			TimeZone:    os.Getenv("DATABASE_TIMEZONE"),
+			Username:    os.Getenv("DATABASE_USERNAME"),
 		},
 		Http: HttpConfig{
 			Jwt: JwtConfig{
@@ -100,7 +113,7 @@ func LoadConfig(env *string) *Config {
 			ListeningAddress: os.Getenv("HTTP_LISTENING_ADDRESS"),
 			RedirectDomain:   os.Getenv("HTTP_REDIRECT_DOMAIN"),
 			RegisterDomain:   os.Getenv("HTTP_REGISTER_DOMAIN"),
-			TrustedProxies:   strings.Split(os.Getenv("HTTP_TRUSTED_PROXIES"), ","),
+			TrustedProxies:   trustProxies,
 		},
 	}
 }
