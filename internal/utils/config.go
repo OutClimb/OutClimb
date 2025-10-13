@@ -27,7 +27,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type AppConfig struct{}
+type AppConfig struct {
+	PasswordCost       int
+	RecaptchaSecretKey string
+}
 
 type DatabaseConfig struct {
 	Host     string
@@ -65,13 +68,21 @@ func LoadConfig(env *string) *Config {
 		return nil
 	}
 
+	passwordCost, err := strconv.Atoi(os.Getenv("PASSWORD_COST"))
+	if err != nil {
+		passwordCost = 0
+	}
+
 	lifespan, err := strconv.Atoi(os.Getenv("JWT_LIFESPAN"))
 	if err != nil {
 		lifespan = 0
 	}
 
 	return &Config{
-		App: AppConfig{},
+		App: AppConfig{
+			PasswordCost:       passwordCost,
+			RecaptchaSecretKey: os.Getenv("RECAPTCHA_SECRET_KEY"),
+		},
 		Database: DatabaseConfig{
 			Host:     os.Getenv("DATABASE_HOST"),
 			Name:     os.Getenv("DATABASE_NAME"),
@@ -95,6 +106,10 @@ func LoadConfig(env *string) *Config {
 }
 
 func (c *Config) Validate() error {
+	if c.Http.Jwt.Lifespan == 0 {
+		return errors.New("password cost must be greater than zero")
+	}
+
 	if len(c.Database.Host) == 0 {
 		return errors.New("no database host provided")
 	}

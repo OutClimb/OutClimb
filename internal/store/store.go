@@ -25,7 +25,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type StoreLayer interface{}
+type StoreLayer interface {
+	CreateUser(createdBy, email, name, password, role, username string) (*User, error)
+	GetUser(id uint) (*User, error)
+	GetUserWithUsername(username string) (*User, error)
+	UpdatePassword(id uint, password, updatedBy string) error
+}
 
 type storeLayer struct {
 	db *gorm.DB
@@ -54,4 +59,8 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 	return &storeLayer{
 		db: db,
 	}
+}
+
+func (s *storeLayer) Migrate() {
+	s.db.AutoMigrate(&User{})
 }

@@ -53,5 +53,8 @@ jobs:
       - name: Build create user
         run: go build cmd/create_user/main.go
 
+      - name: Build migrate
+        run: go build cmd/migrate/main.go
+
       - name: Build service
         run: go build cmd/service/main.go

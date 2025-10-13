@@ -1,5 +1,5 @@
 //
-// App Layer
+// DB Migrate Command
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +15,33 @@
 // limitations under the License.
 //
 
-package app
+package main
 
 import (
-	"github.com/OutClimb/OutClimb/internal/app/models"
+	"log"
+	"os"
+
 	"github.com/OutClimb/OutClimb/internal/store"
+	"github.com/OutClimb/OutClimb/internal/utils"
 )
 
-type AppLayer interface {
-	GetUser(userId uint) (*models.UserInternal, error)
-	ValidatePassword(user *models.UserInternal, password string) error
-}
-
-type appLayer struct {
-	store store.StoreLayer
-}
-
-func New(storeLayer store.StoreLayer) *appLayer {
-	return &appLayer{
-		store: storeLayer,
+func main() {
+	env := os.Getenv("OUTCLIMB_ENV")
+	if len(env) == 0 {
+		env = "local"
 	}
+
+	config := utils.LoadConfig(&env)
+	if config == nil {
+		return
+	}
+
+	err := config.Validate()
+	if err != nil {
+		log.Fatal("Error while validating config: " + err.Error())
+		return
+	}
+
+	storeLayer := store.New(&config.Database)
+	storeLayer.Migrate()
 }

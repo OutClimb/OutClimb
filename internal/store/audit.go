@@ -1,5 +1,5 @@
 //
-// App Layer
+// Audit Abstract Struct
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +15,15 @@
 // limitations under the License.
 //
 
-package app
+package store
 
 import (
-	"github.com/OutClimb/OutClimb/internal/app/models"
-	"github.com/OutClimb/OutClimb/internal/store"
+	"gorm.io/gorm"
 )
 
-type AppLayer interface {
-	GetUser(userId uint) (*models.UserInternal, error)
-	ValidatePassword(user *models.UserInternal, password string) error
-}
-
-type appLayer struct {
-	store store.StoreLayer
-}
-
-func New(storeLayer store.StoreLayer) *appLayer {
-	return &appLayer{
-		store: storeLayer,
-	}
+type StandardAudit struct {
+	gorm.Model
+	CreatedBy string `gorm:"not null"`
+	UpdatedBy string
+	DeletedBy string
 }
