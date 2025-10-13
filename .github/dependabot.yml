@@ -17,6 +17,8 @@ updates:
       interval: 'weekly'
     assignees:
       - "nicholemattera"
+    labels:
+      - "node-dependencies"
     commit-message:
       prefix: 'fix'
       prefix-development: 'chore'
