@@ -67,7 +67,7 @@ func (h *httpLayer) deleteRedirect(c *gin.Context) {
 		return
 	}
 
-	err = h.app.DeleteRedirect(uint(id))
+	err = h.app.DeleteRedirect(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
 		return
@@ -93,7 +93,7 @@ func (h *httpLayer) getRedirect(c *gin.Context) {
 		return
 	}
 
-	internalRedirect, error := h.app.GetRedirect(uint(id))
+	internalRedirect, error := h.app.GetRedirect(id)
 	if error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
 		return
@@ -148,7 +148,7 @@ func (h *httpLayer) updateRedirect(c *gin.Context) {
 		return
 	}
 
-	if redirect, err := h.app.UpdateRedirect(user, uint(id), body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
+	if redirect, err := h.app.UpdateRedirect(user, id, body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update redirect"})
 	} else {
 		redirectPublic := responses.RedirectPublic{}

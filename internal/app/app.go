@@ -25,13 +25,13 @@ import (
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
-	DeleteRedirect(id uint) error
+	DeleteRedirect(id uint64) error
 	FindRedirect(path string) (*models.RedirectInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
-	GetRedirect(id uint) (*models.RedirectInternal, error)
+	GetRedirect(id uint64) (*models.RedirectInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
-	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
+	UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	ValidatePassword(user *models.UserInternal, password string) error
 }
 

@@ -37,7 +37,7 @@ func (a *appLayer) CreateRedirect(user *models.UserInternal, fromPath, toUrl str
 	}
 }
 
-func (a *appLayer) DeleteRedirect(id uint) error {
+func (a *appLayer) DeleteRedirect(id uint64) error {
 	if err := a.store.DeleteRedirect(id); err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (a *appLayer) FindRedirect(path string) (*models.RedirectInternal, error) {
 	}
 }
 
-func (a *appLayer) GetRedirect(id uint) (*models.RedirectInternal, error) {
+func (a *appLayer) GetRedirect(id uint64) (*models.RedirectInternal, error) {
 	if redirect, err := a.store.GetRedirect(id); err != nil {
 		return &models.RedirectInternal{}, err
 	} else {
@@ -80,7 +80,7 @@ func (a *appLayer) GetAllRedirects() (*[]models.RedirectInternal, error) {
 	}
 }
 
-func (a *appLayer) UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
+func (a *appLayer) UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
 	startsOnTime := time.UnixMilli(startsOn)
 	stopsOnTime := time.UnixMilli(stopsOn)
 
