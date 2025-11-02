@@ -17,8 +17,149 @@
 
 package http
 
-import "github.com/gin-gonic/gin"
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	"github.com/OutClimb/OutClimb/internal/http/responses"
+	"github.com/gin-gonic/gin"
+)
+
+func (h *httpLayer) createRedirect(c *gin.Context) {
+	userId := c.GetUint("user_id")
+	user, err := h.app.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get the body data
+	bodyAsByteArray, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return
+	}
+
+	// Parse the body data
+	body := responses.RedirectPublic{}
+	err = json.Unmarshal(bodyAsByteArray, &body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return
+	}
+
+	if redirect, err := h.app.CreateRedirect(user, body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create redirect"})
+	} else {
+		redirectPublic := responses.RedirectPublic{}
+		redirectPublic.Publicize(redirect)
+
+		c.JSON(http.StatusOK, redirectPublic)
+	}
+}
+
+func (h *httpLayer) deleteRedirect(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	err = h.app.DeleteRedirect(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+}
 
 func (h *httpLayer) redirect(c *gin.Context) {
 
+}
+
+// func (h *httpLayer) findRedirect(c *gin.Context) {
+// 	path := c.Request.URL.Path
+// 	if strings.HasSuffix(path, "/") {
+// 		path = path[:len(path)-1]
+// 	}
+
+// 	if redirect, err := h.app.FindRedirect(path); err != nil {
+// 		c.Redirect(http.StatusTemporaryRedirect, "https://outclimb.gay")
+// 	} else {
+// 		c.Redirect(http.StatusTemporaryRedirect, redirect.ToUrl)
+// 	}
+// }
+
+func (h *httpLayer) getRedirect(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	internalRedirect, error := h.app.GetRedirect(uint(id))
+	if error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
+		return
+	}
+
+	redirect := responses.RedirectPublic{}
+	redirect.Publicize(internalRedirect)
+
+	c.JSON(http.StatusOK, redirect)
+}
+
+func (h *httpLayer) getRedirects(c *gin.Context) {
+	if internalRedirects, err := h.app.GetAllRedirects(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve redirects"})
+	} else {
+		redirects := make([]responses.RedirectPublic, len(*internalRedirects))
+		for i, redirect := range *internalRedirects {
+			redirects[i].Publicize(&redirect)
+		}
+
+		c.JSON(http.StatusOK, redirects)
+	}
+}
+
+func (h *httpLayer) updateRedirect(c *gin.Context) {
+	userId := c.GetUint("user_id")
+	user, err := h.app.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get the id from the URL
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	// Get the body data
+	bodyAsByteArray, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return
+	}
+
+	// Parse the body data
+	body := responses.RedirectPublic{}
+	err = json.Unmarshal(bodyAsByteArray, &body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return
+	}
+
+	if redirect, err := h.app.UpdateRedirect(user, uint(id), body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update redirect"})
+	} else {
+		redirectPublic := responses.RedirectPublic{}
+		redirectPublic.Publicize(redirect)
+
+		c.JSON(http.StatusOK, redirectPublic)
+	}
 }

@@ -19,6 +19,7 @@ package store
 
 import (
 	"log"
+	"time"
 
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"gorm.io/driver/postgres"
@@ -26,10 +27,16 @@ import (
 )
 
 type StoreLayer interface {
+	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateUser(createdBy, email, name, password, role, username string) (*User, error)
+	DeleteRedirect(id uint) error
+	FindActiveRedirectByPath(path string) (*Redirect, error)
+	GetAllRedirects() (*[]Redirect, error)
+	GetRedirect(id uint) (*Redirect, error)
 	GetUser(id uint) (*User, error)
 	GetUserWithUsername(username string) (*User, error)
 	UpdatePassword(id uint, password, updatedBy string) error
+	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 }
 
 type storeLayer struct {

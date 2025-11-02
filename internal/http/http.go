@@ -83,6 +83,21 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		api.GET("/ping", h.getPing)
 
 		api.POST("/token", h.createToken)
+
+		userReset := api.Group("/").Use(middleware.Auth(h.config, "user", true))
+		{
+			userReset.PUT("/password", h.updatePassword)
+		}
+
+		adminApi := api.Group("/").Use(middleware.Auth(h.config, "admin", false))
+		{
+			adminApi.GET("/redirect", h.getRedirects)
+			adminApi.GET("/redirect/:id", h.getRedirect)
+			adminApi.POST("/redirect", h.createRedirect)
+			adminApi.PUT("/redirect/:id", h.updateRedirect)
+			adminApi.DELETE("/redirect/:id", h.deleteRedirect)
+		}
+
 	}
 }
 
