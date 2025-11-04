@@ -76,4 +76,9 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		log.Fatal("Error: There was an error while migrating the User table", err)
 	}
+
+	err = s.db.AutoMigrate(&Redirect{})
+	if err != nil {
+		log.Fatal("Error: There was an error while migrating the Redirect table", err)
+	}
 }
