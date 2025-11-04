@@ -19,6 +19,7 @@ package http
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
@@ -63,6 +64,14 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./assets/manage")
 
+	h.engine.GET("/", func(c *gin.Context) {
+		if c.Request.Host == h.config.DiscordDomain {
+			c.Redirect(http.StatusTemporaryRedirect, h.config.DiscordRedirectURL)
+		} else {
+			c.Redirect(http.StatusTemporaryRedirect, h.config.DefaultRedirectURL)
+		}
+	})
+
 	redirect := h.engine.Group("/b")
 	{
 		redirect.Use(middleware.Domain(h.config.RedirectDomain))
@@ -74,6 +83,13 @@ func (h *httpLayer) setupFrontendRoutes() {
 	{
 		form.Use(middleware.Domain(h.config.RegisterDomain))
 		form.Static("/", "./assets/form")
+	}
+
+	assets := h.engine.Group("/")
+	{
+		assets.Use(middleware.Domain(h.config.AssetsDomain))
+		assets.StaticFile("/BlackLogo.svg", "./web/BlackLogo.svg")
+		assets.StaticFile("/WhiteLogo.svg", "./web/WhiteLogo.svg")
 	}
 }
 
@@ -97,7 +113,6 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			adminApi.PUT("/redirect/:id", h.updateRedirect)
 			adminApi.DELETE("/redirect/:id", h.deleteRedirect)
 		}
-
 	}
 }
 
