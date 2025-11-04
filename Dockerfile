@@ -12,10 +12,10 @@ ENV GIN_MODE release
 
 WORKDIR /app
 
-RUN mkdir -p /app/config
+RUN mkdir -p /app/configs
 
 COPY --from=outclimb-builder /app/outclimb /app/outclimb
-COPY --from=outclimb-builder /app/config/prod.env /app/config/prod.env
+COPY --from=outclimb-builder /app/configs/prod.env /app/configs/prod.env
 COPY --from=outclimb-builder /app/web /app/web
 COPY --from=outclimb-builder /app/LICENSE.md /app/LICENSE.md
 COPY --from=outclimb-builder /app/README.md /app/README.md
