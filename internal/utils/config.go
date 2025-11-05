@@ -43,10 +43,7 @@ type DatabaseConfig struct {
 }
 
 type HttpConfig struct {
-	AssetsDomain       string
 	DefaultRedirectURL string
-	DiscordDomain      string
-	DiscordRedirectURL string
 	Jwt                JwtConfig
 	ListeningAddress   string
 	RedirectDomain     string
@@ -109,10 +106,7 @@ func LoadConfig(env *string) *Config {
 			Username:    os.Getenv("DATABASE_USERNAME"),
 		},
 		Http: HttpConfig{
-			AssetsDomain:       os.Getenv("HTTP_ASSETS_DOMAIN"),
 			DefaultRedirectURL: os.Getenv("HTTP_DEFAULT_REDIRECT_URL"),
-			DiscordDomain:      os.Getenv("HTTP_DISCORD_DOMAIN"),
-			DiscordRedirectURL: os.Getenv("HTTP_DISCORD_REDIRECT_URL"),
 			Jwt: JwtConfig{
 				Issuer:   os.Getenv("JWT_ISSUER"),
 				Lifespan: lifespan,
@@ -151,20 +145,8 @@ func (c *Config) Validate() error {
 		return errors.New("jwt lifespan must be greater than zero")
 	}
 
-	if len(c.Http.AssetsDomain) == 0 {
-		return errors.New("no domain for assets provided")
-	}
-
 	if len(c.Http.DefaultRedirectURL) == 0 {
 		return errors.New("no domain for default redirect URL provided")
-	}
-
-	if len(c.Http.DiscordDomain) == 0 {
-		return errors.New("no domain for discord provided")
-	}
-
-	if len(c.Http.DiscordRedirectURL) == 0 {
-		return errors.New("no domain for discord redirect URL provided")
 	}
 
 	if len(c.Http.Jwt.Secret) == 0 {

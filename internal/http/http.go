@@ -56,6 +56,10 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env *string) *httpLaye
 	h.setupFrontendRoutes()
 	h.setupV1ApiRoutes()
 
+	h.engine.NoRoute(func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, config.DefaultRedirectURL)
+	})
+
 	return h
 }
 
@@ -63,14 +67,6 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./assets/manage")
-
-	h.engine.GET("/", func(c *gin.Context) {
-		if c.Request.Host == h.config.DiscordDomain {
-			c.Redirect(http.StatusTemporaryRedirect, h.config.DiscordRedirectURL)
-		} else {
-			c.Redirect(http.StatusTemporaryRedirect, h.config.DefaultRedirectURL)
-		}
-	})
 
 	redirect := h.engine.Group("/b")
 	{
@@ -83,13 +79,6 @@ func (h *httpLayer) setupFrontendRoutes() {
 	{
 		form.Use(middleware.Domain(h.config.RegisterDomain))
 		form.Static("/", "./assets/form")
-	}
-
-	assets := h.engine.Group("/")
-	{
-		assets.Use(middleware.Domain(h.config.AssetsDomain))
-		assets.StaticFile("/BlackLogo.svg", "./web/BlackLogo.svg")
-		assets.StaticFile("/WhiteLogo.svg", "./web/WhiteLogo.svg")
 	}
 }
 
