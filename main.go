@@ -1,5 +1,5 @@
 //
-// Create User Command
+// OutClimb
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
 
 package main
 
-func main() {
+import "github.com/OutClimb/OutClimb/cmd"
 
+func main() {
+	cmd.Execute()
 }

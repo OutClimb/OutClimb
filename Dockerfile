@@ -4,16 +4,12 @@ COPY . /app
 WORKDIR /app
 
 RUN go mod download && go mod verify
-RUN go build -v -o /app/create_user cmd/create_user/main.go
-RUN go build -v -o /app/migrate cmd/migrate/main.go
-RUN go build -v -o /app/outclimb cmd/service/main.go
+RUN go build -v -o /app/outclimb main.go
 
 FROM alpine:latest AS outclimb
 
 WORKDIR /app
 
-COPY --from=outclimb-builder /app/create_user /app/create_user
-COPY --from=outclimb-builder /app/migrate /app/migrate
 COPY --from=outclimb-builder /app/outclimb /app/outclimb
 COPY --from=outclimb-builder /app/configs /app/configs
 COPY --from=outclimb-builder /app/web /app/web

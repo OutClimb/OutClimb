@@ -1,5 +1,5 @@
 //
-// DB Migrate Command
+// Root Command
 // Copyright 2025 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,33 +15,22 @@
 // limitations under the License.
 //
 
-package main
+package cmd
 
 import (
-	"log"
 	"os"
 
-	"github.com/OutClimb/OutClimb/internal/store"
-	"github.com/OutClimb/OutClimb/internal/utils"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	env := os.Getenv("OUTCLIMB_ENV")
-	if len(env) == 0 {
-		env = "local"
-	}
+var rootCmd = &cobra.Command{
+	Use:   "outclimb",
+	Short: "OutClimb's general web service",
+}
 
-	config := utils.LoadConfig(&env)
-	if config == nil {
-		return
-	}
-
-	err := config.Validate()
+func Execute() {
+	err := rootCmd.Execute()
 	if err != nil {
-		log.Fatal("Error while validating config: " + err.Error())
-		return
+		os.Exit(1)
 	}
-
-	storeLayer := store.New(&config.Database)
-	storeLayer.Migrate()
 }

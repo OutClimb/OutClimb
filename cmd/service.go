@@ -15,7 +15,7 @@
 // limitations under the License.
 //
 
-package main
+package cmd
 
 import (
 	"log"
@@ -25,9 +25,20 @@ import (
 	"github.com/OutClimb/OutClimb/internal/http"
 	"github.com/OutClimb/OutClimb/internal/store"
 	"github.com/OutClimb/OutClimb/internal/utils"
+	"github.com/spf13/cobra"
 )
 
-func main() {
+var serviceCmd = &cobra.Command{
+	Use:   "service",
+	Short: "Runs the OutClimb service",
+	Run:   runService,
+}
+
+func init() {
+	rootCmd.AddCommand(serviceCmd)
+}
+
+func runService(cmd *cobra.Command, args []string) {
 	env := os.Getenv("OUTCLIMB_ENV")
 	if len(env) == 0 {
 		env = "local"
@@ -45,6 +56,9 @@ func main() {
 	}
 
 	storeLayer := store.New(&config.Database)
+
+	storeLayer.Migrate()
+
 	appLayer := app.New(storeLayer)
 	httpLayer := http.New(appLayer, &config.Http, &env)
 
