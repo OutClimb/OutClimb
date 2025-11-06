@@ -71,8 +71,8 @@ func (h *httpLayer) setupFrontendRoutes() {
 	redirect := h.engine.Group("/b")
 	{
 		redirect.Use(middleware.Domain(h.config.RedirectDomain))
-		redirect.GET("/:slug", h.redirect)
-		redirect.HEAD("/:slug", h.redirect)
+		redirect.GET("/*path", h.redirect)
+		redirect.HEAD("/*path", h.redirect)
 	}
 
 	form := h.engine.Group("/form")
