@@ -94,12 +94,12 @@ func LoadConfig(env *string) *Config {
 	return &Config{
 		App: AppConfig{
 			PasswordCost:       passwordCost,
-			RecaptchaSecretKey: os.Getenv("RECAPTCHA_SECRET_KEY"),
+			RecaptchaSecretKey: LoadEnvOrFileContent("RECAPTCHA_SECRET_KEY", "RECAPTCHA_SECRET_KEY_FILE"),
 		},
 		Database: DatabaseConfig{
 			Host:        os.Getenv("DATABASE_HOST"),
 			Name:        os.Getenv("DATABASE_NAME"),
-			Password:    os.Getenv("DATABASE_PASSWORD"),
+			Password:    LoadEnvOrFileContent("DATABASE_PASSWORD", "DATABASE_PASSWORD_FILE"),
 			Port:        os.Getenv("DATABASE_PORT"),
 			SslDisabled: sslDisabled > 0,
 			TimeZone:    os.Getenv("DATABASE_TIMEZONE"),
@@ -110,7 +110,7 @@ func LoadConfig(env *string) *Config {
 			Jwt: JwtConfig{
 				Issuer:   os.Getenv("JWT_ISSUER"),
 				Lifespan: lifespan,
-				Secret:   os.Getenv("JWT_SECRET"),
+				Secret:   LoadEnvOrFileContent("JWT_SECRET", "JWT_SECRET_FILE"),
 			},
 			ListeningAddress: os.Getenv("HTTP_LISTENING_ADDRESS"),
 			RedirectDomain:   os.Getenv("HTTP_REDIRECT_DOMAIN"),
@@ -118,6 +118,18 @@ func LoadConfig(env *string) *Config {
 			TrustedProxies:   trustProxies,
 		},
 	}
+}
+
+func LoadEnvOrFileContent(envKey string, envFileKey string) string {
+	fileValue := os.Getenv(envFileKey)
+	if len(fileValue) != 0 {
+		content, err := ReadFile(&fileValue)
+		if len(content) > 0 && err == nil {
+			return content
+		}
+	}
+
+	return os.Getenv(envKey)
 }
 
 func (c *Config) Validate() error {
