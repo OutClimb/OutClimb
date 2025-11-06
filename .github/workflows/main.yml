@@ -38,23 +38,17 @@ jobs:
 
   build:
     name: build
+    needs: [editorconfig_lint, golangci]
     runs-on: ubuntu-latest
     permissions:
+      packages: write
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: 1.25.x
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build create user
-        run: go build cmd/create_user/main.go
-
-      - name: Build migrate
-        run: go build cmd/migrate/main.go
-
-      - name: Build service
-        run: go build cmd/service/main.go
+      - name: Build/Push image
+        run: docker buildx build --platform linux/amd64,linux/arm64 --file Dockerfile --target outclimb --tag ghcr.io/${{ github.repository }}:latest --push .
