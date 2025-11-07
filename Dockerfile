@@ -18,4 +18,4 @@ COPY --from=outclimb-builder /app/README.md /app/README.md
 
 RUN apk --no-cache add curl
 
-ENTRYPOINT ["/app/outclimb service"]
+ENTRYPOINT ["/app/outclimb", "service"]
