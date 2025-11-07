@@ -53,11 +53,8 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 	if len(databaseConfig.Port) > 0 {
 		dsn = dsn + " port=" + databaseConfig.Port
 	}
-	if len(databaseConfig.TimeZone) > 0 {
-		dsn = dsn + " TimeZone=" + databaseConfig.TimeZone
-	}
-	if databaseConfig.SslDisabled {
-		dsn = dsn + " sslmode=disable"
+	if len(databaseConfig.Params) > 0 {
+		dsn = dsn + " " + databaseConfig.Params
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn))

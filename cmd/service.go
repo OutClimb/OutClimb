@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -44,10 +45,8 @@ func runService(cmd *cobra.Command, args []string) {
 		env = "local"
 	}
 
-	config := utils.LoadConfig(&env)
-	if config == nil {
-		return
-	}
+	config := utils.LoadConfig(env)
+	fmt.Printf("%+v\n", config)
 
 	err := config.Validate()
 	if err != nil {

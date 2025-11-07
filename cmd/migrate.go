@@ -42,10 +42,7 @@ func runMigrate(cmd *cobra.Command, args []string) {
 		env = "local"
 	}
 
-	config := utils.LoadConfig(&env)
-	if config == nil {
-		return
-	}
+	config := utils.LoadConfig(env)
 
 	err := config.Validate()
 	if err != nil {

@@ -84,11 +84,7 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	config := utils.LoadConfig(&env)
-	if config == nil {
-		fmt.Println("Unable to load config")
-		return
-	}
+	config := utils.LoadConfig(env)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(createUserContext.password), config.App.PasswordCost)
 	if err != nil {

@@ -20,41 +20,40 @@ package utils
 import (
 	"errors"
 	"log"
-	"os"
-	"strconv"
-	"strings"
 
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 type AppConfig struct {
-	PasswordCost       int
-	RecaptchaSecretKey string
+	PasswordCost           int    `mapstructure:"OC_PASSWORD_COST"`
+	RecaptchaSecretKey     string `mapstructure:"OC_RECAPTCHA_SECRET_KEY"`
+	RecaptchaSecretKeyFile string `mapstructure:"OC_RECAPTCHA_SECRET_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
-	Host        string
-	Name        string
-	Password    string
-	Port        string
-	SslDisabled bool
-	TimeZone    string
-	Username    string
+	Host         string `mapstructure:"OC_DATABASE_HOST"`
+	Name         string `mapstructure:"OC_DATABASE_NAME"`
+	Password     string `mapstructure:"OC_DATABASE_PASSWORD"`
+	PasswordFile string `mapstructure:"OC_DATABASE_PASSWORD_FILE"`
+	Port         string `mapstructure:"OC_DATABASE_PORT"`
+	Params       string `mapstructure:"OC_DATABASE_PARAMS"`
+	Username     string `mapstructure:"OC_DATABASE_USERNAME"`
 }
 
 type HttpConfig struct {
-	DefaultRedirectURL string
+	DefaultRedirectURL string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	Jwt                JwtConfig
-	ListeningAddress   string
-	RedirectDomain     string
-	RegisterDomain     string
-	TrustedProxies     []string
+	ListeningAddress   string   `mapstructure:"OC_LISTENING_ADDRESS"`
+	RedirectDomain     string   `mapstructure:"OC_REDIRECT_DOMAIN"`
+	RegisterDomain     string   `mapstructure:"OC_REGISTER_DOMAIN"`
+	TrustedProxies     []string `mapstructure:"OC_TRUSTED_PROXIES"`
 }
 
 type JwtConfig struct {
-	Issuer   string
-	Lifespan int
-	Secret   string
+	Issuer     string `mapstructure:"OC_JWT_ISSUER"`
+	Lifespan   int    `mapstructure:"OC_JWT_LIFESPAN"`
+	Secret     string `mapstructure:"OC_JWT_SECRET"`
+	SecretFile string `mapstructure:"OC_JWT_SECRET_FILE"`
 }
 
 type Config struct {
@@ -63,77 +62,68 @@ type Config struct {
 	Http     HttpConfig
 }
 
-func LoadConfig(env *string) *Config {
-	err := godotenv.Load("configs/" + *env + ".env")
+func LoadConfig(env string) (config Config) {
+	// Read config
+	viper.AddConfigPath("./configs/")
+	viper.SetConfigName(env)
+	viper.SetConfigType("env")
+
+	viper.SetEnvPrefix("oc")
+
+	viper.AutomaticEnv()
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("Unable to load config for environment: " + *env)
-		return nil
+		log.Fatal("Unable to load config for environment: " + env)
 	}
 
-	passwordCost, err := strconv.Atoi(os.Getenv("PASSWORD_COST"))
+	err = viper.Unmarshal(&config.App)
 	if err != nil {
-		passwordCost = 0
+		log.Fatal("Unable to parse config for environment: " + env)
 	}
 
-	lifespan, err := strconv.Atoi(os.Getenv("JWT_LIFESPAN"))
+	err = viper.Unmarshal(&config.Database)
 	if err != nil {
-		lifespan = 0
+		log.Fatal("Unable to parse config for environment: " + env)
 	}
 
-	sslDisabled, err := strconv.Atoi(os.Getenv("DATABASE_SSL_MODE_DISABLED"))
+	err = viper.Unmarshal(&config.Http)
 	if err != nil {
-		sslDisabled = 0
+		log.Fatal("Unable to parse config for environment: " + env)
 	}
 
-	trustProxies := []string{}
-	trustedProxiesString := os.Getenv("HTTP_TRUSTED_PROXIES")
-	if len(trustedProxiesString) != 0 {
-		trustProxies = strings.Split(trustedProxiesString, ",")
+	err = viper.Unmarshal(&config.Http.Jwt)
+	if err != nil {
+		log.Fatal("Unable to parse config for environment: " + env)
 	}
 
-	return &Config{
-		App: AppConfig{
-			PasswordCost:       passwordCost,
-			RecaptchaSecretKey: LoadEnvOrFileContent("RECAPTCHA_SECRET_KEY", "RECAPTCHA_SECRET_KEY_FILE"),
-		},
-		Database: DatabaseConfig{
-			Host:        os.Getenv("DATABASE_HOST"),
-			Name:        os.Getenv("DATABASE_NAME"),
-			Password:    LoadEnvOrFileContent("DATABASE_PASSWORD", "DATABASE_PASSWORD_FILE"),
-			Port:        os.Getenv("DATABASE_PORT"),
-			SslDisabled: sslDisabled > 0,
-			TimeZone:    os.Getenv("DATABASE_TIMEZONE"),
-			Username:    os.Getenv("DATABASE_USERNAME"),
-		},
-		Http: HttpConfig{
-			DefaultRedirectURL: os.Getenv("HTTP_DEFAULT_REDIRECT_URL"),
-			Jwt: JwtConfig{
-				Issuer:   os.Getenv("JWT_ISSUER"),
-				Lifespan: lifespan,
-				Secret:   LoadEnvOrFileContent("JWT_SECRET", "JWT_SECRET_FILE"),
-			},
-			ListeningAddress: os.Getenv("HTTP_LISTENING_ADDRESS"),
-			RedirectDomain:   os.Getenv("HTTP_REDIRECT_DOMAIN"),
-			RegisterDomain:   os.Getenv("HTTP_REGISTER_DOMAIN"),
-			TrustedProxies:   trustProxies,
-		},
-	}
-}
-
-func LoadEnvOrFileContent(envKey string, envFileKey string) string {
-	fileValue := os.Getenv(envFileKey)
-	if len(fileValue) != 0 {
-		content, err := ReadFile(&fileValue)
+	// Load secret files, if provided
+	if len(config.App.RecaptchaSecretKey) == 0 && len(config.App.RecaptchaSecretKeyFile) != 0 {
+		content, err := ReadFile(&config.App.RecaptchaSecretKeyFile)
 		if len(content) > 0 && err == nil {
-			return content
+			config.App.RecaptchaSecretKey = content
 		}
 	}
 
-	return os.Getenv(envKey)
+	if len(config.Database.Password) == 0 && len(config.Database.PasswordFile) != 0 {
+		content, err := ReadFile(&config.Database.PasswordFile)
+		if len(content) > 0 && err == nil {
+			config.Database.Password = content
+		}
+	}
+
+	if len(config.Http.Jwt.Secret) == 0 && len(config.Http.Jwt.SecretFile) != 0 {
+		content, err := ReadFile(&config.Http.Jwt.SecretFile)
+		if len(content) > 0 && err == nil {
+			config.Http.Jwt.Secret = content
+		}
+	}
+
+	return
 }
 
 func (c *Config) Validate() error {
-	if c.Http.Jwt.Lifespan == 0 {
+	if c.App.PasswordCost == 0 {
 		return errors.New("password cost must be greater than zero")
 	}
 
