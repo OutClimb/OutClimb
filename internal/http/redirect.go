@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
@@ -76,7 +77,7 @@ func (h *httpLayer) deleteRedirect(c *gin.Context) {
 }
 
 func (h *httpLayer) redirect(c *gin.Context) {
-	path := c.Param("path")
+	path := strings.Trim(c.Param("path"), "/")
 
 	if redirect, err := h.app.FindRedirect(path); err != nil {
 		c.Redirect(http.StatusTemporaryRedirect, h.config.DefaultRedirectURL)
