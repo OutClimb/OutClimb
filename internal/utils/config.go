@@ -25,6 +25,28 @@ import (
 	"github.com/spf13/viper"
 )
 
+var EnvironmentVariables = []string{
+	"OC_PASSWORD_COST",
+	"OC_RECAPTCHA_SECRET_KEY",
+	"OC_RECAPTCHA_SECRET_KEY_FILE",
+	"OC_DATABASE_HOST",
+	"OC_DATABASE_NAME",
+	"OC_DATABASE_PASSWORD",
+	"OC_DATABASE_PASSWORD_FILE",
+	"OC_DATABASE_PORT",
+	"OC_DATABASE_PARAMS",
+	"OC_DATABASE_USERNAME",
+	"OC_DEFAULT_REDIRECT_URL",
+	"OC_LISTENING_ADDRESS",
+	"OC_REDIRECT_DOMAIN",
+	"OC_REGISTER_DOMAIN",
+	"OC_TRUSTED_PROXIES",
+	"OC_JWT_ISSUER",
+	"OC_JWT_LIFESPAN",
+	"OC_JWT_SECRET",
+	"OC_JWT_SECRET_FILE",
+}
+
 type AppConfig struct {
 	PasswordCost           int    `mapstructure:"OC_PASSWORD_COST"`
 	RecaptchaSecretKey     string `mapstructure:"OC_RECAPTCHA_SECRET_KEY"`
@@ -70,7 +92,17 @@ func LoadConfig(env string) (config Config) {
 	viper.AddConfigPath("./configs/")
 	viper.SetConfigName(env)
 	viper.SetConfigType("env")
-	viper.SetEnvPrefix("oc")
+
+	for _, env := range EnvironmentVariables {
+		if err := viper.BindEnv(env); err != nil {
+			slog.Error(
+				"Issue when binding environment variable",
+				"env", env,
+				"error", err,
+			)
+		}
+	}
+
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
