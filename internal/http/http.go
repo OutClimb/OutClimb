@@ -18,12 +18,13 @@
 package http
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/utils"
+	ginSlog "github.com/gin-contrib/slog"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,11 +34,11 @@ type httpLayer struct {
 	engine *gin.Engine
 }
 
-func New(appLayer app.AppLayer, config *utils.HttpConfig, env *string) *httpLayer {
-	if *env == "prod" {
-		gin.SetMode("release")
+func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer {
+	if env == "prod" {
+		gin.SetMode(gin.ReleaseMode)
 	} else {
-		gin.SetMode("debug")
+		gin.SetMode(gin.DebugMode)
 	}
 
 	h := &httpLayer{
@@ -46,10 +47,16 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env *string) *httpLaye
 		engine: gin.New(),
 	}
 
+	h.engine.Use(ginSlog.SetLogger())
+
 	if len(config.TrustedProxies) > 0 {
 		err := h.engine.SetTrustedProxies(config.TrustedProxies)
 		if err != nil {
-			log.Print("Error while setting trusted proxies: " + err.Error())
+			slog.Error(
+				"Unable to set trusted proxy",
+				"trustedProxy", config.TrustedProxies,
+				"error", err,
+			)
 		}
 	}
 
@@ -108,6 +115,10 @@ func (h *httpLayer) setupV1ApiRoutes() {
 func (h *httpLayer) Run() {
 	err := h.engine.Run(h.config.ListeningAddress)
 	if err != nil {
-		log.Fatal("Error while calling run on gin framework: " + err.Error())
+		slog.Error(
+			"Issue while running Gin",
+			"listeningAddress", h.config.ListeningAddress,
+			"error", err,
+		)
 	}
 }

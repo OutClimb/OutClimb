@@ -18,7 +18,8 @@
 package store
 
 import (
-	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/utils"
@@ -59,7 +60,15 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 
 	db, err := gorm.Open(postgres.Open(dsn))
 	if err != nil {
-		log.Fatal("Error: Unable to connect to database", err)
+		slog.Error(
+			"Unable to connect to database",
+			"databaseHost", databaseConfig.Host,
+			"databaseName", databaseConfig.Name,
+			"databasePort", databaseConfig.Port,
+			"databaseUser", databaseConfig.Username,
+			"error", err,
+		)
+		os.Exit(1)
 		return nil
 	}
 
@@ -71,11 +80,21 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 func (s *storeLayer) Migrate() {
 	err := s.db.AutoMigrate(&User{})
 	if err != nil {
-		log.Fatal("Error: There was an error while migrating the User table", err)
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "user",
+			"error", err,
+		)
+		os.Exit(1)
 	}
 
 	err = s.db.AutoMigrate(&Redirect{})
 	if err != nil {
-		log.Fatal("Error: There was an error while migrating the Redirect table", err)
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "redirect",
+			"error", err,
+		)
+		os.Exit(1)
 	}
 }

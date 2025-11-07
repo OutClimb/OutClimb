@@ -19,7 +19,8 @@ package utils
 
 import (
 	"errors"
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -63,60 +64,74 @@ type Config struct {
 }
 
 func LoadConfig(env string) (config Config) {
+	slog.Info("Loading config")
+
 	// Read config
 	viper.AddConfigPath("./configs/")
 	viper.SetConfigName(env)
 	viper.SetConfigType("env")
-
 	viper.SetEnvPrefix("oc")
-
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("Unable to load config for environment: " + env)
+		slog.Error("Unable to load config", "error", err)
+		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.App)
 	if err != nil {
-		log.Fatal("Unable to parse config for environment: " + env)
+		slog.Error("Unable to parse app config", "error", err)
+		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Database)
 	if err != nil {
-		log.Fatal("Unable to parse config for environment: " + env)
+		slog.Error("Unable to parse database config", "error", err)
+		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Http)
 	if err != nil {
-		log.Fatal("Unable to parse config for environment: " + env)
+		slog.Error("Unable to parse http config", "error", err)
+		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Http.Jwt)
 	if err != nil {
-		log.Fatal("Unable to parse config for environment: " + env)
+		slog.Error("Unable to parse http jwt config", "error", err)
+		os.Exit(1)
 	}
 
 	// Load secret files, if provided
 	if len(config.App.RecaptchaSecretKey) == 0 && len(config.App.RecaptchaSecretKeyFile) != 0 {
 		content, err := ReadFile(&config.App.RecaptchaSecretKeyFile)
 		if len(content) > 0 && err == nil {
+			slog.Info("Loaded secret file for Recpatcha Secret Key")
 			config.App.RecaptchaSecretKey = content
 		}
+	} else if env == "prod" {
+		slog.Warn("Loading the Recpatcha Secret Key through environment variables is not recommended in production")
 	}
 
 	if len(config.Database.Password) == 0 && len(config.Database.PasswordFile) != 0 {
 		content, err := ReadFile(&config.Database.PasswordFile)
 		if len(content) > 0 && err == nil {
+			slog.Info("Loaded secret file for Database Password")
 			config.Database.Password = content
 		}
+	} else if env == "prod" {
+		slog.Warn("Loading the Database Password through environment variables is not recommended in production")
 	}
 
 	if len(config.Http.Jwt.Secret) == 0 && len(config.Http.Jwt.SecretFile) != 0 {
 		content, err := ReadFile(&config.Http.Jwt.SecretFile)
 		if len(content) > 0 && err == nil {
+			slog.Info("Loaded secret file for JWT Secret")
 			config.Http.Jwt.Secret = content
 		}
+	} else if env == "prod" {
+		slog.Warn("Loading the JWT Secret through environment variables is not recommended in production")
 	}
 
 	return

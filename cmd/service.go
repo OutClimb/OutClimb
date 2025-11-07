@@ -18,8 +18,7 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/OutClimb/OutClimb/internal/app"
@@ -45,21 +44,28 @@ func runService(cmd *cobra.Command, args []string) {
 		env = "local"
 	}
 
+	if env == "prod" {
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("env", env)
+		slog.SetDefault(logger)
+	} else {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil)).With("env", env)
+		slog.SetDefault(logger)
+	}
+
 	config := utils.LoadConfig(env)
-	fmt.Printf("%+v\n", config)
 
 	err := config.Validate()
 	if err != nil {
-		log.Fatal("Error while validating config: " + err.Error())
-		return
+		slog.Error("Unable to validate config", "error", err)
+		os.Exit(1)
 	}
 
 	storeLayer := store.New(&config.Database)
 
 	storeLayer.Migrate()
 
-	appLayer := app.New(storeLayer)
-	httpLayer := http.New(appLayer, &config.Http, &env)
+	appLayer := app.New(storeLayer, &config.App)
+	httpLayer := http.New(appLayer, &config.Http, env)
 
 	httpLayer.Run()
 }

@@ -19,9 +19,7 @@ package http
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -64,8 +62,7 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	userPublic := responses.UserPublic{}
 	userPublic.Publicize(user)
 
-	if token, err := CreateToken(user.ID, &userPublic, h.config.Jwt.Lifespan, c.ClientIP(), h.config.Jwt.Issuer, h.config.Jwt.Secret); err != nil {
-		log.Println(err.Error())
+	if token := CreateToken(user.ID, &userPublic, h.config.Jwt.Lifespan, c.ClientIP(), h.config.Jwt.Issuer, h.config.Jwt.Secret); token == "" {
 		c.JSON(http.StatusInternalServerError, responses.Error("Unable to create token"))
 		return
 	} else {
@@ -73,7 +70,7 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	}
 }
 
-func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp, issuer, secret string) (string, error) {
+func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp, issuer, secret string) string {
 	// Create the Claims
 	claims := middleware.JwtClaims{}
 	claims.Issuer = issuer
@@ -93,9 +90,10 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	if signedToken, err := token.SignedString([]byte(secret)); err != nil {
-		return "", errors.New("failed to sign token")
+		slog.Error("Failed to sign token", "username", user.Username, "error", err)
+		return ""
 	} else {
-		return signedToken, nil
+		return signedToken
 	}
 }
 
@@ -115,7 +113,7 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	// Get the authentication data
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
-		fmt.Printf("Error: Retrieving request body (%s)\n", err.Error())
+		slog.Error("Retrieving request body", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
@@ -124,7 +122,7 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	jsonMap := make(map[string]string)
 	err = json.Unmarshal(bodyAsByteArray, &jsonMap)
 	if err != nil {
-		fmt.Printf("Error: Parsing request body (%s)\n", err.Error())
+		slog.Error("Parsing request body", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Server Error"})
 		return
 	}

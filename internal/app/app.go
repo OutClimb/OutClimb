@@ -20,6 +20,7 @@ package app
 import (
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
+	"github.com/OutClimb/OutClimb/internal/utils"
 )
 
 type AppLayer interface {
@@ -36,11 +37,13 @@ type AppLayer interface {
 }
 
 type appLayer struct {
-	store store.StoreLayer
+	config *utils.AppConfig
+	store  store.StoreLayer
 }
 
-func New(storeLayer store.StoreLayer) *appLayer {
+func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 	return &appLayer{
-		store: storeLayer,
+		config: config,
+		store:  storeLayer,
 	}
 }

@@ -19,9 +19,8 @@ package app
 
 import (
 	"errors"
-	"os"
+	"log/slog"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
@@ -53,13 +52,9 @@ func (a *appLayer) GetUser(userId uint) (*models.UserInternal, error) {
 }
 
 func (a *appLayer) UpdatePassword(user *models.UserInternal, password string) error {
-	cost, err := strconv.Atoi(os.Getenv("PASSWORD_COST"))
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
 	if err != nil {
-		return errors.New("unknown cost")
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), cost)
-	if err != nil {
+		slog.Error("Failed to hash password", "username", user.Username, "error", err)
 		return errors.New("failed to hash password")
 	}
 
