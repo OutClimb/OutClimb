@@ -10,7 +10,7 @@ RUN apk -U upgrade
 RUN go mod download && go mod verify
 RUN go build -v -o /app/outclimb main.go
 
-FROM node:lts AS outclimb-fe-builder
+FROM node:lts-alpine AS outclimb-fe-builder
 
 COPY . /app
 WORKDIR /app
