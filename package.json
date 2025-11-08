@@ -17,13 +17,25 @@
     "packages/*"
   ],
   "scripts": {
+    "build": "npm run build --workspaces",
+    "build:manager": "npm run build --workspace=@outclimb/manager",
+    "dev": "npm run dev --workspaces",
+    "dev:manager": "npm run dev --workspace=@outclimb/manager",
     "format": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "preview": "npm run preview --workspaces",
+    "preview:manager": "npm run preview --workspace=@outclimb/manager"
   },
   "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vue-tsc": "^3.1.0"
   },
   "lint-staged": {
     "packages/**/*.{css,html,js,jsx,scss,ts,tsx}": [
