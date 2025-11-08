@@ -20,6 +20,8 @@ package http
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
@@ -64,6 +66,16 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 	h.setupV1ApiRoutes()
 
 	h.engine.NoRoute(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/manage/") {
+			indexData, err := os.ReadFile("./web/manager/index.html")
+			if err != nil {
+				panic(err)
+			}
+
+			c.Data(http.StatusOK, "text/html", indexData)
+			return
+		}
+
 		c.Redirect(http.StatusTemporaryRedirect, config.DefaultRedirectURL)
 	})
 
@@ -73,7 +85,7 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
-	h.engine.Static("/manage", "./assets/manage")
+	h.engine.Static("/manage", "./web/manager")
 
 	redirect := h.engine.Group("/b")
 	{

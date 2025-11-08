@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("auth", () => {
     }
 
     const claims = jwtDecode<JwtClaims>(token.value);
-    return claims.user;
+    return claims.usr;
   });
 
   const router = useRouter();
@@ -24,7 +24,29 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function login(username: string, password: string) {
+    const response = await fetch("/api/v1/token", {
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const newToken = await response.text();
+    token.value = newToken;
+    localStorage.setItem("token", newToken);
+  }
+
   return {
+    login,
     logout,
     token,
     user,

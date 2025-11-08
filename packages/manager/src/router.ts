@@ -48,13 +48,12 @@ const routes = [
 ];
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory("/manage"),
   routes,
 });
 
 router.beforeEach((to, _, next) => {
   const { token, logout } = useAuthStore();
-  console.log(token);
 
   if (to.path === "/" && token) {
     logout(false);

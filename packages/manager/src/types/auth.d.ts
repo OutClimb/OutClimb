@@ -1,13 +1,13 @@
 import { type JwtPayload } from "jwt-decode";
 
 export interface User {
-  username: string;
-  role: string;
-  name: string;
-  email: string;
-  requirePasswordReset: boolean;
+  un: string;
+  r: string;
+  n: string;
+  e: string;
+  pr: boolean;
 }
 
 export interface JwtClaims extends JwtPayload {
-  user: User;
+  usr: User;
 }
