@@ -12,5 +12,12 @@
   "bugs": {
     "url": "https://github.com/OutClimb/OutClimb/issues"
   },
-  "homepage": "https://github.com/OutClimb/OutClimb#readme"
+  "homepage": "https://github.com/OutClimb/OutClimb#readme",
+  "scripts": {
+    "build": "echo 'TODO'",
+    "dev": "echo 'TODO'",
+    "format": "prettier --check ./src",
+    "format:fix": "prettier --write ./src",
+    "preview": "echo 'TODO'"
+  }
 }
