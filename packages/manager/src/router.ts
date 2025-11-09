@@ -22,12 +22,12 @@ const routes = [
   },
   {
     path: "/form",
-    components: FormView,
+    component: FormView,
     meta: { requiresAuth: true },
   },
   {
     path: "/form/:formId",
-    components: FormDetailView,
+    component: FormDetailView,
     meta: { requiresAuth: true },
   },
   {
