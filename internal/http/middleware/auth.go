@@ -51,7 +51,7 @@ func Auth(config *utils.HttpConfig, role string, resetAllowed bool) gin.HandlerF
 			return
 		}
 
-		if !strings.HasPrefix("Bearer ", authorization) {
+		if !strings.HasPrefix(authorization, "Bearer ") {
 			c.JSON(http.StatusBadRequest, responses.Error("Bearer scheme required"))
 			c.Abort()
 			return
