@@ -6,7 +6,10 @@ import { useAuthStore } from "./auth.store";
 export const useRedirectStore = defineStore("redirect", () => {
   const authStore = useAuthStore();
   const map = ref<Record<number, Redirect>>({});
-  const list = ref<Redirect[]>([]);
+
+  const list = computed(() => {
+    return Object.values(map.value).sort((a, b) => a.startsOn - b.startsOn);
+  });
 
   const isEmpty = computed(() => {
     return list.value.length === 0;
@@ -70,7 +73,14 @@ export const useRedirectStore = defineStore("redirect", () => {
       throw new Error(await response.text());
     }
 
-    list.value = (await response.json()) as Redirect[];
+    const redirects = (await response.json()) as Redirect[];
+    map.value = redirects.reduce<Record<number, Redirect>>(
+      (newMap, redirect) => {
+        newMap[redirect.id] = redirect;
+        return newMap;
+      },
+      {},
+    );
   };
 
   const remove = async (id: number) => {
