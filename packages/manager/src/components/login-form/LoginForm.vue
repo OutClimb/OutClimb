@@ -25,7 +25,7 @@ import { useForm } from "vee-validate";
 import { useRouter } from "vue-router";
 import * as z from "zod";
 
-const { login } = useAuthStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const error = ref<string | null>(null);
@@ -46,7 +46,7 @@ const onSubmit = handleSubmit(async ({ username, password }) => {
   isLoading.value = true;
 
   try {
-    await login(username, password);
+    await authStore.login(username, password);
     router.push("/dashboard");
   } catch (e) {
     if (e instanceof Error) {
