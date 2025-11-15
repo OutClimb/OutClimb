@@ -1,14 +1,15 @@
-import { computed, reactive } from "vue";
+import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import type { Redirect } from "@/types/redirect";
 import { useAuthStore } from "./auth.store";
 
 export const useRedirectStore = defineStore("redirect", () => {
   const { token } = useAuthStore();
-  const redirectMap = reactive<Record<number, Redirect>>({});
+  const map = ref<Record<number, Redirect>>({});
+  const list = ref<Redirect[]>([]);
 
-  const redirects = computed(() => {
-    return Object.values(redirectMap);
+  const isEmpty = computed(() => {
+    return list.value.length === 0;
   });
 
   const create = async (
@@ -36,7 +37,7 @@ export const useRedirectStore = defineStore("redirect", () => {
     }
 
     const newRedirect = (await response.json()) as Redirect;
-    redirectMap[newRedirect.id] = newRedirect;
+    map.value[newRedirect.id] = newRedirect;
   };
 
   const get = async (id: number) => {
@@ -53,7 +54,7 @@ export const useRedirectStore = defineStore("redirect", () => {
     }
 
     const newRedirect = (await response.json()) as Redirect;
-    redirectMap[newRedirect.id] = newRedirect;
+    map.value[newRedirect.id] = newRedirect;
   };
 
   const getAll = async () => {
@@ -69,10 +70,7 @@ export const useRedirectStore = defineStore("redirect", () => {
       throw new Error(await response.text());
     }
 
-    const newRedirects = (await response.json()) as Redirect[];
-    newRedirects.forEach((redirect) => {
-      redirectMap[redirect.id] = redirect;
-    });
+    list.value = (await response.json()) as Redirect[];
   };
 
   const remove = async (id: number) => {
@@ -88,7 +86,7 @@ export const useRedirectStore = defineStore("redirect", () => {
       throw new Error(await response.text());
     }
 
-    delete redirectMap[id];
+    delete map.value[id];
   };
 
   const update = async (redirect: Redirect) => {
@@ -106,14 +104,16 @@ export const useRedirectStore = defineStore("redirect", () => {
     }
 
     const newRedirect = (await response.json()) as Redirect;
-    redirectMap[newRedirect.id] = newRedirect;
+    map.value[newRedirect.id] = newRedirect;
   };
 
   return {
     create,
     get,
     getAll,
-    redirects,
+    isEmpty,
+    list,
+    map,
     remove,
     update,
   };
