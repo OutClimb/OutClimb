@@ -6,13 +6,13 @@ import { useAuthStore } from "@/stores/auth.store";
 import { ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-const { logout } = useAuthStore();
+const authStore = useAuthStore();
 const route = useRoute();
 
 const isOpen = ref(false);
 
 const handleLogout = () => {
-  logout(true);
+  authStore.logout(true);
 };
 
 const toggleSidebar = () => {

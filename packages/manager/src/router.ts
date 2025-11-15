@@ -53,14 +53,14 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, _, next) => {
-  const { token, logout } = useAuthStore();
+  const authStore = useAuthStore();
 
-  if (to.path === "/" && token) {
-    logout(false);
+  if (to.path === "/" && authStore.token) {
+    authStore.logout(false);
   }
 
   if (to.meta.requiresAuth) {
-    if (token) {
+    if (authStore.token) {
       next();
     } else {
       next("/");

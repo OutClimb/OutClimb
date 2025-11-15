@@ -4,7 +4,7 @@ import type { Redirect } from "@/types/redirect";
 import { useAuthStore } from "./auth.store";
 
 export const useRedirectStore = defineStore("redirect", () => {
-  const { token } = useAuthStore();
+  const authStore = useAuthStore();
   const map = ref<Record<number, Redirect>>({});
   const list = ref<Redirect[]>([]);
 
@@ -26,7 +26,7 @@ export const useRedirectStore = defineStore("redirect", () => {
         toUrl,
       }),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
       },
       method: "POST",
@@ -43,7 +43,7 @@ export const useRedirectStore = defineStore("redirect", () => {
   const get = async (id: number) => {
     const response = await fetch(`/api/v1/redirect/${id}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
       },
       method: "GET",
@@ -60,7 +60,7 @@ export const useRedirectStore = defineStore("redirect", () => {
   const getAll = async () => {
     const response = await fetch("/api/v1/redirect", {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
       },
       method: "GET",
@@ -76,7 +76,7 @@ export const useRedirectStore = defineStore("redirect", () => {
   const remove = async (id: number) => {
     const response = await fetch(`/api/v1/redirect/${id}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
       },
       method: "DELETE",
@@ -93,7 +93,7 @@ export const useRedirectStore = defineStore("redirect", () => {
     const response = await fetch(`/api/v1/redirect/${redirect.id}`, {
       body: JSON.stringify(redirect),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authStore.token}`,
         "Content-Type": "application/json",
       },
       method: "PUT",
