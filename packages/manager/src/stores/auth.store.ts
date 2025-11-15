@@ -1,7 +1,7 @@
 import type { JwtClaims } from "@/types/auth";
 import { jwtDecode } from "jwt-decode";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 export const useAuthStore = defineStore("auth", () => {
