@@ -5,7 +5,19 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref(localStorage.getItem("token"));
+  const token = computed({
+    get() {
+      return localStorage.getItem("token");
+    },
+    set(newValue) {
+      if (newValue === null) {
+        localStorage.removeItem("token");
+      } else {
+        localStorage.setItem("token", newValue);
+      }
+    },
+  });
+
   const user = computed(() => {
     if (!token.value) {
       return null;
@@ -18,7 +30,6 @@ export const useAuthStore = defineStore("auth", () => {
   const router = useRouter();
   function logout(redirect: boolean = true) {
     token.value = null;
-    localStorage.removeItem("token");
     if (redirect) {
       router.push("/");
     }
@@ -42,7 +53,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     const newToken = await response.text();
     token.value = newToken;
-    localStorage.setItem("token", newToken);
   }
 
   return {
