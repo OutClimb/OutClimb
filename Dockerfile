@@ -39,7 +39,11 @@ COPY --from=outclimb-builder /app/README.md /app/README.md
 # Copy the frontend files
 COPY --from=outclimb-fe-builder /app/web/manager /app/web/manager
 
-# Install Curl for health checks
-RUN apk --no-cache add curl
+# Install Curl for health checks and tzdata to set timezone
+RUN apk --no-cache add curl tzdata
+
+# Set the timezone to be Central Time
+RUN ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
+RUN echo "America/Chicago" > /etc/timezone
 
 ENTRYPOINT ["/app/outclimb", "service"]
