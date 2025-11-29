@@ -27,7 +27,7 @@
     "preview:manager": "npm run preview --workspace=@outclimb/manager"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "husky": "^9.1.7",
