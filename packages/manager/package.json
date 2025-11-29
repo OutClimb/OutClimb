@@ -41,6 +41,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "vite-plugin-vue-devtools": "^8.0.3"
+    "vite-plugin-vue-devtools": "^8.0.5"
   }
 }
