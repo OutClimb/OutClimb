@@ -29,7 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
-    "lucide-vue-next": "^0.553.0",
+    "lucide-vue-next": "^0.555.0",
     "pinia": "^3.0.4",
     "reka-ui": "^2.6.0",
     "tailwind-merge": "^3.4.0",
