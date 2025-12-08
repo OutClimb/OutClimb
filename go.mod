@@ -6,7 +6,7 @@ require (
 	github.com/gin-contrib/slog v1.2.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.org/x/crypto v0.45.0
 	gorm.io/driver/postgres v1.6.0
