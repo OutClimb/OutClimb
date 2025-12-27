@@ -43,6 +43,7 @@ const { isFieldDirty, handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async ({ username, password }) => {
+  error.value = null;
   isLoading.value = true;
 
   try {
@@ -72,7 +73,7 @@ const onSubmit = handleSubmit(async ({ username, password }) => {
       <CardContent class="space-y-4">
         <Alert v-if="error" variant="destructive">
           <AlertCircle class="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{{ error }}</AlertDescription>
         </Alert>
 
         <FormField

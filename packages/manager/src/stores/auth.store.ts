@@ -48,7 +48,8 @@ export const useAuthStore = defineStore("auth", () => {
     });
 
     if (!response.ok) {
-      throw new Error(await response.text());
+      const data = await response.json();
+      throw new Error(data.error);
     }
 
     const newToken = await response.text();

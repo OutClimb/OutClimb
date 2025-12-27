@@ -11,8 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { storeToRefs } from "pinia";
 
 const redirectStore = useRedirectStore();
+const { isEmpty, list } = storeToRefs(redirectStore);
 
 const isLoading = ref(true);
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -44,10 +46,7 @@ const handleDelete = (_id: number) => {};
   </header>
   <div class="rounded-lg border shadow-sm"></div>
   <div class="overflow-x-auto">
-    <div
-      v-if="redirectStore.isEmpty"
-      class="flex items-center justify-center h-32"
-    >
+    <div v-if="isEmpty" class="flex items-center justify-center h-32">
       <p class="text-gray-500">No redirects yet.</p>
     </div>
     <Table v-else>
@@ -61,7 +60,7 @@ const handleDelete = (_id: number) => {};
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="redirect in redirectStore.list" :key="redirect.id">
+        <TableRow v-for="redirect in list" :key="redirect.id">
           <TableCell>{{ redirect.fromPath }}</TableCell>
           <TableCell>{{ redirect.toUrl }}</TableCell>
           <TableCell v-if="redirect.startsOn === 0">-</TableCell>
