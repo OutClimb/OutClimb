@@ -62,16 +62,16 @@ func Auth(config *utils.HttpConfig, role string, resetAllowed bool) gin.HandlerF
 		})
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
+			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims, ok := token.Claims.(*JwtClaims); !ok {
-			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
+			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims.Audience != c.ClientIP() {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else if userId, err := strconv.Atoi(claims.Subject); err != nil {
-			c.JSON(http.StatusBadRequest, responses.Error("Invalid token"))
+			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims.User.Role != role {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))

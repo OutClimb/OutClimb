@@ -24,10 +24,20 @@ import (
 )
 
 func (a *appLayer) CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
-	startsOnTime := time.UnixMilli(startsOn)
-	stopsOnTime := time.UnixMilli(stopsOn)
+	var startsOnTime *time.Time = nil
+	var stopsOnTime *time.Time = nil
 
-	if redirect, err := a.store.CreateRedirect(user.Username, fromPath, toUrl, &startsOnTime, &stopsOnTime); err != nil {
+	if startsOn > 0 {
+		startsOnTimeVal := time.UnixMilli(startsOn)
+		startsOnTime = &startsOnTimeVal
+	}
+
+	if stopsOn > 0 {
+		stopsOnTimeVal := time.UnixMilli(stopsOn)
+		stopsOnTime = &stopsOnTimeVal
+	}
+
+	if redirect, err := a.store.CreateRedirect(user.Username, fromPath, toUrl, startsOnTime, stopsOnTime); err != nil {
 		return &models.RedirectInternal{}, err
 	} else {
 		redirectInternal := models.RedirectInternal{}
@@ -81,10 +91,20 @@ func (a *appLayer) GetAllRedirects() (*[]models.RedirectInternal, error) {
 }
 
 func (a *appLayer) UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
-	startsOnTime := time.UnixMilli(startsOn)
-	stopsOnTime := time.UnixMilli(stopsOn)
+	var startsOnTime *time.Time = nil
+	var stopsOnTime *time.Time = nil
 
-	if redirect, err := a.store.UpdateRedirect(id, user.Username, fromPath, toUrl, &startsOnTime, &stopsOnTime); err != nil {
+	if startsOn > 0 {
+		startsOnTimeVal := time.UnixMilli(startsOn)
+		startsOnTime = &startsOnTimeVal
+	}
+
+	if stopsOn > 0 {
+		stopsOnTimeVal := time.UnixMilli(stopsOn)
+		stopsOnTime = &stopsOnTimeVal
+	}
+
+	if redirect, err := a.store.UpdateRedirect(id, user.Username, fromPath, toUrl, startsOnTime, stopsOnTime); err != nil {
 		return &models.RedirectInternal{}, err
 	} else {
 		redirectInternal := models.RedirectInternal{}
