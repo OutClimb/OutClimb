@@ -16,6 +16,7 @@
   "homepage": "https://github.com/OutClimb/OutClimb#readme",
   "scripts": {
     "build": "tsc -b && vite build",
+    "build:watch": "tsc -b && vite build --watch --mode dev",
     "dev": "vite",
     "format": "prettier ./src",
     "format:fix": "prettier --write ./src",
