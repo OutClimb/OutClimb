@@ -24,6 +24,7 @@ export interface EventSocialImageFieldsProps {
   location: string
   address: string
   description: string
+  disabled: boolean
   onChange: (data: EventSocialImageFormData) => void
 }
 
@@ -74,10 +75,10 @@ const DEFAULT_TIMES: Record<string, { startTime: string; endTime: string }> = {
 }
 
 const DEFAULT_DESCRIPTIONS: Record<string, string> = {
-  BIB: 'All events are FREE to gym members.\n\nWe do not have any specific discounts, but day passes are buy one get\none free on Tuesdays. Rentals are not included and are $5 (+tax) for\nshoes.\n\nVisit OutClimb.gay for more information.',
-  MBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at MBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning climbers,\nwhich includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
-  MNCC: 'Free open-climbing for LGBTQ+ identifying folks.\n\nFree snacks and non-alcoholic beverages are provided.\n\nBecause space is limited, registration is required. Visit OutClimb.gay\nfor more information.',
-  SPBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at SPBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning climbers,\nwhich includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
+  BIB: 'All events are FREE to gym members.\n\nWe do not have any specific discounts, but day passes are buy\none get one free on Tuesdays. Rentals are not included and are\n$5 (+tax) for shoes.\n\nVisit OutClimb.gay for more information.',
+  MBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at\nMBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning\nclimbers, which includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
+  MNCC: 'Free open-climbing for LGBTQ+ identifying folks.\n\nFree snacks and non-alcoholic beverages are provided.\n\nBecause space is limited, registration is required. Visit\nOutClimb.gay for more information.',
+  SPBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at\nSPBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning\nclimbers, which includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
   TCB: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes rentals.\n\nVisit OutClimb.gay for more information.',
   VEB: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes and harness rentals.\n\nVisit OutClimb.gay for more information.',
   VEM: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes and harness rentals.\n\nVisit OutClimb.gay for more information.',
@@ -94,6 +95,7 @@ export function EventSocialImageFields({
   startTime,
   endTime,
   description,
+  disabled,
   onChange,
 }: EventSocialImageFieldsProps) {
   const handleLocationChange = useCallback(
@@ -196,7 +198,7 @@ export function EventSocialImageFields({
       <div className="mb-4">
         <Field>
           <FieldLabel>Location</FieldLabel>
-          <Select value={location} onValueChange={handleLocationChange} required>
+          <Select value={location} disabled={disabled} onValueChange={handleLocationChange} required>
             <SelectTrigger>
               <SelectValue placeholder="Select the location for the event" />
             </SelectTrigger>
@@ -217,7 +219,14 @@ export function EventSocialImageFields({
       <div className="mb-4">
         <Field>
           <FieldLabel>Address</FieldLabel>
-          <Textarea value={address} name="address" rows={2} onChange={handleAddressChange} required />
+          <Textarea
+            value={address}
+            name="address"
+            rows={2}
+            disabled={disabled}
+            onChange={handleAddressChange}
+            required
+          />
         </Field>
       </div>
 
@@ -229,6 +238,7 @@ export function EventSocialImageFields({
               <Button
                 variant="outline"
                 data-empty={!day}
+                disabled={disabled}
                 className="data-[empty=true]:text-muted-foreground w-70 justify-start text-left font-normal">
                 <CalendarIcon />
                 {day ? format(day, 'PPP') : <span>Pick a date</span>}
@@ -253,19 +263,40 @@ export function EventSocialImageFields({
       <div className="flex mb-4 gap-4">
         <Field>
           <FieldLabel>Start Time</FieldLabel>
-          <Input name="startTime" type="text" value={startTime} onChange={handleStartTimeChange} required />
+          <Input
+            name="startTime"
+            type="text"
+            value={startTime}
+            disabled={disabled}
+            onChange={handleStartTimeChange}
+            required
+          />
         </Field>
 
         <Field>
           <FieldLabel>End Time</FieldLabel>
-          <Input name="startTime" type="text" value={endTime} onChange={handleEndTimeChange} required />
+          <Input
+            name="startTime"
+            type="text"
+            value={endTime}
+            disabled={disabled}
+            onChange={handleEndTimeChange}
+            required
+          />
         </Field>
       </div>
 
       <div className="mb-4">
         <Field>
           <FieldLabel>Description</FieldLabel>
-          <Textarea value={description} name="description" rows={12} onChange={handleAddressChange} required />
+          <Textarea
+            value={description}
+            name="description"
+            rows={12}
+            disabled={disabled}
+            onChange={handleAddressChange}
+            required
+          />
         </Field>
       </div>
     </CardContent>

@@ -10,10 +10,17 @@ export interface GeneralSocialImageFieldsProps {
   month: number
   year: number
   numberOfEvents: number
+  disabled: boolean
   onChange: (data: GeneralSocialImageFormData) => void
 }
 
-export function GeneralSocialImageFields({ month, year, numberOfEvents, onChange }: GeneralSocialImageFieldsProps) {
+export function GeneralSocialImageFields({
+  month,
+  year,
+  numberOfEvents,
+  disabled,
+  onChange,
+}: GeneralSocialImageFieldsProps) {
   const handleMonthChange = useCallback(
     (value: string) => {
       onChange({
@@ -52,7 +59,7 @@ export function GeneralSocialImageFields({ month, year, numberOfEvents, onChange
       <div className="mb-4">
         <Field>
           <FieldLabel>Month</FieldLabel>
-          <Select value={month.toString()} onValueChange={handleMonthChange}>
+          <Select value={month.toString()} disabled={disabled} onValueChange={handleMonthChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select the month" />
             </SelectTrigger>
@@ -77,7 +84,7 @@ export function GeneralSocialImageFields({ month, year, numberOfEvents, onChange
       <div className="mb-4">
         <Field>
           <FieldLabel>Year</FieldLabel>
-          <Select value={year.toString()} onValueChange={handleYearChange}>
+          <Select value={year.toString()} disabled={disabled} onValueChange={handleYearChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select the year" />
             </SelectTrigger>
@@ -98,7 +105,10 @@ export function GeneralSocialImageFields({ month, year, numberOfEvents, onChange
       <div className="mb-4">
         <Field>
           <FieldLabel>Number of Events</FieldLabel>
-          <Select value={numberOfEvents === 0 ? '' : numberOfEvents.toString()} onValueChange={handleEventNumberChange}>
+          <Select
+            value={numberOfEvents === 0 ? '' : numberOfEvents.toString()}
+            disabled={disabled}
+            onValueChange={handleEventNumberChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select the number of events for the month" />
             </SelectTrigger>

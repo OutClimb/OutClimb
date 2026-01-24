@@ -4,12 +4,13 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardFooter } from '@/components/ui/card'
 import { createFileRoute } from '@tanstack/react-router'
+import { EventSocialImageFields } from '@/components/event-social-image-fields'
 import type { EventSocialImageFormData, GeneralSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
+import { GeneralSocialImageFields } from '@/components/general-social-image-fields'
 import { Header } from '@/components/header'
 import type React from 'react'
-import { useRef, useState } from 'react'
-import { GeneralSocialImageFields } from '@/components/general-social-image-fields'
-import { EventSocialImageFields } from '@/components/event-social-image-fields'
+import { useState } from 'react'
+import { generateSocialImages } from '@/lib/social-image'
 
 export const Route = createFileRoute('/manage/social')({
   component: Social,
@@ -24,7 +25,7 @@ export const Route = createFileRoute('/manage/social')({
 })
 
 function Social() {
-  const canvas = useRef(null)
+  const [loading, setLoading] = useState<boolean>(false)
   const [formData, setFormData] = useState<SocialImageFieldData>({
     month: new Date().getMonth() == 11 ? 0 : new Date().getMonth() + 1,
     year: new Date().getMonth() == 11 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
@@ -50,6 +51,9 @@ function Social() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    await generateSocialImages(formData)
+    setLoading(false)
   }
 
   const handleGeneralFieldChange = (data: GeneralSocialImageFormData) => {
@@ -80,6 +84,7 @@ function Social() {
             month={formData.month}
             year={formData.year}
             numberOfEvents={formData.numberOfEvents}
+            disabled={loading}
             onChange={handleGeneralFieldChange}
           />
           {formData.events.map((event, index) => {
@@ -94,6 +99,7 @@ function Social() {
                 location={event.location}
                 address={event.address}
                 description={event.description}
+                disabled={loading}
                 onChange={(data) => {
                   handleEventFieldChange(index, data)
                 }}
@@ -108,8 +114,6 @@ function Social() {
           </CardFooter>
         </form>
       </Card>
-
-      <canvas className="hidden" ref={canvas}></canvas>
     </>
   )
 }
