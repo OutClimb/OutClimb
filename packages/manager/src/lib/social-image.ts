@@ -1,7 +1,7 @@
 import { BlobReader, BlobWriter, ZipWriter } from '@zip.js/zip.js'
 import type { EventSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
-import { getTime } from 'date-fns/getTime'
 import { format } from 'date-fns/format'
+import { getTime } from 'date-fns/getTime'
 
 interface ImageFile {
   name: string
@@ -26,14 +26,12 @@ function fillMultiLineText(ctx: CanvasRenderingContext2D, text: string, lineHeig
 }
 
 export async function generateSocialImages(data: SocialImageFieldData) {
-  const mainImageBlob = await generateMainImage()
-  console.log(mainImageBlob)
+  const mainImageBlob = await generateMainImage(data)
   const eventImageBlobs = await Promise.all(data.events.map((event, index) => generateEventImage(index + 1, event)))
-  console.log(eventImageBlobs)
   downloadBlob(await compressImages(mainImageBlob, ...eventImageBlobs))
 }
 
-async function generateMainImage(): Promise<ImageFile> {
+async function generateMainImage(data: SocialImageFieldData): Promise<ImageFile> {
   const canvas = document.createElement('canvas')
   canvas.width = 4500
   canvas.height = 5625
@@ -46,6 +44,27 @@ async function generateMainImage(): Promise<ImageFile> {
   // Draw the background
   const backgroundImage = await loadImage('/manage/images/main-image-bg.png')
   ctx.drawImage(backgroundImage, 0, 0)
+
+  // Draw the month and year
+  ctx.font = '700 147px Poppins'
+  const date = format(new Date(data.year, data.month), 'MMMM yyyy')
+  const dateMetrics = ctx.measureText(date)
+  const backgroundWidth = dateMetrics.width + 172 * 2
+
+  ctx.fillStyle = '#7374B7'
+  ctx.beginPath()
+  ctx.roundRect(4500 / 2 - backgroundWidth / 2, 331, backgroundWidth, 318, 159)
+  ctx.fill()
+
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillText(date, 4500 / 2 - dateMetrics.width / 2, 547)
+
+  // Draw the header
+  ctx.font = '700 333px Poppins'
+  ctx.fillStyle = '#7374B7'
+  const header = 'CLIMBING EVENTS'
+  const headerMetrics = ctx.measureText(header)
+  ctx.fillText(header, 4500 / 2 - headerMetrics.width / 2, 1068)
 
   // Generate the data URL
   const dataUrl = canvas.toDataURL('image/png')

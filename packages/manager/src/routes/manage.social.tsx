@@ -7,10 +7,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { EventSocialImageFields } from '@/components/event-social-image-fields'
 import type { EventSocialImageFormData, GeneralSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
 import { GeneralSocialImageFields } from '@/components/general-social-image-fields'
+import { generateSocialImages } from '@/lib/social-image'
 import { Header } from '@/components/header'
 import type React from 'react'
+import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
-import { generateSocialImages } from '@/lib/social-image'
 
 export const Route = createFileRoute('/manage/social')({
   component: Social,
@@ -108,8 +109,14 @@ function Social() {
           })}
 
           <CardFooter>
-            <Button className="px-6" type="submit">
-              Generate
+            <Button className="px-6" type="submit" disabled={loading}>
+              {loading && (
+                <>
+                  <Spinner /> Generating...
+                </>
+              )}
+
+              {!loading && <>Generate</>}
             </Button>
           </CardFooter>
         </form>

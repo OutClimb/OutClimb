@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from './ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { CardContent } from '@/components/ui/card'
+import type { EventSocialImageFormData } from '@/types/social-image'
 import { Field, FieldLabel } from './ui/field'
 import { format } from 'date-fns'
 import { Input } from './ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import type React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { useCallback } from 'react'
-import type { EventSocialImageFormData } from '@/types/social-image'
 import { Textarea } from './ui/textarea'
+import { useCallback } from 'react'
 
 export interface EventSocialImageFieldsProps {
   year: number
