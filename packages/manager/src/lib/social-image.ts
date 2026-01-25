@@ -19,6 +19,21 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
+function fillCenterAlignMultiLineText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  lineHeight: number,
+  x: number,
+  y: number,
+  w: number,
+) {
+  const lines = text.split('\n')
+  lines.forEach((line, index) => {
+    const lineWidth = ctx.measureText(line).width
+    ctx.fillText(line, x + (w / 2 - lineWidth / 2), y + lineHeight * index)
+  })
+}
+
 function fillMultiLineText(ctx: CanvasRenderingContext2D, text: string, lineHeight: number, x: number, y: number) {
   const lines = text.split('\n')
   lines.forEach((line, index) => {
@@ -27,14 +42,16 @@ function fillMultiLineText(ctx: CanvasRenderingContext2D, text: string, lineHeig
 }
 
 export async function generateSocialImages(data: SocialImageFieldData, locations: Array<Location>) {
-  const mainImageBlob = await generateMainImage(data)
+  const mainImageBlob = await generateMainImage(data, locations)
   const eventImageBlobs = await Promise.all(
-    data.events.map((event, index) => generateEventImage(index + 1, event, locations)),
+    data.events
+      .sort((a, b) => (a.day?.getTime() || 0) - (b.day?.getTime() || 0))
+      .map((event, index) => generateEventImage(index + 1, event, locations)),
   )
   downloadBlob(await compressImages(mainImageBlob, ...eventImageBlobs))
 }
 
-async function generateMainImage(data: SocialImageFieldData): Promise<ImageFile> {
+async function generateMainImage(data: SocialImageFieldData, locations: Array<Location>): Promise<ImageFile> {
   const canvas = document.createElement('canvas')
   canvas.width = 4500
   canvas.height = 5625
@@ -68,6 +85,57 @@ async function generateMainImage(data: SocialImageFieldData): Promise<ImageFile>
   const header = 'CLIMBING EVENTS'
   const headerMetrics = ctx.measureText(header)
   ctx.fillText(header, 4500 / 2 - headerMetrics.width / 2, 1068)
+
+  // Draw the events
+  const eventRowHeight = (5625 - 2469) / data.events.length
+  const eventRowY = 1399
+  data.events
+    .sort((a, b) => (a.day?.getTime() || 0) - (b.day?.getTime() || 0))
+    .forEach((event, index) => {
+      const location = locations.find((loc) => loc.id === event.location)
+      if (!location) {
+        return
+      }
+
+      const backgroundY = eventRowHeight / 2 - 366 / 2
+
+      // Draw the background
+      ctx.fillStyle = '#FFFFFF'
+      ctx.strokeStyle = '#7374B7'
+      ctx.lineWidth = 8
+      ctx.beginPath()
+      ctx.roundRect(1346, eventRowY + eventRowHeight * index + backgroundY, 2266, 366, 183)
+      ctx.fill()
+      ctx.stroke()
+
+      // Draw the date
+      if (event.day) {
+        ctx.fillStyle = '#7374B7'
+        ctx.font = '700 150px Poppins'
+        fillCenterAlignMultiLineText(
+          ctx,
+          `${format(event.day, 'iii').toUpperCase()}\n${format(event.day, 'M/d')}`,
+          179,
+          743,
+          eventRowY + eventRowHeight * index + backgroundY + 143,
+          603,
+        )
+      }
+
+      // Draw the name
+      ctx.fillStyle = '#7374B7'
+      ctx.font = '700 133px Poppins'
+      ctx.fillText(location.mainImageName, 1460, eventRowY + eventRowHeight * index + backgroundY + 170)
+
+      // Draw the time
+      ctx.fillStyle = '#7374B7'
+      ctx.font = '500 99px Poppins'
+      ctx.fillText(
+        `${event.startTime} - ${event.endTime}`,
+        1460,
+        eventRowY + eventRowHeight * index + backgroundY + 303,
+      )
+    })
 
   // Generate the data URL
   const dataUrl = canvas.toDataURL('image/png')
@@ -105,7 +173,7 @@ async function generateEventImage(
 
   // Set Header Font
   ctx.font = '700 327px Poppins'
-  fillMultiLineText(ctx, location.individualImageName, 395, 269, 547)
+  fillMultiLineText(ctx, location.individualImageName.toUpperCase(), 395, 269, 547)
 
   // Set Date/Time Font
   ctx.font = '700 146px Poppins'
