@@ -14,6 +14,7 @@ import { Route as ManageSocialRouteImport } from './routes/manage.social'
 import { Route as ManageResetRouteImport } from './routes/manage.reset'
 import { Route as ManageRedirectRouteImport } from './routes/manage.redirect'
 import { Route as ManageLoginRouteImport } from './routes/manage.login'
+import { Route as ManageLocationRouteImport } from './routes/manage.location'
 import { Route as ManageFormRouteImport } from './routes/manage.form'
 
 const ManageIndexRoute = ManageIndexRouteImport.update({
@@ -41,6 +42,11 @@ const ManageLoginRoute = ManageLoginRouteImport.update({
   path: '/manage/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageLocationRoute = ManageLocationRouteImport.update({
+  id: '/manage/location',
+  path: '/manage/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageFormRoute = ManageFormRouteImport.update({
   id: '/manage/form',
   path: '/manage/form',
@@ -49,6 +55,7 @@ const ManageFormRoute = ManageFormRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/manage/form': typeof ManageFormRoute
+  '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/manage/form': typeof ManageFormRoute
+  '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/manage/form': typeof ManageFormRoute
+  '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
@@ -74,12 +83,27 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/manage/form' | '/manage/login' | '/manage/redirect' | '/manage/reset' | '/manage/social' | '/manage'
+  fullPaths:
+    | '/manage/form'
+    | '/manage/location'
+    | '/manage/login'
+    | '/manage/redirect'
+    | '/manage/reset'
+    | '/manage/social'
+    | '/manage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/manage/form' | '/manage/login' | '/manage/redirect' | '/manage/reset' | '/manage/social' | '/manage'
+  to:
+    | '/manage/form'
+    | '/manage/location'
+    | '/manage/login'
+    | '/manage/redirect'
+    | '/manage/reset'
+    | '/manage/social'
+    | '/manage'
   id:
     | '__root__'
     | '/manage/form'
+    | '/manage/location'
     | '/manage/login'
     | '/manage/redirect'
     | '/manage/reset'
@@ -89,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   ManageFormRoute: typeof ManageFormRoute
+  ManageLocationRoute: typeof ManageLocationRoute
   ManageLoginRoute: typeof ManageLoginRoute
   ManageRedirectRoute: typeof ManageRedirectRoute
   ManageResetRoute: typeof ManageResetRoute
@@ -133,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/location': {
+      id: '/manage/location'
+      path: '/manage/location'
+      fullPath: '/manage/location'
+      preLoaderRoute: typeof ManageLocationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage/form': {
       id: '/manage/form'
       path: '/manage/form'
@@ -145,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   ManageFormRoute: ManageFormRoute,
+  ManageLocationRoute: ManageLocationRoute,
   ManageLoginRoute: ManageLoginRoute,
   ManageRedirectRoute: ManageRedirectRoute,
   ManageResetRoute: ManageResetRoute,

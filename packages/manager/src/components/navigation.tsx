@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { FileText, Image, LogOut, Menu, Waypoints, X } from 'lucide-react'
+import { FileText, Image, LogOut, MapPin, Menu, Waypoints, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import useUserStore from '@/stores/user'
@@ -33,6 +33,11 @@ export function Navigation() {
       title: 'Forms',
       href: '/manage/form',
       icon: FileText,
+    },
+    {
+      title: 'Event Locations',
+      href: '/manage/location',
+      icon: MapPin,
     },
     {
       title: 'Redirects',

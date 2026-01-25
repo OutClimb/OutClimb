@@ -13,81 +13,27 @@ import type React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Textarea } from './ui/textarea'
 import { useCallback } from 'react'
+import type { Location } from '@/types/location'
 
 export interface EventSocialImageFieldsProps {
   year: number
   month: number
+  locations: Array<Location>
   eventNumber: number
   day?: Date
   startTime: string
   endTime: string
-  location: string
+  location: number
   address: string
   description: string
   disabled: boolean
   onChange: (data: EventSocialImageFormData) => void
 }
 
-const DEFAULT_ADDRESSES: Record<string, string> = {
-  BIB: '161 Cheshire Ln # 500\nPlymouth, MN 55441',
-  MBP: '1433 West River Rd N\nMinneapolis, MN 55411',
-  MNCC: '1620 Central Ave NE #178\nMinneapolis, MN 55413',
-  SPBP: '42 W Water St\nSt Paul, MN 55107',
-  TCB: '2550 Wabash Ave\nSt Paul, MN 55114',
-  VEB: '9601 James Ave S\nBloomington, MN 55431',
-  VEM: '2540 Nicollet Ave\nMinneapolis, MN 55404',
-  VESP: '855 Phalen Blvd\nSt Paul, MN 55106',
-}
-
-const DEFAULT_TIMES: Record<string, { startTime: string; endTime: string }> = {
-  BIB: {
-    startTime: '7:00 PM',
-    endTime: '9:00 PM',
-  },
-  MBP: {
-    startTime: '7:00 PM',
-    endTime: '9:00 PM',
-  },
-  MNCC: {
-    startTime: '6:00 PM',
-    endTime: '9:00 PM',
-  },
-  SPBP: {
-    startTime: '7:00 PM',
-    endTime: '9:00 PM',
-  },
-  TCB: {
-    startTime: '6:00 PM',
-    endTime: '8:00 PM',
-  },
-  VEB: {
-    startTime: '6:00 PM',
-    endTime: '8:00 PM',
-  },
-  VEM: {
-    startTime: '6:00 PM',
-    endTime: '8:00 PM',
-  },
-  VESP: {
-    startTime: '6:00 PM',
-    endTime: '8:00 PM',
-  },
-}
-
-const DEFAULT_DESCRIPTIONS: Record<string, string> = {
-  BIB: 'All events are FREE to gym members.\n\nWe do not have any specific discounts, but day passes are buy\none get one free on Tuesdays. Rentals are not included and are\n$5 (+tax) for shoes.\n\nVisit OutClimb.gay for more information.',
-  MBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at\nMBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning\nclimbers, which includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
-  MNCC: 'Free open-climbing for LGBTQ+ identifying folks.\n\nFree snacks and non-alcoholic beverages are provided.\n\nBecause space is limited, registration is required. Visit\nOutClimb.gay for more information.',
-  SPBP: 'All events are FREE to gym members.\n\nFree day pass for your first time attending an OutClimb event at\nSPBP.\n\nFree day pass to individuals that align with both BIPOC and\nqueer/trans identities, just tell the front desk you would like a\nQTBIPOC pass.\n\nDiscounted day passes ($12+Tax) for all other returning\nclimbers, which includes shoes rentals.\n\nVisit OutClimb.gay for more information.',
-  TCB: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes rentals.\n\nVisit OutClimb.gay for more information.',
-  VEB: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes and harness rentals.\n\nVisit OutClimb.gay for more information.',
-  VEM: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes and harness rentals.\n\nVisit OutClimb.gay for more information.',
-  VESP: 'All events are FREE to gym members.\n\nFree day pass to Vertical Endeavors for your first time attending an\nOutClimb event.\n\nDiscounted day passes ($15+Tax) for returning climbers, which \nincludes shoes and harness rentals.\n\nVisit OutClimb.gay for more information.',
-}
-
 export function EventSocialImageFields({
   year,
   month,
+  locations,
   eventNumber,
   location,
   address,
@@ -100,28 +46,32 @@ export function EventSocialImageFields({
 }: EventSocialImageFieldsProps) {
   const handleLocationChange = useCallback(
     (value: string) => {
+      const locationId = parseInt(value, 10)
+      const oldLocation = locations.find((loc) => loc.id === location)
+      const newLocation = locations.find((loc) => loc.id === locationId)
+
       let newAddress = address
-      if (address === '' || address === DEFAULT_ADDRESSES[location]) {
-        newAddress = DEFAULT_ADDRESSES[value]
+      if (address === '' || address === oldLocation?.address) {
+        newAddress = newLocation?.address || ''
       }
 
       let newStartTime = startTime
       let newEndTime = endTime
       if (
         (startTime === '' && endTime === '') ||
-        (startTime === DEFAULT_TIMES[location]?.startTime && endTime === DEFAULT_TIMES[location]?.endTime)
+        (startTime === oldLocation?.startTime && endTime === oldLocation?.endTime)
       ) {
-        newStartTime = DEFAULT_TIMES[value].startTime
-        newEndTime = DEFAULT_TIMES[value].endTime
+        newStartTime = newLocation?.startTime || ''
+        newEndTime = newLocation?.endTime || ''
       }
 
       let newDescription = description
-      if (description === '' || description === DEFAULT_DESCRIPTIONS[location]) {
-        newDescription = DEFAULT_DESCRIPTIONS[value]
+      if (description === '' || description === oldLocation?.description) {
+        newDescription = newLocation?.description || ''
       }
 
       onChange({
-        location: value,
+        location: locationId,
         address: newAddress,
         day,
         startTime: newStartTime,
@@ -129,7 +79,7 @@ export function EventSocialImageFields({
         description: newDescription,
       })
     },
-    [onChange, day, startTime, endTime, location, address, description],
+    [onChange, locations, day, startTime, endTime, location, address, description],
   )
 
   const handleAddressChange = useCallback(
@@ -198,19 +148,16 @@ export function EventSocialImageFields({
       <div className="mb-4">
         <Field>
           <FieldLabel>Location</FieldLabel>
-          <Select value={location} disabled={disabled} onValueChange={handleLocationChange} required>
+          <Select value={location.toString()} disabled={disabled} onValueChange={handleLocationChange} required>
             <SelectTrigger>
               <SelectValue placeholder="Select the location for the event" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="BIB">Big Island Bouldering</SelectItem>
-              <SelectItem value="MBP">Minneapolis Bouldering Project</SelectItem>
-              <SelectItem value="MNCC">Minnesota Climbing Cooperative</SelectItem>
-              <SelectItem value="SPBP">Saint Paul Bouldering Project</SelectItem>
-              <SelectItem value="TCB">Twin Cities Bouldering</SelectItem>
-              <SelectItem value="VEB">Vertical Endeavors - Bloomington</SelectItem>
-              <SelectItem value="VEM">Vertical Endeavors - Minneapolis</SelectItem>
-              <SelectItem value="VESP">Vertical Endeavors - Saint Paul</SelectItem>
+              {locations.map((location) => (
+                <SelectItem key={location.id} value={location.id.toString()}>
+                  {location.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>

@@ -2,16 +2,22 @@
 
 import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
-import { Card, CardFooter } from '@/components/ui/card'
-import { createFileRoute } from '@tanstack/react-router'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { EventSocialImageFields } from '@/components/event-social-image-fields'
 import type { EventSocialImageFormData, GeneralSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
+import { fetchLocations } from '@/api/location'
 import { GeneralSocialImageFields } from '@/components/general-social-image-fields'
 import { generateSocialImages } from '@/lib/social-image'
 import { Header } from '@/components/header'
+import { MapPin } from 'lucide-react'
 import type React from 'react'
 import { Spinner } from '@/components/ui/spinner'
-import { useState } from 'react'
+import { UnauthorizedError } from '@/errors/unauthorized'
+import { useEffect, useMemo, useState } from 'react'
+import useLocationStore from '@/stores/location'
+import useUserStore from '@/stores/user'
 
 export const Route = createFileRoute('/manage/social')({
   component: Social,
@@ -26,13 +32,57 @@ export const Route = createFileRoute('/manage/social')({
 })
 
 function Social() {
-  const [loading, setLoading] = useState<boolean>(false)
+  const navigate = useNavigate()
+  const { token } = useUserStore()
+  const { data, isEmpty, populate } = useLocationStore()
+
+  const [isHydrated, setIsHydrated] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isGenerating, setIsGenerating] = useState<boolean>(false)
   const [formData, setFormData] = useState<SocialImageFieldData>({
     month: new Date().getMonth() == 11 ? 0 : new Date().getMonth() + 1,
     year: new Date().getMonth() == 11 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
     numberOfEvents: 0,
     events: [],
   })
+
+  useEffect(() => {
+    const fetchLocationsFromApi = async () => {
+      setIsLoading(true)
+
+      try {
+        const locations = await fetchLocations(token || '')
+        populate(locations)
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          navigate({ to: '/manage/login' })
+        } else {
+          // Display error
+        }
+      } finally {
+        setIsHydrated(true)
+        setIsLoading(false)
+      }
+    }
+
+    if (!isHydrated) {
+      fetchLocationsFromApi()
+    }
+  })
+
+  const sortedLocationList = useMemo(() => {
+    return Object.values(data).sort((a, b) => {
+      if (a.name.toUpperCase() < b.name.toUpperCase()) {
+        return -1
+      }
+
+      if (a.name.toUpperCase() > b.name.toUpperCase()) {
+        return 1
+      }
+
+      return 0
+    })
+  }, [data])
 
   if (formData.events.length != formData.numberOfEvents) {
     setFormData({
@@ -42,7 +92,7 @@ function Social() {
           day: undefined,
           startTime: '',
           endTime: '',
-          location: '',
+          location: 0,
           address: '',
           description: '',
         }
@@ -52,9 +102,9 @@ function Social() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    await generateSocialImages(formData)
-    setLoading(false)
+    setIsGenerating(true)
+    await generateSocialImages(formData, sortedLocationList)
+    setIsGenerating(false)
   }
 
   const handleGeneralFieldChange = (data: GeneralSocialImageFormData) => {
@@ -80,46 +130,73 @@ function Social() {
       <Header>Social Images</Header>
 
       <Card>
-        <form onSubmit={handleSubmit}>
-          <GeneralSocialImageFields
-            month={formData.month}
-            year={formData.year}
-            numberOfEvents={formData.numberOfEvents}
-            disabled={loading}
-            onChange={handleGeneralFieldChange}
-          />
-          {formData.events.map((event, index) => {
-            return (
-              <EventSocialImageFields
-                year={formData.year}
-                month={formData.month}
-                eventNumber={index + 1}
-                day={event.day}
-                startTime={event.startTime}
-                endTime={event.endTime}
-                location={event.location}
-                address={event.address}
-                description={event.description}
-                disabled={loading}
-                onChange={(data) => {
-                  handleEventFieldChange(index, data)
-                }}
-              />
-            )
-          })}
+        {isLoading && (
+          <CardContent className="p-0">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Spinner />
+                </EmptyMedia>
+                <EmptyTitle>Loading locations...</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          </CardContent>
+        )}
 
-          <CardFooter>
-            <Button className="px-6" type="submit" disabled={loading}>
-              {loading && (
-                <>
-                  <Spinner /> Generating...
-                </>
-              )}
+        {!isLoading && isEmpty() && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MapPin />
+              </EmptyMedia>
+              <EmptyTitle>No event locations added yet, please add some before generating social images.</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        )}
 
-              {!loading && <>Generate</>}
-            </Button>
-          </CardFooter>
-        </form>
+        {!isLoading && !isEmpty() && (
+          <form onSubmit={handleSubmit}>
+            <GeneralSocialImageFields
+              month={formData.month}
+              year={formData.year}
+              numberOfEvents={formData.numberOfEvents}
+              disabled={isLoading || isGenerating}
+              onChange={handleGeneralFieldChange}
+            />
+            {formData.events.map((event, index) => {
+              return (
+                <EventSocialImageFields
+                  year={formData.year}
+                  month={formData.month}
+                  locations={sortedLocationList}
+                  eventNumber={index + 1}
+                  day={event.day}
+                  startTime={event.startTime}
+                  endTime={event.endTime}
+                  location={event.location}
+                  address={event.address}
+                  description={event.description}
+                  disabled={isLoading || isGenerating}
+                  onChange={(data) => {
+                    handleEventFieldChange(index, data)
+                  }}
+                />
+              )
+            })}
+
+            <CardFooter>
+              <Button className="px-6" type="submit" disabled={isLoading || isGenerating}>
+                {isGenerating && (
+                  <>
+                    <Spinner /> Generating...
+                  </>
+                )}
+
+                {!isGenerating && <>Generate</>}
+              </Button>
+            </CardFooter>
+          </form>
+        )}
       </Card>
     </>
   )

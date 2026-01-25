@@ -1,6 +1,6 @@
 //
 // App Layer
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,13 +25,18 @@ import (
 
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
+	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
+	DeleteLocation(id uint64) error
 	DeleteRedirect(id uint64) error
 	FindRedirect(path string) (*models.RedirectInternal, error)
+	GetAllLocations() (*[]models.LocationInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
+	GetLocation(id uint64) (*models.LocationInternal, error)
 	GetRedirect(id uint64) (*models.RedirectInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
+	UpdateLocation(user *models.UserInternal, id uint64, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	ValidatePassword(user *models.UserInternal, password string) error
 }

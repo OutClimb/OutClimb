@@ -1,6 +1,6 @@
 //
 // HTTP Layer
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -120,6 +120,12 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			adminApi.POST("/redirect", h.createRedirect)
 			adminApi.PUT("/redirect/:id", h.updateRedirect)
 			adminApi.DELETE("/redirect/:id", h.deleteRedirect)
+
+			adminApi.GET("/location", h.getLocations)
+			adminApi.GET("/location/:id", h.getLocation)
+			adminApi.POST("/location", h.createLocation)
+			adminApi.PUT("/location/:id", h.updateLocation)
+			adminApi.DELETE("/location/:id", h.deleteLocation)
 		}
 	}
 }

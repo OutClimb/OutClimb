@@ -1,6 +1,6 @@
 //
 // Store Layer
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,15 +28,20 @@ import (
 )
 
 type StoreLayer interface {
+	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateUser(createdBy, email, name, password, role, username string) (*User, error)
+	DeleteLocation(id uint64) error
 	DeleteRedirect(id uint64) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
+	GetAllLocations() (*[]Location, error)
 	GetAllRedirects() (*[]Redirect, error)
+	GetLocation(id uint64) (*Location, error)
 	GetRedirect(id uint64) (*Redirect, error)
 	GetUser(id uint) (*User, error)
 	GetUserWithUsername(username string) (*User, error)
 	UpdatePassword(id uint, password, updatedBy string) error
+	UpdateLocation(id uint64, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	UpdateRedirect(id uint64, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 }
 
@@ -89,6 +94,16 @@ func (s *storeLayer) Migrate() {
 	}
 
 	err = s.db.AutoMigrate(&Redirect{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "redirect",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Location{})
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",

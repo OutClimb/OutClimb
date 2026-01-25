@@ -2,6 +2,7 @@ import { BlobReader, BlobWriter, ZipWriter } from '@zip.js/zip.js'
 import type { EventSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
 import { format } from 'date-fns/format'
 import { getTime } from 'date-fns/getTime'
+import type { Location } from '@/types/location'
 
 interface ImageFile {
   name: string
@@ -25,9 +26,11 @@ function fillMultiLineText(ctx: CanvasRenderingContext2D, text: string, lineHeig
   })
 }
 
-export async function generateSocialImages(data: SocialImageFieldData) {
+export async function generateSocialImages(data: SocialImageFieldData, locations: Array<Location>) {
   const mainImageBlob = await generateMainImage(data)
-  const eventImageBlobs = await Promise.all(data.events.map((event, index) => generateEventImage(index + 1, event)))
+  const eventImageBlobs = await Promise.all(
+    data.events.map((event, index) => generateEventImage(index + 1, event, locations)),
+  )
   downloadBlob(await compressImages(mainImageBlob, ...eventImageBlobs))
 }
 
@@ -74,7 +77,16 @@ async function generateMainImage(data: SocialImageFieldData): Promise<ImageFile>
   }
 }
 
-async function generateEventImage(imageNum: number, event: EventSocialImageFormData): Promise<ImageFile> {
+async function generateEventImage(
+  imageNum: number,
+  event: EventSocialImageFormData,
+  locations: Array<Location>,
+): Promise<ImageFile> {
+  const location = locations.find((loc) => loc.id === event.location)
+  if (!location) {
+    return { name: '', blob: new Blob() }
+  }
+
   const canvas = document.createElement('canvas')
   canvas.width = 4500
   canvas.height = 5625
@@ -85,82 +97,15 @@ async function generateEventImage(imageNum: number, event: EventSocialImageFormD
   }
 
   // Draw the background
-  let backgroundImage
-  switch (event.location) {
-    case 'BIB':
-      backgroundImage = await loadImage('/manage/images/bib-bg.png')
-      break
-
-    case 'MBP':
-    case 'SPBP':
-      backgroundImage = await loadImage('/manage/images/bp-bg.png')
-      break
-
-    case 'MNCC':
-      backgroundImage = await loadImage('/manage/images/mncc-bg.png')
-      break
-
-    default:
-      backgroundImage = await loadImage('/manage/images/ve-bg.png')
-      break
-  }
+  const backgroundImage = await loadImage(location.backgroundImagePath)
   ctx.drawImage(backgroundImage, 0, 0)
 
   // Set Header Text Color
-  switch (event.location) {
-    case 'BIB':
-      ctx.fillStyle = '#5F9A5D'
-      break
-
-    case 'MBP':
-    case 'SPBP':
-      ctx.fillStyle = '#109AA9'
-      break
-
-    case 'MNCC':
-      ctx.fillStyle = '#0076BA'
-      break
-
-    default:
-      ctx.fillStyle = '#CC3427'
-      break
-  }
+  ctx.fillStyle = location.color
 
   // Set Header Font
   ctx.font = '700 327px Poppins'
-  switch (event.location) {
-    case 'BIB':
-      fillMultiLineText(ctx, 'BIG ISLAND\nBOULDERING\nMEETUP', 395, 269, 547)
-      break
-
-    case 'MBP':
-      fillMultiLineText(ctx, 'MINNEAPOLIS\nBOULDERING\nPROJECT MEETUP', 395, 269, 547)
-      break
-
-    case 'SPBP':
-      fillMultiLineText(ctx, 'SAINT PAUL\nBOULDERING\nPROJECT MEETUP', 395, 269, 547)
-      break
-
-    case 'MNCC':
-      fillMultiLineText(ctx, 'MN CLIMBING\nCOOPERATIVE\nMEETUP', 395, 269, 547)
-      break
-
-    case 'TCB':
-      fillMultiLineText(ctx, 'TWIN CITIES\nBOULDERING\nMEETUP', 395, 269, 547)
-      break
-
-    case 'VEB':
-      fillMultiLineText(ctx, 'VERTICAL ENDEAVORS\nBLOOMINGTON\nMEETUP', 395, 269, 547)
-      break
-
-    case 'VEM':
-      fillMultiLineText(ctx, 'VERTICAL ENDEAVORS\nMINNEAPOLIS\nMEETUP', 395, 269, 547)
-      break
-
-    case 'VESP':
-      fillMultiLineText(ctx, 'VERTICAL ENDEAVORS\nSAINT PAUL\nMEETUP', 395, 269, 547)
-      break
-  }
+  fillMultiLineText(ctx, location.individualImageName, 395, 269, 547)
 
   // Set Date/Time Font
   ctx.font = '700 146px Poppins'
@@ -183,7 +128,7 @@ async function generateEventImage(imageNum: number, event: EventSocialImageFormD
   // Generate the data URL
   const dataUrl = canvas.toDataURL('image/png')
   return {
-    name: `${imageNum} - ${event.location}.png`,
+    name: `${imageNum} - ${location.name}.png`,
     blob: await (await fetch(dataUrl)).blob(),
   }
 }

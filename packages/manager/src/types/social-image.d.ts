@@ -2,7 +2,7 @@ export interface EventSocialImageFormData {
   day?: Date
   startTime: string
   endTime: string
-  location: string
+  location: number
   address: string
   description: string
 }

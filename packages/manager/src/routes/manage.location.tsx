@@ -4,36 +4,36 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { CreateRedirectDialog } from '@/components/redirect/create-redirect-dialog'
-import { DeleteRedirectDialog } from '@/components/redirect/delete-redirect-dialog'
-import { EditRedirectDialog } from '@/components/redirect/edit-redirect-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchRedirects } from '@/api/redirect'
+import { fetchLocations } from '@/api/location'
 import { Header } from '@/components/header'
-import { Plus, Waypoints } from 'lucide-react'
-import { RedirectsTable } from '@/components/redirect/redirects-table'
+import { LocationsTable } from '@/components/location/locations-table'
+import { MapPin, Plus } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
-import useRedirectStore from '@/stores/redirect'
+import useLocationStore from '@/stores/location'
 import useUserStore from '@/stores/user'
+import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
+import { CreateLocationDialog } from '@/components/location/create-location-dialog'
+import { EditLocationDialog } from '@/components/location/edit-location-dialog'
 
-export const Route = createFileRoute('/manage/redirect')({
-  component: Redirects,
+export const Route = createFileRoute('/manage/location')({
+  component: Locations,
   head: () => ({
     meta: [
       {
-        title: 'Redirects | OutClimb Management',
+        title: 'Event Locations | OutClimb Management',
       },
     ],
   }),
   beforeLoad: ({ context, location }) => authGuard(context, location),
 })
 
-function Redirects() {
+function Locations() {
   const navigate = useNavigate()
   const { token } = useUserStore()
-  const { isEmpty, list, populate } = useRedirectStore()
+  const { isEmpty, list, populate } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -51,7 +51,7 @@ function Redirects() {
       setSelectedId(id)
       setIsEditDialogOpen(true)
     },
-    [setSelectedId],
+    [setSelectedId, setIsEditDialogOpen],
   )
 
   const handleEditDialogOpenChange = useCallback(() => {
@@ -73,12 +73,12 @@ function Redirects() {
   }, [setSelectedId, setIsDeleteDialogOpen])
 
   useEffect(() => {
-    const fetchRedirectsFromApi = async () => {
+    const fetchLocationsFromApi = async () => {
       setIsLoading(true)
 
       try {
-        const redirects = await fetchRedirects(token || '')
-        populate(redirects)
+        const locations = await fetchLocations(token || '')
+        populate(locations)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           navigate({ to: '/manage/login' })
@@ -92,7 +92,7 @@ function Redirects() {
     }
 
     if (!isHydrated) {
-      fetchRedirectsFromApi()
+      fetchLocationsFromApi()
     }
   })
 
@@ -102,10 +102,10 @@ function Redirects() {
         actions={
           <Button onClick={handleCreate} disabled={isLoading}>
             <Plus />
-            Create Redirect
+            Create Location
           </Button>
         }>
-        Redirects
+        Event Locations
       </Header>
 
       <Card className="p-0">
@@ -116,7 +116,7 @@ function Redirects() {
                 <EmptyMedia variant="icon">
                   <Spinner />
                 </EmptyMedia>
-                <EmptyTitle>Loading redirects...</EmptyTitle>
+                <EmptyTitle>Loading locations...</EmptyTitle>
               </EmptyHeader>
             </Empty>
           )}
@@ -125,20 +125,20 @@ function Redirects() {
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <Waypoints />
+                  <MapPin />
                 </EmptyMedia>
-                <EmptyTitle>No redirects configured</EmptyTitle>
+                <EmptyTitle>No locations added</EmptyTitle>
               </EmptyHeader>
             </Empty>
           )}
 
-          {!isLoading && !isEmpty() && <RedirectsTable data={list()} onEdit={handleEdit} onDelete={handleDelete} />}
+          {!isLoading && !isEmpty() && <LocationsTable data={list()} onEdit={handleEdit} onDelete={handleDelete} />}
         </CardContent>
       </Card>
 
-      <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-      <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-      <DeleteRedirectDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+      <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+      <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+      <DeleteLocationDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
     </>
   )
 }
