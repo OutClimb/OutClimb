@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { FileText, Image, LogOut, MapPin, Menu, Waypoints, X } from 'lucide-react'
+import { FileText, Image, LogOut, MapPin, Menu, Upload, Waypoints, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import useUserStore from '@/stores/user'
@@ -29,6 +29,11 @@ export function Navigation() {
   }
 
   const navItems = [
+    {
+      title: 'Assets',
+      href: '/manage/asset',
+      icon: Upload,
+    },
     {
       title: 'Forms',
       href: '/manage/form',
