@@ -20,6 +20,6 @@ export interface UserState {
   token: string | null
   user: () => User | null
   isLoggedIn: () => boolean
-  login: (token: string) => void
+  login: (token: string) => boolean
   logout: () => void
 }

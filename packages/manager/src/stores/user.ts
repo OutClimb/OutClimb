@@ -27,9 +27,12 @@ const useUserStore = create<UserState>()(
         return get().token !== null
       },
       login: (token: string) => {
-        return set({
+        set({
           token,
         })
+
+        const claims = jwtDecode<JwtClaims>(token)
+        return claims.pr
       },
       logout: () =>
         set({
