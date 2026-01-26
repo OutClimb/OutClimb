@@ -69,8 +69,7 @@ func (s *storeLayer) GetUserWithUsername(username string) (*User, error) {
 }
 
 func (s *storeLayer) UpdatePassword(id uint, password, updatedBy string) error {
-	user := User{}
-	user.ID = id
+	user, _ := s.GetUser(id)
 	user.Password = password
 	user.RequirePasswordReset = false
 	user.UpdatedBy = updatedBy
