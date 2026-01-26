@@ -42,7 +42,7 @@ type JwtClaims struct {
 	User     JwtUserClaim `json:"usr"`
 }
 
-func Auth(config *utils.HttpConfig, role string, resetAllowed bool) gin.HandlerFunc {
+func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		if authorization == "" {
@@ -72,9 +72,6 @@ func Auth(config *utils.HttpConfig, role string, resetAllowed bool) gin.HandlerF
 			c.Abort()
 		} else if userId, err := strconv.Atoi(claims.Subject); err != nil {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
-			c.Abort()
-		} else if claims.User.Role != role {
-			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else if claims.User.RequirePasswordReset && !resetAllowed {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))

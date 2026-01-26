@@ -108,12 +108,12 @@ func (h *httpLayer) setupV1ApiRoutes() {
 
 		api.POST("/token", h.createToken)
 
-		userReset := api.Group("/").Use(middleware.Auth(h.config, "user", true))
+		userReset := api.Group("/").Use(middleware.Auth(h.config, true))
 		{
 			userReset.PUT("/password", h.updatePassword)
 		}
 
-		adminApi := api.Group("/").Use(middleware.Auth(h.config, "admin", false))
+		adminApi := api.Group("/").Use(middleware.Auth(h.config, false))
 		{
 			adminApi.GET("/redirect", h.getRedirects)
 			adminApi.GET("/redirect/:id", h.getRedirect)
