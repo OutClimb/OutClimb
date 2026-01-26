@@ -17,7 +17,6 @@ const useUserStore = create<UserState>()(
         const claims = jwtDecode<JwtClaims>(token)
         return {
           username: claims.usr.un,
-          role: claims.usr.r,
           name: claims.usr.n,
           email: claims.usr.e,
           requiresPasswordReset: claims.usr.pr,
