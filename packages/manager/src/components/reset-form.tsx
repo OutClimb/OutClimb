@@ -103,7 +103,7 @@ export function ResetForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-gray-600 mb-4">
             Your new password must:
             <ul className="list-disc list-inside mt-2 ml-2">
               <li>be 16 characters long</li>
@@ -116,7 +116,7 @@ export function ResetForm() {
               <li>not be the same as your last password</li>
             </ul>
           </p>
-          <div className="space-y-2">
+          <div className="mb-4">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
@@ -130,7 +130,7 @@ export function ResetForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full mt-4" type="submit" disabled={isLoading}>
+          <Button className="w-full" type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

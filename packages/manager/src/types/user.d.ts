@@ -1,9 +1,17 @@
 export interface JwtClaims {
-  un: string
-  r: string
-  n: string
-  e: string
-  pr: boolean
+  aud: string
+  exp: number
+  iat: number
+  iss: string
+  nbf: number
+  sub: string
+  usr: {
+    un: string
+    r: string
+    n: string
+    e: string
+    pr: boolean
+  }
 }
 
 export type TokenResponse = string

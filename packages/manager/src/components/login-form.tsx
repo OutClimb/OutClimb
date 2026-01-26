@@ -15,7 +15,7 @@ import useUserStore from '@/stores/user'
 
 export function LoginForm() {
   const navigate = useNavigate()
-  const { login } = useUserStore()
+  const { user, login } = useUserStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -45,7 +45,9 @@ export function LoginForm() {
 
     try {
       const data = await fetchToken(formData.username, formData.password)
-      if (login(data)) {
+      login(data)
+
+      if (user()?.requiresPasswordReset) {
         navigate({ to: '/manage/reset' })
       } else {
         navigate({ to: '/manage/redirect' })
