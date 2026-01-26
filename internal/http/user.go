@@ -81,7 +81,6 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 	claims.IssuedAt = jwt.NewNumericDate(time.Now())
 	claims.User = middleware.JwtUserClaim{
 		Username:             user.Username,
-		Role:                 user.Role,
 		Name:                 user.Name,
 		Email:                user.Email,
 		RequirePasswordReset: user.RequirePasswordReset,

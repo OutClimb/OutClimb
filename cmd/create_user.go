@@ -32,7 +32,6 @@ type createUser struct {
 	password string
 	name     string
 	email    string
-	role     string
 }
 
 var createUserContext = createUser{}
@@ -50,7 +49,6 @@ func init() {
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.password, "password", "p", "", "The user's password")
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.name, "name", "n", "", "The name to associate to the user")
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.email, "email", "e", "", "The email to associate to the user")
-	createUserCmd.PersistentFlags().StringVarP(&createUserContext.role, "role", "r", "user", "The user's role")
 
 	err := createUserCmd.MarkPersistentFlagRequired("username")
 	if err != nil {
@@ -79,11 +77,6 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 		env = "local"
 	}
 
-	if createUserContext.role != "user" && createUserContext.role != "viewer" && createUserContext.role != "admin" {
-		fmt.Println("Role must be one of: user, viewer, admin")
-		return
-	}
-
 	config := utils.LoadConfig(env)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(createUserContext.password), config.App.PasswordCost)
@@ -93,7 +86,7 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 	}
 
 	storeLayer := store.New(&config.Database)
-	user, err := storeLayer.CreateUser("super", createUserContext.email, createUserContext.name, string(hashedPassword), createUserContext.role, createUserContext.username)
+	user, err := storeLayer.CreateUser("super", createUserContext.email, createUserContext.name, string(hashedPassword), createUserContext.username)
 	if err != nil {
 		fmt.Println("Error creating user: ", err)
 		return
@@ -102,7 +95,6 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 	fmt.Println("User created successfully")
 	fmt.Println("ID: ", user.ID)
 	fmt.Println("Username: ", user.Username)
-	fmt.Println("Role: ", user.Role)
 	fmt.Println("Name: ", user.Name)
 	fmt.Println("Email: ", user.Email)
 }

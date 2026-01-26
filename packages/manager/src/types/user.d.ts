@@ -7,7 +7,6 @@ export interface JwtClaims {
   sub: string
   usr: {
     un: string
-    r: string
     n: string
     e: string
     pr: boolean
@@ -18,7 +17,6 @@ export type TokenResponse = string
 
 export interface User {
   username: string
-  role: string
   name: string
   email: string
   requiresPasswordReset: boolean

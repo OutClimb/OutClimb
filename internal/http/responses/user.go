@@ -21,7 +21,6 @@ import "github.com/OutClimb/OutClimb/internal/app/models"
 
 type UserPublic struct {
 	Username             string `json:"username"`
-	Role                 string `json:"role"`
 	Name                 string `json:"name"`
 	Email                string `json:"email"`
 	RequirePasswordReset bool   `json:"requirePasswordReset"`
@@ -29,7 +28,6 @@ type UserPublic struct {
 
 func (u *UserPublic) Publicize(user *models.UserInternal) {
 	u.Username = user.Username
-	u.Role = user.Role
 	u.Name = user.Name
 	u.Email = user.Email
 	u.RequirePasswordReset = user.RequirePasswordReset

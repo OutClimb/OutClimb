@@ -27,7 +27,6 @@ type UserInternal struct {
 	Name                 string
 	Password             string
 	RequirePasswordReset bool
-	Role                 string
 	Username             string
 }
 
@@ -39,6 +38,5 @@ func (u *UserInternal) Internalize(user *store.User) {
 	u.Name = user.Name
 	u.Password = user.Password
 	u.RequirePasswordReset = user.RequirePasswordReset
-	u.Role = user.Role
 	u.Username = user.Username
 }

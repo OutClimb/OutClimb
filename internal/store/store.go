@@ -30,7 +30,7 @@ import (
 type StoreLayer interface {
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
-	CreateUser(createdBy, email, name, password, role, username string) (*User, error)
+	CreateUser(createdBy, email, name, password, username string) (*User, error)
 	DeleteLocation(id uint64) error
 	DeleteRedirect(id uint64) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)

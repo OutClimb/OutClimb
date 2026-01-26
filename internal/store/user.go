@@ -24,18 +24,16 @@ type User struct {
 	Name                 string `gorm:"not null"`
 	Password             string `gorm:"not null;size:64"`
 	RequirePasswordReset bool   `gorm:"not null;default:0"`
-	Role                 string `gorm:"not null;size:255"`
 	Username             string `gorm:"uniqueIndex;not null;size:255"`
 }
 
-func (s *storeLayer) CreateUser(createdBy, email, name, password, role, username string) (*User, error) {
+func (s *storeLayer) CreateUser(createdBy, email, name, password, username string) (*User, error) {
 	user := User{
 		Disabled:             false,
 		Email:                email,
 		Name:                 name,
 		Password:             password,
 		RequirePasswordReset: false,
-		Role:                 role,
 		Username:             username,
 	}
 	user.CreatedBy = createdBy
