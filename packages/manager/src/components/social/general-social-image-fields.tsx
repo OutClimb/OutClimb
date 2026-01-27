@@ -1,9 +1,9 @@
 'use client'
 
 import { CardContent } from '@/components/ui/card'
-import { Field, FieldLabel } from './ui/field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import type { GeneralSocialImageFormData } from '@/types/social-image'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCallback } from 'react'
 
 export interface GeneralSocialImageFieldsProps {

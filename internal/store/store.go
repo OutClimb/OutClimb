@@ -33,28 +33,33 @@ import (
 )
 
 type StoreLayer interface {
+	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateUser(createdBy, email, name, password, username string) (*User, error)
+	DeleteAsset(id uint64) error
 	DeleteLocation(id uint64) error
 	DeleteRedirect(id uint64) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
+	FindAsset(fileName string) (string, error)
+	GetAllAssets() (*[]Asset, error)
 	GetAllLocations() (*[]Location, error)
 	GetAllRedirects() (*[]Redirect, error)
+	GetAsset(id uint64) (*Asset, error)
 	GetLocation(id uint64) (*Location, error)
 	GetRedirect(id uint64) (*Redirect, error)
 	GetUser(id uint) (*User, error)
 	GetUserWithUsername(username string) (*User, error)
-	UpdatePassword(id uint, password, updatedBy string) error
+	UpdateAsset(id uint64, updatedBy, filename, contentType, data string) (*Asset, error)
 	UpdateLocation(id uint64, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint64, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 }
 
 type storeLayer struct {
-	db       *gorm.DB
-	s3       *s3.Client
-	s3Bucket *string
-	s3Prefix *string
+	db            *gorm.DB
+	s3            *s3.Client
+	storageConfig *utils.StorageConfig
 }
 
 func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfig) *storeLayer {
@@ -108,19 +113,28 @@ func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfi
 	})
 
 	return &storeLayer{
-		db:       db,
-		s3:       client,
-		s3Bucket: &storageConfig.Bucket,
-		s3Prefix: &storageConfig.Prefix,
+		db:            db,
+		s3:            client,
+		storageConfig: storageConfig,
 	}
 }
 
 func (s *storeLayer) Migrate() {
-	err := s.db.AutoMigrate(&User{})
+	err := s.db.AutoMigrate(&Asset{})
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
-			"databaseTable", "user",
+			"databaseTable", "asset",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Location{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "location",
 			"error", err,
 		)
 		os.Exit(1)
@@ -136,11 +150,11 @@ func (s *storeLayer) Migrate() {
 		os.Exit(1)
 	}
 
-	err = s.db.AutoMigrate(&Location{})
+	err = s.db.AutoMigrate(&User{})
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
-			"databaseTable", "redirect",
+			"databaseTable", "user",
 			"error", err,
 		)
 		os.Exit(1)

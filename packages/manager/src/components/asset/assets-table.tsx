@@ -1,24 +1,19 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import type { Redirect } from '@/types/redirect'
+import type { Asset } from '@/types/asset'
 import { SquareArrowOutUpRight } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-export function RedirectsTable({
+export function AssetsTable({
   data,
   onEdit,
   onDelete,
 }: {
-  data: Array<Redirect>
+  data: Array<Asset>
   onEdit: (id: number) => void
   onDelete: (id: number) => void
 }) {
-  const dateFormatter = new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'full',
-    timeStyle: 'short',
-  })
-
   const handleEdit = (id: number) => {
     return () => {
       onEdit(id)
@@ -31,11 +26,11 @@ export function RedirectsTable({
     }
   }
 
-  const getLink = (fromPath: string) => {
+  const getLink = (fileName: string) => {
     if (import.meta.env.MODE === 'dev') {
-      return `http://outclimb.local/b/${fromPath}`
+      return `http://assets.outclimb.local/q/${fileName}`
     } else {
-      return `https://outcl.im/b/${fromPath}`
+      return `https://assets.outclimb.gay/q/${fileName}`
     }
   }
 
@@ -44,10 +39,7 @@ export function RedirectsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>From</TableHead>
-            <TableHead>To</TableHead>
-            <TableHead>Starts On</TableHead>
-            <TableHead>Ends On</TableHead>
+            <TableHead>File</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -55,13 +47,10 @@ export function RedirectsTable({
           {data.map((item) => (
             <TableRow key={item.id}>
               <TableCell>
-                <a href={getLink(item.fromPath)} target="_blank" className="group hover:underline">
-                  {item.fromPath} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
+                <a href={getLink(item.fileName)} target="_blank" className="group hover:underline">
+                  {item.fileName} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>{item.toUrl}</TableCell>
-              <TableCell>{item.startsOn === 0 ? '-' : dateFormatter.format(new Date(item.startsOn))}</TableCell>
-              <TableCell>{item.stopsOn === 0 ? '-' : dateFormatter.format(new Date(item.stopsOn))}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
                   <Button variant="secondary" onClick={handleEdit(item.id)}>

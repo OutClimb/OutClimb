@@ -87,6 +87,12 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./web/manager")
 
+	assets := h.engine.Group("/q/")
+	{
+		assets.Use(middleware.Domain(h.config.AssetsDomain))
+		assets.GET("/*filename", h.asset)
+	}
+
 	redirect := h.engine.Group("/b")
 	{
 		redirect.Use(middleware.Domain(h.config.RedirectDomain))
@@ -115,6 +121,12 @@ func (h *httpLayer) setupV1ApiRoutes() {
 
 		adminApi := api.Group("/").Use(middleware.Auth(h.config, false))
 		{
+			adminApi.GET("/asset", h.getAssets)
+			adminApi.GET("/asset/:id", h.getAsset)
+			adminApi.POST("/asset", h.createAsset)
+			adminApi.PUT("/asset/:id", h.updateAsset)
+			adminApi.DELETE("/asset/:id", h.deleteAsset)
+
 			adminApi.GET("/redirect", h.getRedirects)
 			adminApi.GET("/redirect/:id", h.getRedirect)
 			adminApi.POST("/redirect", h.createRedirect)

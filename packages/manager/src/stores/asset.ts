@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { Location, LocationState } from '@/types/location'
+import type { Asset, AssetState } from '@/types/asset'
 
-const useLocationStore = create<LocationState>()(
+const useAssetStore = create<AssetState>()(
   devtools((set, get) => ({
     data: {},
     isEmpty: () => {
@@ -11,17 +11,17 @@ const useLocationStore = create<LocationState>()(
     list: () => {
       return Object.values(get().data)
     },
-    populate: (locations: Array<Location>) => {
+    populate: (assets: Array<Asset>) => {
       set({
-        data: locations.reduce<Record<number, Location>>((newData, location) => {
-          newData[location.id] = location
+        data: assets.reduce<Record<number, Asset>>((newData, asset) => {
+          newData[asset.id] = asset
           return newData
         }, {}),
       })
     },
-    populateSingle: (location: Location) => {
+    populateSingle: (asset: Asset) => {
       const newData = get().data
-      newData[location.id] = location
+      newData[asset.id] = asset
       set({
         data: newData,
       })
@@ -36,4 +36,4 @@ const useLocationStore = create<LocationState>()(
   })),
 )
 
-export default useLocationStore
+export default useAssetStore

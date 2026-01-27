@@ -25,16 +25,22 @@ import (
 
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
+	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
+	DeleteAsset(id uint64) error
 	DeleteLocation(id uint64) error
 	DeleteRedirect(id uint64) error
+	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
+	GetAllAssets() (*[]models.AssetInternal, error)
 	GetAllLocations() (*[]models.LocationInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
+	GetAsset(id uint64) (*models.AssetInternal, error)
 	GetLocation(id uint64) (*models.LocationInternal, error)
 	GetRedirect(id uint64) (*models.RedirectInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
+	UpdateAsset(user *models.UserInternal, id uint64, fileName, contentType, data string) (*models.AssetInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateLocation(user *models.UserInternal, id uint64, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)

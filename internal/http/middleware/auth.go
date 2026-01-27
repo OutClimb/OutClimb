@@ -1,6 +1,6 @@
 //
 // Auth Middleware
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import (
 
 type JwtUserClaim struct {
 	Username             string `json:"un"`
-	Role                 string `json:"r"`
 	Name                 string `json:"n"`
 	Email                string `json:"e"`
 	RequirePasswordReset bool   `json:"pr"`

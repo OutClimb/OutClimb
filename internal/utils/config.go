@@ -39,6 +39,7 @@ var EnvironmentVariables = []string{
 	"OC_DATABASE_USERNAME",
 	"OC_DEFAULT_REDIRECT_URL",
 	"OC_LISTENING_ADDRESS",
+	"OC_MAX_UPLOAD_SIZE",
 	"OC_REDIRECT_DOMAIN",
 	"OC_REGISTER_DOMAIN",
 	"OC_TRUSTED_PROXIES",
@@ -76,6 +77,7 @@ type HttpConfig struct {
 	DefaultRedirectURL string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	Jwt                JwtConfig
 	ListeningAddress   string   `mapstructure:"OC_LISTENING_ADDRESS"`
+	MaxUploadSize      int64    `mapstructure:"OC_MAX_UPLOAD_SIZE"`
 	RedirectDomain     string   `mapstructure:"OC_REDIRECT_DOMAIN"`
 	RegisterDomain     string   `mapstructure:"OC_REGISTER_DOMAIN"`
 	TrustedProxies     []string `mapstructure:"OC_TRUSTED_PROXIES"`
@@ -92,7 +94,6 @@ type StorageConfig struct {
 	AccessKey     string `mapstructure:"OC_STORAGE_ACCESS_KEY"`
 	Bucket        string `mapstructure:"OC_STORAGE_BUCKET"`
 	Endpoint      string `mapstructure:"OC_STORAGE_ENDPOINT"`
-	Path          string `mapstructure:"OC_STORAGE_PATH"`
 	Prefix        string `mapstructure:"OC_STORAGE_PREFIX"`
 	Region        string `mapstructure:"OC_STORAGE_REGION"`
 	SecretKey     string `mapstructure:"OC_STORAGE_SECRET_KEY"`
