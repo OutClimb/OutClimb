@@ -21,6 +21,7 @@ import (
 	"errors"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -198,7 +199,7 @@ func LoadConfig(env string) (config Config) {
 		content, err := ReadFile(&config.Storage.SecretKeyFile)
 		if len(content) > 0 && err == nil {
 			slog.Info("Loaded secret file for Storage Secret Key")
-			config.Storage.SecretKey = content
+			config.Storage.SecretKey = strings.TrimSpace(content)
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the Storage Secret Key through environment variables is not recommended in production")
