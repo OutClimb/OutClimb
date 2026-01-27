@@ -1,6 +1,6 @@
 //
 // Create User Command
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	storeLayer := store.New(&config.Database)
+	storeLayer := store.New(&config.Database, &config.Storage)
 	user, err := storeLayer.CreateUser("super", createUserContext.email, createUserContext.name, string(hashedPassword), createUserContext.username)
 	if err != nil {
 		fmt.Println("Error creating user: ", err)

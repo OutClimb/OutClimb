@@ -18,11 +18,16 @@
 package store
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/utils"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -46,10 +51,14 @@ type StoreLayer interface {
 }
 
 type storeLayer struct {
-	db *gorm.DB
+	db       *gorm.DB
+	s3       *s3.Client
+	s3Bucket *string
+	s3Prefix *string
 }
 
-func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
+func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfig) *storeLayer {
+	// Postgres
 	dsn := "host=" + databaseConfig.Host
 	dsn = dsn + " user=" + databaseConfig.Username
 	if len(databaseConfig.Password) > 0 {
@@ -77,8 +86,32 @@ func New(databaseConfig *utils.DatabaseConfig) *storeLayer {
 		return nil
 	}
 
+	// S3
+	creds := credentials.NewStaticCredentialsProvider(storageConfig.AccessKey, storageConfig.SecretKey, "")
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(storageConfig.Region),
+		config.WithCredentialsProvider(creds))
+	if err != nil {
+		slog.Error(
+			"Unable to connect to storage",
+			"storageEndpoint", storageConfig.Endpoint,
+			"storageRegion", storageConfig.Region,
+			"storageAccessKey", storageConfig.AccessKey,
+		)
+		os.Exit(1)
+		return nil
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(storageConfig.Endpoint)
+	})
+
 	return &storeLayer{
-		db: db,
+		db:       db,
+		s3:       client,
+		s3Bucket: &storageConfig.Bucket,
+		s3Prefix: &storageConfig.Prefix,
 	}
 }
 

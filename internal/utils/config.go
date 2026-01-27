@@ -1,6 +1,6 @@
 //
 // Config Utility
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import (
 )
 
 var EnvironmentVariables = []string{
+	"OC_ASSETS_DOMAIN",
 	"OC_PASSWORD_COST",
 	"OC_RECAPTCHA_SECRET_KEY",
 	"OC_RECAPTCHA_SECRET_KEY_FILE",
@@ -45,6 +46,13 @@ var EnvironmentVariables = []string{
 	"OC_JWT_LIFESPAN",
 	"OC_JWT_SECRET",
 	"OC_JWT_SECRET_FILE",
+	"OC_STORAGE_ACCESS_KEY",
+	"OC_STORAGE_BUCKET",
+	"OC_STORAGE_ENDPOINT",
+	"OC_STORAGE_PREFIX",
+	"OC_STORAGE_REGION",
+	"OC_STORAGE_SECRET_KEY",
+	"OC_STORAGE_SECRET_KEY_FILE",
 }
 
 type AppConfig struct {
@@ -64,6 +72,7 @@ type DatabaseConfig struct {
 }
 
 type HttpConfig struct {
+	AssetsDomain       string `mapstructure:"OC_ASSETS_DOMAIN"`
 	DefaultRedirectURL string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	Jwt                JwtConfig
 	ListeningAddress   string   `mapstructure:"OC_LISTENING_ADDRESS"`
@@ -79,10 +88,22 @@ type JwtConfig struct {
 	SecretFile string `mapstructure:"OC_JWT_SECRET_FILE"`
 }
 
+type StorageConfig struct {
+	AccessKey     string `mapstructure:"OC_STORAGE_ACCESS_KEY"`
+	Bucket        string `mapstructure:"OC_STORAGE_BUCKET"`
+	Endpoint      string `mapstructure:"OC_STORAGE_ENDPOINT"`
+	Path          string `mapstructure:"OC_STORAGE_PATH"`
+	Prefix        string `mapstructure:"OC_STORAGE_PREFIX"`
+	Region        string `mapstructure:"OC_STORAGE_REGION"`
+	SecretKey     string `mapstructure:"OC_STORAGE_SECRET_KEY"`
+	SecretKeyFile string `mapstructure:"OC_STORAGE_SECRET_KEY_FILE"`
+}
+
 type Config struct {
 	App      AppConfig
 	Database DatabaseConfig
 	Http     HttpConfig
+	Storage  StorageConfig
 }
 
 func LoadConfig(env string) (config Config) {
@@ -135,6 +156,12 @@ func LoadConfig(env string) (config Config) {
 		os.Exit(1)
 	}
 
+	err = viper.Unmarshal(&config.Storage)
+	if err != nil {
+		slog.Error("Unable to parse storage config", "error", err)
+		os.Exit(1)
+	}
+
 	// Load secret files, if provided
 	if len(config.App.RecaptchaSecretKey) == 0 && len(config.App.RecaptchaSecretKeyFile) != 0 {
 		content, err := ReadFile(&config.App.RecaptchaSecretKeyFile)
@@ -166,6 +193,16 @@ func LoadConfig(env string) (config Config) {
 		slog.Warn("Loading the JWT Secret through environment variables is not recommended in production")
 	}
 
+	if len(config.Storage.SecretKey) == 0 && len(config.Storage.SecretKeyFile) != 0 {
+		content, err := ReadFile(&config.Storage.SecretKeyFile)
+		if len(content) > 0 && err == nil {
+			slog.Info("Loaded secret file for Storage Secret Key")
+			config.Storage.SecretKey = content
+		}
+	} else if env == "prod" {
+		slog.Warn("Loading the Storage Secret Key through environment variables is not recommended in production")
+	}
+
 	return
 }
 
@@ -194,6 +231,10 @@ func (c *Config) Validate() error {
 		return errors.New("jwt lifespan must be greater than zero")
 	}
 
+	if len(c.Http.AssetsDomain) == 0 {
+		return errors.New("no domain for assets provided")
+	}
+
 	if len(c.Http.DefaultRedirectURL) == 0 {
 		return errors.New("no domain for default redirect URL provided")
 	}
@@ -214,5 +255,20 @@ func (c *Config) Validate() error {
 		return errors.New("no domain for register provided")
 	}
 
+	if len(c.Storage.AccessKey) == 0 {
+		return errors.New("no storage access key provided")
+	}
+
+	if len(c.Storage.Endpoint) == 0 {
+		return errors.New("no storage endpoint provided")
+	}
+
+	if len(c.Storage.Region) == 0 {
+		return errors.New("no storage region provided")
+	}
+
+	if len(c.Storage.SecretKey) == 0 {
+		return errors.New("no storage secret key provided")
+	}
 	return nil
 }

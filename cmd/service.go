@@ -1,6 +1,6 @@
 //
 // Service Start Command
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ func runService(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	storeLayer := store.New(&config.Database)
+	storeLayer := store.New(&config.Database, &config.Storage)
 
 	storeLayer.Migrate()
 
