@@ -59,7 +59,11 @@ export function RedirectsTable({
                   {item.fromPath} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>{item.toUrl}</TableCell>
+              <TableCell>
+                <a href={item.toUrl} target="_blank" className="group hover:underline">
+                  {item.toUrl} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
+                </a>
+              </TableCell>
               <TableCell>{item.startsOn === 0 ? '-' : dateFormatter.format(new Date(item.startsOn))}</TableCell>
               <TableCell>{item.stopsOn === 0 ? '-' : dateFormatter.format(new Date(item.stopsOn))}</TableCell>
               <TableCell>
