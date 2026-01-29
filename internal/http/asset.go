@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 )
@@ -40,8 +41,8 @@ func (h *httpLayer) asset(c *gin.Context) {
 }
 
 func (h *httpLayer) createAsset(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -80,7 +81,7 @@ func (h *httpLayer) deleteAsset(c *gin.Context) {
 		return
 	}
 
-	err = h.app.DeleteAsset(id)
+	err = h.app.DeleteAsset(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Asset not found"})
 		return
@@ -96,7 +97,7 @@ func (h *httpLayer) getAsset(c *gin.Context) {
 		return
 	}
 
-	internalAsset, error := h.app.GetAsset(id)
+	internalAsset, error := h.app.GetAsset(uint(id))
 	if error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Asset not found"})
 		return
@@ -122,8 +123,8 @@ func (h *httpLayer) getAssets(c *gin.Context) {
 }
 
 func (h *httpLayer) updateAsset(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -152,7 +153,7 @@ func (h *httpLayer) updateAsset(c *gin.Context) {
 		return
 	}
 
-	if asset, err := h.app.UpdateAsset(user, id, body.FileName, body.ContentType, body.Data); err != nil {
+	if asset, err := h.app.UpdateAsset(user, uint(id), body.FileName, body.ContentType, body.Data); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update asset"})
 	} else {
 		assetPublic := responses.AssetResponsePublic{}

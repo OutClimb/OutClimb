@@ -1,6 +1,6 @@
 //
 // Redirect Logic
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ func (a *appLayer) CreateRedirect(user *models.UserInternal, fromPath, toUrl str
 	}
 }
 
-func (a *appLayer) DeleteRedirect(id uint64) error {
+func (a *appLayer) DeleteRedirect(id uint) error {
 	if err := a.store.DeleteRedirect(id); err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (a *appLayer) FindRedirect(path string) (*models.RedirectInternal, error) {
 	}
 }
 
-func (a *appLayer) GetRedirect(id uint64) (*models.RedirectInternal, error) {
+func (a *appLayer) GetRedirect(id uint) (*models.RedirectInternal, error) {
 	if redirect, err := a.store.GetRedirect(id); err != nil {
 		return &models.RedirectInternal{}, err
 	} else {
@@ -90,7 +90,7 @@ func (a *appLayer) GetAllRedirects() (*[]models.RedirectInternal, error) {
 	}
 }
 
-func (a *appLayer) UpdateRedirect(user *models.UserInternal, id uint64, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
+func (a *appLayer) UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error) {
 	var startsOnTime *time.Time = nil
 	var stopsOnTime *time.Time = nil
 

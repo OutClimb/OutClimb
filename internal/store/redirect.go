@@ -1,6 +1,6 @@
 //
 // Redirect DB Object
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ func (s *storeLayer) CreateRedirect(createdBy, fromPath, toUrl string, startsOn,
 	return &redirect, nil
 }
 
-func (s *storeLayer) DeleteRedirect(id uint64) error {
+func (s *storeLayer) DeleteRedirect(id uint) error {
 	if result := s.db.Delete(&Redirect{}, id); result.Error != nil {
 		return result.Error
 	}
@@ -73,7 +73,7 @@ func (s *storeLayer) GetAllRedirects() (*[]Redirect, error) {
 	return &redirects, nil
 }
 
-func (s *storeLayer) GetRedirect(id uint64) (*Redirect, error) {
+func (s *storeLayer) GetRedirect(id uint) (*Redirect, error) {
 	redirect := Redirect{}
 
 	if result := s.db.Where("id = ?", id).First(&redirect); result.Error != nil {
@@ -83,7 +83,7 @@ func (s *storeLayer) GetRedirect(id uint64) (*Redirect, error) {
 	return &redirect, nil
 }
 
-func (s *storeLayer) UpdateRedirect(id uint64, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error) {
+func (s *storeLayer) UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error) {
 	redirect, err := s.GetRedirect(id)
 	if err != nil {
 		return nil, err

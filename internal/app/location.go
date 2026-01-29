@@ -38,7 +38,7 @@ func (a *appLayer) CreateLocation(user *models.UserInternal, name, mainImageName
 	}
 }
 
-func (a *appLayer) DeleteLocation(id uint64) error {
+func (a *appLayer) DeleteLocation(id uint) error {
 	if err := a.store.DeleteLocation(id); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (a *appLayer) DeleteLocation(id uint64) error {
 	return nil
 }
 
-func (a *appLayer) GetLocation(id uint64) (*models.LocationInternal, error) {
+func (a *appLayer) GetLocation(id uint) (*models.LocationInternal, error) {
 	if location, err := a.store.GetLocation(id); err != nil {
 		return &models.LocationInternal{}, err
 	} else {
@@ -70,7 +70,7 @@ func (a *appLayer) GetAllLocations() (*[]models.LocationInternal, error) {
 	}
 }
 
-func (a *appLayer) UpdateLocation(user *models.UserInternal, id uint64, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error) {
+func (a *appLayer) UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error) {
 	if len(name) == 0 || len(mainImageName) == 0 || len(individualImageName) == 0 || len(backgroundImagePath) == 0 || len(color) == 0 || len(address) == 0 || len(startTime) == 0 || len(endTime) == 0 || len(description) == 0 {
 		return &models.LocationInternal{}, errors.New("bad request")
 	}

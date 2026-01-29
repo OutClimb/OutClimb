@@ -46,7 +46,7 @@ func (a *appLayer) CreateAsset(user *models.UserInternal, fileName, contentType,
 	}
 }
 
-func (a *appLayer) DeleteAsset(id uint64) error {
+func (a *appLayer) DeleteAsset(id uint) error {
 	if err := a.store.DeleteAsset(id); err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (a *appLayer) DeleteAsset(id uint64) error {
 	return nil
 }
 
-func (a *appLayer) GetAsset(id uint64) (*models.AssetInternal, error) {
+func (a *appLayer) GetAsset(id uint) (*models.AssetInternal, error) {
 	if asset, err := a.store.GetAsset(id); err != nil {
 		return &models.AssetInternal{}, err
 	} else {
@@ -86,7 +86,7 @@ func (a *appLayer) GetAllAssets() (*[]models.AssetInternal, error) {
 	}
 }
 
-func (a *appLayer) UpdateAsset(user *models.UserInternal, id uint64, fileName, contentType, data string) (*models.AssetInternal, error) {
+func (a *appLayer) UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error) {
 	if len(fileName) == 0 {
 		return &models.AssetInternal{}, errors.New("bad request")
 	}

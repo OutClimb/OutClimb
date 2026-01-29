@@ -90,7 +90,7 @@ func (h *httpLayer) setupFrontendRoutes() {
 	assets := h.engine.Group("/q/")
 	{
 		assets.Use(middleware.Domain(h.config.AssetsDomain))
-		assets.GET("/*filename", h.asset)
+		assets.GET("/:filename", h.asset)
 	}
 
 	redirect := h.engine.Group("/b")
@@ -119,25 +119,31 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			userReset.PUT("/password", h.updatePassword)
 		}
 
-		adminApi := api.Group("/").Use(middleware.Auth(h.config, false))
+		assetApi := api.Group("/asset").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("asset"))
 		{
-			adminApi.GET("/asset", h.getAssets)
-			adminApi.GET("/asset/:id", h.getAsset)
-			adminApi.POST("/asset", h.createAsset)
-			adminApi.PUT("/asset/:id", h.updateAsset)
-			adminApi.DELETE("/asset/:id", h.deleteAsset)
+			assetApi.GET("", h.getAssets)
+			assetApi.GET("/:id", h.getAsset)
+			assetApi.POST("", h.createAsset)
+			assetApi.PUT("/:id", h.updateAsset)
+			assetApi.DELETE("/:id", h.deleteAsset)
+		}
 
-			adminApi.GET("/redirect", h.getRedirects)
-			adminApi.GET("/redirect/:id", h.getRedirect)
-			adminApi.POST("/redirect", h.createRedirect)
-			adminApi.PUT("/redirect/:id", h.updateRedirect)
-			adminApi.DELETE("/redirect/:id", h.deleteRedirect)
+		redirectApi := api.Group("/redirect").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("redirect"))
+		{
+			redirectApi.GET("", h.getRedirects)
+			redirectApi.GET("/:id", h.getRedirect)
+			redirectApi.POST("", h.createRedirect)
+			redirectApi.PUT("/:id", h.updateRedirect)
+			redirectApi.DELETE("/:id", h.deleteRedirect)
+		}
 
-			adminApi.GET("/location", h.getLocations)
-			adminApi.GET("/location/:id", h.getLocation)
-			adminApi.POST("/location", h.createLocation)
-			adminApi.PUT("/location/:id", h.updateLocation)
-			adminApi.DELETE("/location/:id", h.deleteLocation)
+		locationApi := api.Group("/location").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("location"))
+		{
+			locationApi.GET("", h.getLocations)
+			locationApi.GET("/:id", h.getLocation)
+			locationApi.POST("", h.createLocation)
+			locationApi.PUT("/:id", h.updateLocation)
+			locationApi.DELETE("/:id", h.deleteLocation)
 		}
 	}
 }

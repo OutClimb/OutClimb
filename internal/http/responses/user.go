@@ -1,6 +1,6 @@
 //
 // User Response
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ package responses
 import "github.com/OutClimb/OutClimb/internal/app/models"
 
 type UserPublic struct {
-	Username             string `json:"username"`
-	Name                 string `json:"name"`
-	Email                string `json:"email"`
-	RequirePasswordReset bool   `json:"requirePasswordReset"`
+	Username             string          `json:"username"`
+	Name                 string          `json:"name"`
+	Email                string          `json:"email"`
+	RequirePasswordReset bool            `json:"requirePasswordReset"`
+	Role                 string          `json:"role"`
+	Permissions          map[string]uint `json:"permissions"`
 }
 
 func (u *UserPublic) Publicize(user *models.UserInternal) {
@@ -31,4 +33,6 @@ func (u *UserPublic) Publicize(user *models.UserInternal) {
 	u.Name = user.Name
 	u.Email = user.Email
 	u.RequirePasswordReset = user.RequirePasswordReset
+	u.Role = user.Role
+	u.Permissions = user.Permissions
 }

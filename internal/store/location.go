@@ -53,7 +53,7 @@ func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualIm
 	return &location, nil
 }
 
-func (s *storeLayer) DeleteLocation(id uint64) error {
+func (s *storeLayer) DeleteLocation(id uint) error {
 	if result := s.db.Delete(&Location{}, id); result.Error != nil {
 		return result.Error
 	}
@@ -71,7 +71,7 @@ func (s *storeLayer) GetAllLocations() (*[]Location, error) {
 	return &locations, nil
 }
 
-func (s *storeLayer) GetLocation(id uint64) (*Location, error) {
+func (s *storeLayer) GetLocation(id uint) (*Location, error) {
 	location := Location{}
 
 	if result := s.db.Where("id = ?", id).First(&location); result.Error != nil {
@@ -81,7 +81,7 @@ func (s *storeLayer) GetLocation(id uint64) (*Location, error) {
 	return &location, nil
 }
 
-func (s *storeLayer) UpdateLocation(id uint64, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error) {
+func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error) {
 	location, err := s.GetLocation(id)
 	if err != nil {
 		return nil, err

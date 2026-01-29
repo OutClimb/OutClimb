@@ -1,6 +1,6 @@
 //
 // User DB Object
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ type User struct {
 	Password             string `gorm:"not null;size:64"`
 	RequirePasswordReset bool   `gorm:"not null;default:0"`
 	Username             string `gorm:"uniqueIndex;not null;size:255"`
+	RoleId               uint   `gorm:"not null;default:0"`
 }
 
 func (s *storeLayer) CreateUser(createdBy, email, name, password, username string) (*User, error) {
@@ -46,6 +47,16 @@ func (s *storeLayer) CreateUser(createdBy, email, name, password, username strin
 	return &user, nil
 }
 
+func (s *storeLayer) GetAllUsers() (*[]User, error) {
+	users := []User{}
+
+	if result := s.db.Find(&users); result.Error != nil {
+		return &[]User{}, result.Error
+	}
+
+	return &users, nil
+}
+
 func (s *storeLayer) GetUser(id uint) (*User, error) {
 	user := User{}
 
@@ -64,6 +75,16 @@ func (s *storeLayer) GetUserWithUsername(username string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (s *storeLayer) GetUsersWithRole(roleId uint) (*[]User, error) {
+	users := []User{}
+
+	if result := s.db.Where("role_id = ?", roleId).Find(&users); result.Error != nil {
+		return &[]User{}, result.Error
+	}
+
+	return &users, nil
 }
 
 func (s *storeLayer) UpdatePassword(id uint, password, updatedBy string) error {

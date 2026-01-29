@@ -19,6 +19,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"os"
 	"time"
@@ -35,25 +36,40 @@ import (
 type StoreLayer interface {
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
+	CreateRole(createdBy, name string) (*Role, error)
 	CreateUser(createdBy, email, name, password, username string) (*User, error)
-	DeleteAsset(id uint64) error
-	DeleteLocation(id uint64) error
-	DeleteRedirect(id uint64) error
+	DeleteAsset(id uint) error
+	DeleteLocation(id uint) error
+	DeletePermission(id uint) error
+	DeleteRedirect(id uint) error
+	DeleteRole(id uint) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
 	GetAllLocations() (*[]Location, error)
+	GetAllPermissions() (*[]Permission, error)
 	GetAllRedirects() (*[]Redirect, error)
-	GetAsset(id uint64) (*Asset, error)
-	GetLocation(id uint64) (*Location, error)
-	GetRedirect(id uint64) (*Redirect, error)
+	GetAllRoles() (*[]Role, error)
+	GetAllUsers() (*[]User, error)
+	GetAsset(id uint) (*Asset, error)
+	GetLocation(id uint) (*Location, error)
+	GetPermission(id uint) (*Permission, error)
+	GetPermissionsWithRole(roleId uint) (*[]Permission, error)
+	GetPermissionWithRoleAndAccess(roleId, accessId uint) (*Permission, error)
+	GetRedirect(id uint) (*Redirect, error)
+	GetRole(id uint) (*Role, error)
+	GetRoleWithName(name string) (*Role, error)
 	GetUser(id uint) (*User, error)
+	GetUsersWithRole(roleId uint) (*[]User, error)
 	GetUserWithUsername(username string) (*User, error)
-	UpdateAsset(id uint64, updatedBy, filename, contentType, data string) (*Asset, error)
-	UpdateLocation(id uint64, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
+	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
 	UpdatePassword(id uint, password, updatedBy string) error
-	UpdateRedirect(id uint64, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
+	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
+	UpdateRole(id uint, updatedBy, name string) (*Role, error)
 }
 
 type storeLayer struct {
@@ -140,11 +156,31 @@ func (s *storeLayer) Migrate() {
 		os.Exit(1)
 	}
 
+	err = s.db.AutoMigrate(&Permission{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "permission",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
 	err = s.db.AutoMigrate(&Redirect{})
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
 			"databaseTable", "redirect",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Role{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"databaseTable", "role",
 			"error", err,
 		)
 		os.Exit(1)
@@ -158,5 +194,52 @@ func (s *storeLayer) Migrate() {
 			"error", err,
 		)
 		os.Exit(1)
+	}
+
+	// Create admin role
+	if result := s.db.Where("name = 'Admin'").First(&Role{}); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			role, err := s.CreateRole("system", "Admin")
+			if err != nil {
+				slog.Error(
+					"Unable to create admin role",
+					"error", err,
+				)
+				os.Exit(1)
+			}
+
+			entities := []string{"asset", "redirect", "location"}
+			for _, entity := range entities {
+				_, err = s.CreatePermission(role.ID, LevelWrite, entity)
+				if err != nil {
+					slog.Error(
+						"Unable to create permission",
+						"roleID", role.ID,
+						"entity", entity,
+					)
+					os.Exit(1)
+				}
+			}
+		} else {
+			slog.Error(
+				"Unable to migrate role",
+				"error", result.Error,
+			)
+			os.Exit(1)
+		}
+	}
+
+	// Apply admin roles to users who don't have roles
+	if result := s.db.Where("role_id = 0").Find(&[]User{}); result.Error == nil {
+		role, err := s.GetRoleWithName("Admin")
+		if err != nil {
+			slog.Error(
+				"Unable to find admin role",
+				"error", err,
+			)
+			os.Exit(1)
+		}
+
+		s.db.Model(&User{}).Where("role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
 	}
 }

@@ -85,7 +85,7 @@ func (s *storeLayer) CreateAsset(createdBy, filename, contentType, key, data str
 	return &asset, nil
 }
 
-func (s *storeLayer) DeleteAsset(id uint64) error {
+func (s *storeLayer) DeleteAsset(id uint) error {
 	if result := s.db.Delete(&Asset{}, id); result.Error != nil {
 		return result.Error
 	}
@@ -120,7 +120,7 @@ func (s *storeLayer) GetAllAssets() (*[]Asset, error) {
 	return &assets, nil
 }
 
-func (s *storeLayer) GetAsset(id uint64) (*Asset, error) {
+func (s *storeLayer) GetAsset(id uint) (*Asset, error) {
 	asset := Asset{}
 
 	if result := s.db.Where("id = ?", id).First(&asset); result.Error != nil {
@@ -130,7 +130,7 @@ func (s *storeLayer) GetAsset(id uint64) (*Asset, error) {
 	return &asset, nil
 }
 
-func (s *storeLayer) UpdateAsset(id uint64, updatedBy, filename, contentType, data string) (*Asset, error) {
+func (s *storeLayer) UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error) {
 	asset, err := s.GetAsset(id)
 	if err != nil {
 		return nil, err

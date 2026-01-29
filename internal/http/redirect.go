@@ -1,6 +1,6 @@
 //
 // Redirect Routes
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *httpLayer) createRedirect(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -67,7 +68,7 @@ func (h *httpLayer) deleteRedirect(c *gin.Context) {
 		return
 	}
 
-	err = h.app.DeleteRedirect(id)
+	err = h.app.DeleteRedirect(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
 		return
@@ -93,7 +94,7 @@ func (h *httpLayer) getRedirect(c *gin.Context) {
 		return
 	}
 
-	internalRedirect, error := h.app.GetRedirect(id)
+	internalRedirect, error := h.app.GetRedirect(uint(id))
 	if error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Redirect not found"})
 		return
@@ -119,8 +120,8 @@ func (h *httpLayer) getRedirects(c *gin.Context) {
 }
 
 func (h *httpLayer) updateRedirect(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -148,7 +149,7 @@ func (h *httpLayer) updateRedirect(c *gin.Context) {
 		return
 	}
 
-	if redirect, err := h.app.UpdateRedirect(user, id, body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
+	if redirect, err := h.app.UpdateRedirect(user, uint(id), body.FromPath, body.ToUrl, body.StartsOn, body.StopsOn); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update redirect"})
 	} else {
 		redirectPublic := responses.RedirectPublic{}

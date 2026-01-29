@@ -22,13 +22,14 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *httpLayer) createLocation(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -66,7 +67,7 @@ func (h *httpLayer) deleteLocation(c *gin.Context) {
 		return
 	}
 
-	err = h.app.DeleteLocation(id)
+	err = h.app.DeleteLocation(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Location not found"})
 		return
@@ -82,7 +83,7 @@ func (h *httpLayer) getLocation(c *gin.Context) {
 		return
 	}
 
-	internalLocation, error := h.app.GetLocation(id)
+	internalLocation, error := h.app.GetLocation(uint(id))
 	if error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Location not found"})
 		return
@@ -108,7 +109,8 @@ func (h *httpLayer) getLocations(c *gin.Context) {
 }
 
 func (h *httpLayer) updateLocation(c *gin.Context) {
-	userId := c.GetUint("user_id")
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	userId := c.GetUint(userClaim.ID)
 	user, err := h.app.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -137,7 +139,7 @@ func (h *httpLayer) updateLocation(c *gin.Context) {
 		return
 	}
 
-	if location, err := h.app.UpdateLocation(user, id, body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.StartTime, body.EndTime, body.Description); err != nil {
+	if location, err := h.app.UpdateLocation(user, uint(id), body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.StartTime, body.EndTime, body.Description); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update location"})
 	} else {
 		locationPublic := responses.LocationPublic{}

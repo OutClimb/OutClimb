@@ -1,6 +1,6 @@
 //
 // User Logic
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,9 +32,13 @@ func (a *appLayer) AuthenticateUser(username string, password string) (*models.U
 		return &models.UserInternal{}, err
 	} else if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return &models.UserInternal{}, errors.New("invalid password")
+	} else if role, err := a.store.GetRole(user.RoleId); err != nil {
+		return &models.UserInternal{}, err
+	} else if permissions, err := a.store.GetPermissionsWithRole(user.RoleId); err != nil {
+		return &models.UserInternal{}, err
 	} else {
 		userInternal := models.UserInternal{}
-		userInternal.Internalize(user)
+		userInternal.Internalize(user, role, permissions)
 
 		return &userInternal, nil
 	}
@@ -43,9 +47,13 @@ func (a *appLayer) AuthenticateUser(username string, password string) (*models.U
 func (a *appLayer) GetUser(userId uint) (*models.UserInternal, error) {
 	if user, err := a.store.GetUser(userId); err != nil {
 		return &models.UserInternal{}, err
+	} else if role, err := a.store.GetRole(user.RoleId); err != nil {
+		return &models.UserInternal{}, err
+	} else if permissions, err := a.store.GetPermissionsWithRole(user.RoleId); err != nil {
+		return &models.UserInternal{}, err
 	} else {
 		userInternal := models.UserInternal{}
-		userInternal.Internalize(user)
+		userInternal.Internalize(user, role, permissions)
 
 		return &userInternal, nil
 	}

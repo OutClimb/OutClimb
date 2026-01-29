@@ -1,6 +1,6 @@
 //
 // User Routes
-// Copyright 2025 OutClimb
+// Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,10 +80,13 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 	claims.NotBefore = jwt.NewNumericDate(time.Now())
 	claims.IssuedAt = jwt.NewNumericDate(time.Now())
 	claims.User = middleware.JwtUserClaim{
+		ID:                   userId,
 		Username:             user.Username,
 		Name:                 user.Name,
 		Email:                user.Email,
 		RequirePasswordReset: user.RequirePasswordReset,
+		Role:                 user.Role,
+		Permissions:          user.Permissions,
 	}
 
 	// Create the token
@@ -97,8 +100,8 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 }
 
 func (h *httpLayer) updatePassword(c *gin.Context) {
-	userId := c.GetUint("user_id")
-	user, err := h.app.GetUser(userId)
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return

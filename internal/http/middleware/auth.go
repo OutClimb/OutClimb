@@ -19,7 +19,6 @@ package middleware
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/OutClimb/OutClimb/internal/http/responses"
@@ -29,10 +28,13 @@ import (
 )
 
 type JwtUserClaim struct {
-	Username             string `json:"un"`
-	Name                 string `json:"n"`
-	Email                string `json:"e"`
-	RequirePasswordReset bool   `json:"pr"`
+	ID                   uint            `json:"id"`
+	Username             string          `json:"un"`
+	Name                 string          `json:"n"`
+	Email                string          `json:"e"`
+	RequirePasswordReset bool            `json:"pr"`
+	Role                 string          `json:"r"`
+	Permissions          map[string]uint `json:"p"`
 }
 
 type JwtClaims struct {
@@ -69,14 +71,11 @@ func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 		} else if claims.Audience != c.ClientIP() {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
-		} else if userId, err := strconv.Atoi(claims.Subject); err != nil {
-			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
-			c.Abort()
 		} else if claims.User.RequirePasswordReset && !resetAllowed {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else {
-			c.Set("user_id", uint(userId))
+			c.Set("user", claims.User)
 			c.Next()
 		}
 	}
