@@ -27,6 +27,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const JwtVersion = "2"
+
 type JwtUserClaim struct {
 	ID                   uint            `json:"id"`
 	Username             string          `json:"un"`
@@ -69,6 +71,9 @@ func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims.Audience != c.ClientIP() {
+			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
+			c.Abort()
+		} else if claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else if claims.User.RequirePasswordReset && !resetAllowed {

@@ -73,7 +73,7 @@ func (h *httpLayer) createToken(c *gin.Context) {
 func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp, issuer, secret string) string {
 	// Create the Claims
 	claims := middleware.JwtClaims{}
-	claims.Issuer = issuer
+	claims.Issuer = issuer + "-" + middleware.JwtVersion
 	claims.Subject = strconv.FormatUint(uint64(userId), 10)
 	claims.Audience = clientIp
 	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(lifespan)))

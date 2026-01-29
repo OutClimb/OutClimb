@@ -208,7 +208,7 @@ func (s *storeLayer) Migrate() {
 				os.Exit(1)
 			}
 
-			entities := []string{"asset", "redirect", "location"}
+			entities := []string{"asset", "form", "redirect", "location", "social"}
 			for _, entity := range entities {
 				_, err = s.CreatePermission(role.ID, LevelWrite, entity)
 				if err != nil {
