@@ -75,7 +75,7 @@ func (h *httpLayer) createAsset(c *gin.Context) {
 }
 
 func (h *httpLayer) deleteAsset(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
@@ -91,7 +91,7 @@ func (h *httpLayer) deleteAsset(c *gin.Context) {
 }
 
 func (h *httpLayer) getAsset(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
@@ -131,7 +131,7 @@ func (h *httpLayer) updateAsset(c *gin.Context) {
 	}
 
 	// Get the id from the URL
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return

@@ -61,7 +61,7 @@ func (h *httpLayer) createLocation(c *gin.Context) {
 }
 
 func (h *httpLayer) deleteLocation(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
@@ -77,7 +77,7 @@ func (h *httpLayer) deleteLocation(c *gin.Context) {
 }
 
 func (h *httpLayer) getLocation(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
@@ -118,7 +118,7 @@ func (h *httpLayer) updateLocation(c *gin.Context) {
 	}
 
 	// Get the id from the URL
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
