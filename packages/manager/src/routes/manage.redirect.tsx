@@ -136,7 +136,14 @@ function Redirects() {
             </Empty>
           )}
 
-          {!isLoading && !isEmpty() && <RedirectsTable data={list()} onEdit={handleEdit} onDelete={handleDelete} />}
+          {!isLoading && !isEmpty() && (
+            <RedirectsTable
+              data={list()}
+              canEdit={hasPermission('redirect', WRITE_PERMISSION)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </CardContent>
       </Card>
 
