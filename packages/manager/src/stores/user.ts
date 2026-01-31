@@ -59,7 +59,15 @@ const useUserStore = create<UserState>()(
             claims: decodedClaims,
           })
 
+          if (!decodedClaims.usr.p) {
+            return false
+          }
+
           return decodedClaims.usr.p[entity] >= level
+        }
+
+        if (!claims.usr.p) {
+          return false
         }
 
         return claims.usr.p[entity] >= level

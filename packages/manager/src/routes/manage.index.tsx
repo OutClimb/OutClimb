@@ -13,6 +13,7 @@ export const Route = createFileRoute('/manage/')({
 
     const firstNavItem = NAVIGATION_ITEMS.find((item) => hasPermission(item.entity, READ_PERMISSION))
     if (!firstNavItem) {
+      context.user.logout()
       throw redirect({ to: '/manage/login' })
     }
 
