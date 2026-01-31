@@ -1,13 +1,21 @@
 'use client'
 
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
+import { READ_PERMISSION } from '@/stores/user'
 
 export const Route = createFileRoute('/manage/')({
-  beforeLoad: async () => {
+  beforeLoad: async ({ context }) => {
+    const { hasPermission } = context.user
     if (localStorage.getItem('token') == null) {
       throw redirect({ to: '/manage/login' })
-    } else {
-      throw redirect({ to: '/manage/redirect' })
     }
+
+    const firstNavItem = NAVIGATION_ITEMS.find((item) => hasPermission(item.entity, READ_PERMISSION))
+    if (!firstNavItem) {
+      throw redirect({ to: '/manage/login' })
+    }
+
+    throw redirect({ to: firstNavItem.href })
   },
 })

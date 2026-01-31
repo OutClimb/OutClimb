@@ -7,10 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export function RedirectsTable({
   data,
+  canEdit,
   onEdit,
   onDelete,
 }: {
   data: Array<Redirect>
+  canEdit: boolean
   onEdit: (id: number) => void
   onDelete: (id: number) => void
 }) {
@@ -48,7 +50,7 @@ export function RedirectsTable({
             <TableHead>To</TableHead>
             <TableHead>Starts On</TableHead>
             <TableHead>Ends On</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            {canEdit && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,16 +68,18 @@ export function RedirectsTable({
               </TableCell>
               <TableCell>{item.startsOn === 0 ? '-' : dateFormatter.format(new Date(item.startsOn))}</TableCell>
               <TableCell>{item.stopsOn === 0 ? '-' : dateFormatter.format(new Date(item.stopsOn))}</TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-2">
-                  <Button variant="secondary" onClick={handleEdit(item.id)}>
-                    Edit
-                  </Button>
-                  <Button variant="destructive" onClick={handleDelete(item.id)}>
-                    Delete
-                  </Button>
-                </div>
-              </TableCell>
+              {canEdit && (
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={handleEdit(item.id)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                      Delete
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

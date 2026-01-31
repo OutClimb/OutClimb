@@ -10,13 +10,14 @@ import { EditRedirectDialog } from '@/components/redirect/edit-redirect-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchRedirects } from '@/api/redirect'
 import { Header } from '@/components/header'
+import permissionGuard from '@/lib/permission-guard'
 import { Plus, Waypoints } from 'lucide-react'
 import { RedirectsTable } from '@/components/redirect/redirects-table'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useRedirectStore from '@/stores/redirect'
-import useUserStore from '@/stores/user'
+import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
 
 export const Route = createFileRoute('/manage/redirect')({
   component: Redirects,
@@ -27,12 +28,13 @@ export const Route = createFileRoute('/manage/redirect')({
       },
     ],
   }),
-  beforeLoad: ({ context, location }) => authGuard(context, location),
+  beforeLoad: ({ context, location }) =>
+    Promise.all([authGuard(context, location), permissionGuard(context, 'redirect', READ_PERMISSION)]),
 })
 
 function Redirects() {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { hasPermission, token } = useUserStore()
   const { isEmpty, list, populate } = useRedirectStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
@@ -100,10 +102,12 @@ function Redirects() {
     <>
       <Header
         actions={
-          <Button onClick={handleCreate} disabled={isLoading}>
-            <Plus />
-            Create Redirect
-          </Button>
+          hasPermission('redirect', WRITE_PERMISSION) && (
+            <Button onClick={handleCreate} disabled={isLoading}>
+              <Plus />
+              Create Redirect
+            </Button>
+          )
         }>
         Redirects
       </Header>
@@ -136,9 +140,13 @@ function Redirects() {
         </CardContent>
       </Card>
 
-      <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-      <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-      <DeleteRedirectDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+      {hasPermission('redirect', WRITE_PERMISSION) && (
+        <>
+          <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+          <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <DeleteRedirectDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+        </>
+      )}
     </>
   )
 }

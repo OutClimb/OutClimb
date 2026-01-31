@@ -9,11 +9,12 @@ import { fetchLocations } from '@/api/location'
 import { Header } from '@/components/header'
 import { LocationsTable } from '@/components/location/locations-table'
 import { MapPin, Plus } from 'lucide-react'
+import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useLocationStore from '@/stores/location'
-import useUserStore from '@/stores/user'
+import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
 import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
 import { CreateLocationDialog } from '@/components/location/create-location-dialog'
 import { EditLocationDialog } from '@/components/location/edit-location-dialog'
@@ -27,12 +28,13 @@ export const Route = createFileRoute('/manage/location')({
       },
     ],
   }),
-  beforeLoad: ({ context, location }) => authGuard(context, location),
+  beforeLoad: ({ context, location }) =>
+    Promise.all([authGuard(context, location), permissionGuard(context, 'location', READ_PERMISSION)]),
 })
 
 function Locations() {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { hasPermission, token } = useUserStore()
   const { isEmpty, list, populate } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
@@ -100,10 +102,12 @@ function Locations() {
     <>
       <Header
         actions={
-          <Button onClick={handleCreate} disabled={isLoading}>
-            <Plus />
-            Create Location
-          </Button>
+          hasPermission('location', WRITE_PERMISSION) && (
+            <Button onClick={handleCreate} disabled={isLoading}>
+              <Plus />
+              Create Location
+            </Button>
+          )
         }>
         Event Locations
       </Header>
@@ -132,13 +136,24 @@ function Locations() {
             </Empty>
           )}
 
-          {!isLoading && !isEmpty() && <LocationsTable data={list()} onEdit={handleEdit} onDelete={handleDelete} />}
+          {!isLoading && !isEmpty() && (
+            <LocationsTable
+              data={list()}
+              canEdit={hasPermission('location', WRITE_PERMISSION)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </CardContent>
       </Card>
 
-      <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-      <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-      <DeleteLocationDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+      {hasPermission('location', WRITE_PERMISSION) && (
+        <>
+          <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+          <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <DeleteLocationDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+        </>
+      )}
     </>
   )
 }

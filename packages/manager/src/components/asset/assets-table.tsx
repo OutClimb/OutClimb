@@ -7,10 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export function AssetsTable({
   data,
+  canEdit,
   onEdit,
   onDelete,
 }: {
   data: Array<Asset>
+  canEdit: boolean
   onEdit: (id: number) => void
   onDelete: (id: number) => void
 }) {
@@ -40,27 +42,29 @@ export function AssetsTable({
         <TableHeader>
           <TableRow>
             <TableHead>File</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            {canEdit && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
-              <TableCell>
+              <TableCell className="h-12">
                 <a href={getLink(item.fileName)} target="_blank" className="group hover:underline">
                   {item.fileName} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-2">
-                  <Button variant="secondary" onClick={handleEdit(item.id)}>
-                    Edit
-                  </Button>
-                  <Button variant="destructive" onClick={handleDelete(item.id)}>
-                    Delete
-                  </Button>
-                </div>
-              </TableCell>
+              {canEdit && (
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={handleEdit(item.id)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                      Delete
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

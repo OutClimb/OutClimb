@@ -12,12 +12,13 @@ import { GeneralSocialImageFields } from '@/components/social/general-social-ima
 import { generateSocialImages } from '@/lib/social-image'
 import { Header } from '@/components/header'
 import { MapPin } from 'lucide-react'
+import permissionGuard from '@/lib/permission-guard'
 import type React from 'react'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useEffect, useMemo, useState } from 'react'
 import useLocationStore from '@/stores/location'
-import useUserStore from '@/stores/user'
+import useUserStore, { READ_PERMISSION } from '@/stores/user'
 
 export const Route = createFileRoute('/manage/social')({
   component: Social,
@@ -28,7 +29,8 @@ export const Route = createFileRoute('/manage/social')({
       },
     ],
   }),
-  beforeLoad: ({ context, location }) => authGuard(context, location),
+  beforeLoad: ({ context, location }) =>
+    Promise.all([authGuard(context, location), permissionGuard(context, 'social', READ_PERMISSION)]),
 })
 
 function Social() {

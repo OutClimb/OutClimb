@@ -6,9 +6,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute } from '@tanstack/react-router'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Header } from '@/components/header'
+import permissionGuard from '@/lib/permission-guard'
 import { Plus } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
+import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
 
 export const Route = createFileRoute('/manage/form')({
   component: RouteComponent,
@@ -19,20 +21,24 @@ export const Route = createFileRoute('/manage/form')({
       },
     ],
   }),
-  beforeLoad: ({ context, location }) => authGuard(context, location),
+  beforeLoad: ({ context, location }) =>
+    Promise.all([authGuard(context, location), permissionGuard(context, 'form', READ_PERMISSION)]),
 })
 
 function RouteComponent() {
+  const { hasPermission } = useUserStore()
   const [isLoading] = useState<boolean>(true)
 
   return (
     <>
       <Header
         actions={
-          <Button disabled={isLoading}>
-            <Plus />
-            Create Form
-          </Button>
+          hasPermission('form', WRITE_PERMISSION) && (
+            <Button disabled={isLoading}>
+              <Plus />
+              Create Form
+            </Button>
+          )
         }>
         Forms
       </Header>

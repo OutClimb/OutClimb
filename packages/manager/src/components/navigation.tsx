@@ -2,15 +2,16 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { FileText, Image, LogOut, MapPin, Menu, Upload, Waypoints, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { useState } from 'react'
-import useUserStore from '@/stores/user'
+import useUserStore, { READ_PERMISSION } from '@/stores/user'
 
 export function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { logout } = useUserStore()
+  const { hasPermission, logout } = useUserStore()
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleSidebar = () => {
@@ -27,34 +28,6 @@ export function Navigation() {
       to: '/manage/login',
     })
   }
-
-  const navItems = [
-    {
-      title: 'Assets',
-      href: '/manage/asset',
-      icon: Upload,
-    },
-    {
-      title: 'Forms',
-      href: '/manage/form',
-      icon: FileText,
-    },
-    {
-      title: 'Event Locations',
-      href: '/manage/location',
-      icon: MapPin,
-    },
-    {
-      title: 'Redirects',
-      href: '/manage/redirect',
-      icon: Waypoints,
-    },
-    {
-      title: 'Social Images',
-      href: '/manage/social',
-      icon: Image,
-    },
-  ]
 
   return (
     <>
@@ -93,21 +66,23 @@ export function Navigation() {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-3 py-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={closeSidebar}
-                className={cn(
-                  'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  location.pathname.startsWith(item.href)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                )}>
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.title}
-              </Link>
-            ))}
+            {NAVIGATION_ITEMS.map((item) =>
+              hasPermission(item.entity, READ_PERMISSION) ? (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={closeSidebar}
+                  className={cn(
+                    'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    location.pathname.startsWith(item.href)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                  )}>
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.title}
+                </Link>
+              ) : null,
+            )}
           </nav>
 
           <div className="mt-auto border-t px-3 py-4">

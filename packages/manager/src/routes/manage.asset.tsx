@@ -16,7 +16,7 @@ import { Upload } from 'lucide-react'
 import { UploadAssetDialog } from '@/components/asset/upload-asset-dialog'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useEffect, useState } from 'react'
-import useUserStore from '@/stores/user'
+import useUserStore, { WRITE_PERMISSION } from '@/stores/user'
 
 export const Route = createFileRoute('/manage/asset')({
   component: Assets,
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/manage/asset')({
 
 function Assets() {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { hasPermission, token } = useUserStore()
   const { isEmpty, list, populate } = useAssetStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
@@ -100,10 +100,12 @@ function Assets() {
     <>
       <Header
         actions={
-          <Button onClick={handleUpload} disabled={isLoading}>
-            <Upload />
-            Upload Asset
-          </Button>
+          hasPermission('asset', WRITE_PERMISSION) && (
+            <Button onClick={handleUpload} disabled={isLoading}>
+              <Upload />
+              Upload Asset
+            </Button>
+          )
         }>
         Assets
       </Header>
@@ -132,13 +134,24 @@ function Assets() {
             </Empty>
           )}
 
-          {!isLoading && !isEmpty() && <AssetsTable data={list()} onEdit={handleEdit} onDelete={handleDelete} />}
+          {!isLoading && !isEmpty() && (
+            <AssetsTable
+              data={list()}
+              canEdit={hasPermission('asset', WRITE_PERMISSION)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </CardContent>
       </Card>
 
-      <UploadAssetDialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} />
-      <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-      <DeleteAssetDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+      {hasPermission('asset', WRITE_PERMISSION) && (
+        <>
+          <UploadAssetDialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} />
+          <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <DeleteAssetDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+        </>
+      )}
     </>
   )
 }

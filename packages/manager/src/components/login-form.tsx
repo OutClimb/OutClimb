@@ -7,15 +7,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { fetchToken } from '@/api/user'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import type React from 'react'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import useUserStore from '@/stores/user'
+import useUserStore, { READ_PERMISSION } from '@/stores/user'
 
 export function LoginForm() {
   const navigate = useNavigate()
-  const { user, login } = useUserStore()
+  const { hasPermission, user, login } = useUserStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -50,7 +51,12 @@ export function LoginForm() {
       if (user()?.requiresPasswordReset) {
         navigate({ to: '/manage/reset' })
       } else {
-        navigate({ to: '/manage/redirect' })
+        const firstNavItem = NAVIGATION_ITEMS.find((item) => hasPermission(item.entity, READ_PERMISSION))
+        if (!firstNavItem) {
+          navigate({ to: '/manage/login' })
+        } else {
+          navigate({ to: firstNavItem.href })
+        }
       }
     } catch (error) {
       if (error instanceof UnauthorizedError) {
