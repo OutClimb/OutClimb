@@ -60,7 +60,7 @@ export function LoginForm() {
       }
     } catch (error) {
       if (error instanceof UnauthorizedError) {
-        setError('Invalid email or password')
+        setError('Invalid username or password')
       } else {
         setError('An error occurred. Please try again.')
       }
@@ -91,6 +91,9 @@ export function LoginForm() {
               type="text"
               value={formData.username}
               onChange={handleChange}
+              autoFocus
+              autoCapitalize="none"
+              autoComplete="username"
               disabled={isLoading}
               required
             />
@@ -103,6 +106,8 @@ export function LoginForm() {
               type="password"
               value={formData.password}
               onChange={handleChange}
+              autoCapitalize="none"
+              autoComplete="current-password"
               disabled={isLoading}
               required
             />

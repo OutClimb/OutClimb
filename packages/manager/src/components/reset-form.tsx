@@ -124,6 +124,9 @@ export function ResetForm() {
               type="password"
               value={formData.password}
               onChange={handleChange}
+              autoFocus
+              autoCapitalize="none"
+              autoComplete="new-password"
               disabled={isLoading}
               required
             />
