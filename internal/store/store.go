@@ -196,6 +196,26 @@ func (s *storeLayer) Migrate() {
 		os.Exit(1)
 	}
 
+	// Create owner role
+	if result := s.db.Where("name = 'Owner'").First(&Role{}); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			_, err := s.CreateRole("system", "Owner")
+			if err != nil {
+				slog.Error(
+					"Unable to create owner role",
+					"error", err,
+				)
+				os.Exit(1)
+			}
+		} else {
+			slog.Error(
+				"Unable to query on role table",
+				"error", result.Error,
+			)
+			os.Exit(1)
+		}
+	}
+
 	// Create admin role
 	if result := s.db.Where("name = 'Admin'").First(&Role{}); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

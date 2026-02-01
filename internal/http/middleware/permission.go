@@ -28,6 +28,12 @@ func Permission(entity string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userClaim, _ := c.MustGet("user").(JwtUserClaim)
 
+		// Owner always have full permissions
+		if userClaim.Role == "Owner" {
+			c.Next()
+			return
+		}
+
 		permission, ok := userClaim.Permissions[entity]
 		if c.Request.Method == "GET" && ok && permission == 0 {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
