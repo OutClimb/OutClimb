@@ -99,6 +99,87 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 	}
 }
 
+func (h *httpLayer) createUser(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get the body data
+	bodyAsByteArray, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return
+	}
+
+	// Parse the body data
+	body := responses.UserRequestPublic{}
+	err = json.Unmarshal(bodyAsByteArray, &body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return
+	}
+
+	if user, err := h.app.CreateUser(user, body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.Username, body.Role); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create location"})
+	} else {
+		userPublic := responses.UserPublic{}
+		userPublic.Publicize(user)
+
+		c.JSON(http.StatusOK, userPublic)
+	}
+}
+
+func (h *httpLayer) deleteUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	err = h.app.DeleteUser(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (h *httpLayer) getUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	internalUser, error := h.app.GetUser(uint(id))
+	if error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	user := responses.UserPublic{}
+	user.Publicize(internalUser)
+
+	c.JSON(http.StatusOK, user)
+}
+
+func (h *httpLayer) getUsers(c *gin.Context) {
+	if internalUsers, err := h.app.GetAllUsers(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve users"})
+	} else {
+		users := make([]responses.UserPublic, len(*internalUsers))
+		for i, user := range *internalUsers {
+			users[i].Publicize(&user)
+		}
+
+		c.JSON(http.StatusOK, users)
+	}
+}
+
 func (h *httpLayer) updatePassword(c *gin.Context) {
 	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
 	user, err := h.app.GetUser(userClaim.ID)
@@ -130,7 +211,7 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	}
 
 	// Validate password
-	if err := h.app.ValidatePassword(user, jsonMap["password"]); err != nil {
+	if err := h.app.ValidatePassword(user.Username, user.Password, jsonMap["password"]); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -142,4 +223,45 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated"})
+}
+
+func (h *httpLayer) updateUser(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	userId := c.GetUint(userClaim.ID)
+	user, err := h.app.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Get the id from the URL
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	// Get the body data
+	bodyAsByteArray, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return
+	}
+
+	// Parse the body data
+	body := responses.UserRequestPublic{}
+	err = json.Unmarshal(bodyAsByteArray, &body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return
+	}
+
+	if user, err := h.app.UpdateUser(user, uint(id), body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.Username, body.Role); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update user"})
+	} else {
+		userPublic := responses.UserPublic{}
+		userPublic.Publicize(user)
+
+		c.JSON(http.StatusOK, userPublic)
+	}
 }

@@ -32,6 +32,7 @@ type createUser struct {
 	password string
 	name     string
 	email    string
+	role     string
 }
 
 var createUserContext = createUser{}
@@ -49,6 +50,7 @@ func init() {
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.password, "password", "p", "", "The user's password")
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.name, "name", "n", "", "The name to associate to the user")
 	createUserCmd.PersistentFlags().StringVarP(&createUserContext.email, "email", "e", "", "The email to associate to the user")
+	createUserCmd.PersistentFlags().StringVarP(&createUserContext.role, "role", "r", "", "The role to assign the the user")
 
 	err := createUserCmd.MarkPersistentFlagRequired("username")
 	if err != nil {
@@ -69,6 +71,11 @@ func init() {
 	if err != nil {
 		fmt.Printf("There was an issue marking email flag as required")
 	}
+
+	err = createUserCmd.MarkPersistentFlagRequired("role")
+	if err != nil {
+		fmt.Printf("There was an issue marking role flag as required")
+	}
 }
 
 func runCreateUser(cmd *cobra.Command, args []string) {
@@ -86,7 +93,13 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 	}
 
 	storeLayer := store.New(&config.Database, &config.Storage)
-	user, err := storeLayer.CreateUser("super", createUserContext.email, createUserContext.name, string(hashedPassword), createUserContext.username)
+
+	role, err := storeLayer.GetRoleWithName(createUserContext.role)
+	if err != nil {
+		fmt.Println("Error getting role with name "+createUserContext.role+":", err)
+	}
+
+	user, err := storeLayer.CreateUser("system", false, createUserContext.email, createUserContext.name, string(hashedPassword), false, createUserContext.username, role.ID)
 	if err != nil {
 		fmt.Println("Error creating user: ", err)
 		return

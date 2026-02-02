@@ -19,6 +19,16 @@ package responses
 
 import "github.com/OutClimb/OutClimb/internal/app/models"
 
+type UserRequestPublic struct {
+	Disabled             bool   `json:"disabled"`
+	Email                string `json:"email"`
+	Name                 string `json:"name"`
+	Password             string `json:"password"`
+	RequirePasswordReset bool   `json:"requirePasswordReset"`
+	Username             string `json:"username"`
+	Role                 string `json:"role"`
+}
+
 type UserPublic struct {
 	Username             string          `json:"username"`
 	Name                 string          `json:"name"`

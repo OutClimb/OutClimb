@@ -39,12 +39,13 @@ type StoreLayer interface {
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateRole(createdBy, name string) (*Role, error)
-	CreateUser(createdBy, email, name, password, username string) (*User, error)
+	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 	DeleteAsset(id uint) error
 	DeleteLocation(id uint) error
 	DeletePermission(id uint) error
 	DeleteRedirect(id uint) error
 	DeleteRole(id uint) error
+	DeleteUser(id uint) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
@@ -70,6 +71,7 @@ type StoreLayer interface {
 	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	UpdateRole(id uint, updatedBy, name string) (*Role, error)
+	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 }
 
 type storeLayer struct {
@@ -217,7 +219,8 @@ func (s *storeLayer) Migrate() {
 	}
 
 	// Create admin role
-	if result := s.db.Where("name = 'Admin'").First(&Role{}); result.Error != nil {
+	adminRole := Role{}
+	if result := s.db.Where("name = 'Admin'").First(&adminRole); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			role, err := s.CreateRole("system", "Admin")
 			if err != nil {
@@ -228,7 +231,7 @@ func (s *storeLayer) Migrate() {
 				os.Exit(1)
 			}
 
-			entities := []string{"asset", "form", "redirect", "location", "social"}
+			entities := []string{"asset", "form", "redirect", "location", "social", "user"}
 			for _, entity := range entities {
 				_, err = s.CreatePermission(role.ID, LevelWrite, entity)
 				if err != nil {
@@ -242,7 +245,28 @@ func (s *storeLayer) Migrate() {
 			}
 		} else {
 			slog.Error(
-				"Unable to migrate role",
+				"Unable to query on role table",
+				"error", result.Error,
+			)
+			os.Exit(1)
+		}
+	}
+
+	// Create the user permission on the admin role if the admin role already existed
+	if result := s.db.Where("role_id = ? AND entity = 'user'", adminRole.ID).First(&Permission{}); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			_, err = s.CreatePermission(adminRole.ID, LevelWrite, "user")
+			if err != nil {
+				slog.Error(
+					"Unable to create permission",
+					"roleID", adminRole.ID,
+					"entity", "user",
+				)
+				os.Exit(1)
+			}
+		} else {
+			slog.Error(
+				"Unable to query on permission table",
 				"error", result.Error,
 			)
 			os.Exit(1)

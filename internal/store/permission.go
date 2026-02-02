@@ -34,7 +34,6 @@ type Permission struct {
 
 func (s *storeLayer) CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error) {
 	permission := Permission{
-		ID:     0,
 		RoleId: roleId,
 		Level:  level,
 		Entity: entity,

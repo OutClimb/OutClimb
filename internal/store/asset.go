@@ -136,6 +136,7 @@ func (s *storeLayer) UpdateAsset(id uint, updatedBy, filename, contentType, data
 		return nil, err
 	}
 
+	asset.UpdatedBy = updatedBy
 	asset.FileName = filename
 
 	if len(data) != 0 {

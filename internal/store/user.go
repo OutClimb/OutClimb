@@ -28,14 +28,15 @@ type User struct {
 	RoleId               uint   `gorm:"not null;default:0"`
 }
 
-func (s *storeLayer) CreateUser(createdBy, email, name, password, username string) (*User, error) {
+func (s *storeLayer) CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error) {
 	user := User{
-		Disabled:             false,
+		Disabled:             disabled,
 		Email:                email,
 		Name:                 name,
 		Password:             password,
-		RequirePasswordReset: false,
+		RequirePasswordReset: requirePasswordReset,
 		Username:             username,
+		RoleId:               roleId,
 	}
 	user.CreatedBy = createdBy
 	user.UpdatedBy = createdBy
@@ -45,6 +46,14 @@ func (s *storeLayer) CreateUser(createdBy, email, name, password, username strin
 	}
 
 	return &user, nil
+}
+
+func (s *storeLayer) DeleteUser(id uint) error {
+	if result := s.db.Delete(&User{}, id); result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (s *storeLayer) GetAllUsers() (*[]User, error) {
@@ -67,16 +76,6 @@ func (s *storeLayer) GetUser(id uint) (*User, error) {
 	return &user, nil
 }
 
-func (s *storeLayer) GetUserWithUsername(username string) (*User, error) {
-	user := User{}
-
-	if result := s.db.Where("username = ?", username).First(&user); result.Error != nil {
-		return &User{}, result.Error
-	}
-
-	return &user, nil
-}
-
 func (s *storeLayer) GetUsersWithRole(roleId uint) (*[]User, error) {
 	users := []User{}
 
@@ -85,6 +84,16 @@ func (s *storeLayer) GetUsersWithRole(roleId uint) (*[]User, error) {
 	}
 
 	return &users, nil
+}
+
+func (s *storeLayer) GetUserWithUsername(username string) (*User, error) {
+	user := User{}
+
+	if result := s.db.Where("username = ?", username).First(&user); result.Error != nil {
+		return &User{}, result.Error
+	}
+
+	return &user, nil
 }
 
 func (s *storeLayer) UpdatePassword(id uint, password, updatedBy string) error {
@@ -98,4 +107,29 @@ func (s *storeLayer) UpdatePassword(id uint, password, updatedBy string) error {
 	}
 
 	return nil
+}
+
+func (s *storeLayer) UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error) {
+	user, err := s.GetUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	user.UpdatedBy = updatedBy
+	user.Disabled = disabled
+	user.Email = email
+	user.Name = name
+	user.RequirePasswordReset = requirePasswordReset
+	user.Username = username
+	user.RoleId = roleId
+
+	if len(password) != 0 {
+		user.Password = password
+	}
+
+	if result := s.db.Save(&user); result.Error != nil {
+		return &User{}, result.Error
+	}
+
+	return user, nil
 }

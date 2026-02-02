@@ -80,6 +80,7 @@ func (s *storeLayer) UpdateRole(id uint, updatedBy, name string) (*Role, error) 
 		return nil, err
 	}
 
+	role.UpdatedBy = updatedBy
 	role.Name = name
 
 	if result := s.db.Save(&role); result.Error != nil {

@@ -145,6 +145,15 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			locationApi.PUT("/:id", h.updateLocation)
 			locationApi.DELETE("/:id", h.deleteLocation)
 		}
+
+		userApi := api.Group("/user").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("user"))
+		{
+			userApi.GET("", h.getUsers)
+			userApi.GET("/:id", h.getUser)
+			userApi.POST("", h.createUser)
+			userApi.PUT("/:id", h.updateUser)
+			userApi.DELETE("/:id", h.deleteUser)
+		}
 	}
 }
 

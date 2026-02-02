@@ -87,6 +87,7 @@ func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, ind
 		return nil, err
 	}
 
+	location.UpdatedBy = updatedBy
 	location.Name = name
 	location.MainImageName = mainImageName
 	location.IndividualImageName = individualImageName
