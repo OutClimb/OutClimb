@@ -11,14 +11,16 @@ import { fetchLocations } from '@/api/location'
 import { GeneralSocialImageFields } from '@/components/social/general-social-image-fields'
 import { generateSocialImages } from '@/lib/social-image'
 import { Header } from '@/components/header'
-import { MapPin } from 'lucide-react'
+import { MapPin, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
 import type React from 'react'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import useLocationStore from '@/stores/location'
 import useUserStore, { READ_PERMISSION } from '@/stores/user'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/social')({
   component: Social,
@@ -44,7 +46,6 @@ function Social() {
   const [formData, setFormData] = useState<SocialImageFieldData>({
     month: new Date().getMonth() == 11 ? 0 : new Date().getMonth() + 1,
     year: new Date().getMonth() == 11 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
-    numberOfEvents: 0,
     events: [],
   })
 
@@ -86,21 +87,37 @@ function Social() {
     })
   }, [data])
 
-  if (formData.events.length != formData.numberOfEvents) {
-    setFormData({
-      ...formData,
-      events: [...Array(formData.numberOfEvents).keys()].map<EventSocialImageFormData>(() => {
-        return {
-          day: undefined,
-          startTime: '',
-          endTime: '',
-          location: 0,
-          address: '',
-          description: '',
-        }
-      }),
+  const handleAdd = useCallback(() => {
+    setFormData((prev) => {
+      if (prev.events.length === 7) {
+        return prev
+      }
+
+      const newFormData = { ...prev }
+      newFormData.events.push({
+        day: undefined,
+        startTime: '',
+        endTime: '',
+        location: 0,
+        address: '',
+        description: '',
+      })
+
+      return newFormData
     })
-  }
+  }, [setFormData])
+
+  const handleDelete = useCallback(
+    (index: number) => {
+      setFormData((prev) => {
+        const newFormData = { ...prev }
+        newFormData.events.splice(index, 1)
+
+        return newFormData
+      })
+    },
+    [setFormData],
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -129,77 +146,106 @@ function Social() {
 
   return (
     <>
-      <Header>Social Images</Header>
+      <Header
+        actions={
+          <Button onClick={handleAdd} disabled={isLoading || formData.events.length === 7}>
+            <Plus />
+            Add Event
+          </Button>
+        }>
+        Social Images
+      </Header>
 
-      <Card>
-        {isLoading && (
-          <CardContent className="p-0">
+      <Content>
+        <Card>
+          {isLoading && (
+            <CardContent className="p-0">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading locations...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            </CardContent>
+          )}
+
+          {!isLoading && isEmpty() && (
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <Spinner />
+                  <MapPin />
                 </EmptyMedia>
-                <EmptyTitle>Loading locations...</EmptyTitle>
+                <EmptyTitle>No event locations added yet, please add some before generating social images.</EmptyTitle>
               </EmptyHeader>
             </Empty>
-          </CardContent>
-        )}
+          )}
 
-        {!isLoading && isEmpty() && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <MapPin />
-              </EmptyMedia>
-              <EmptyTitle>No event locations added yet, please add some before generating social images.</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
+          {!isLoading && !isEmpty() && (
+            <form onSubmit={handleSubmit}>
+              <GeneralSocialImageFields
+                month={formData.month}
+                year={formData.year}
+                disabled={isLoading || isGenerating}
+                onChange={handleGeneralFieldChange}
+              />
+              {formData.events.length > 0 && (
+                <Accordion type="multiple" className="border-t">
+                  {formData.events.map((event, index) => {
+                    return (
+                      <AccordionItem key={index} value={index.toString()}>
+                        <AccordionTrigger className="px-4">
+                          Event #{index + 1}
+                          {event.location != 0 &&
+                            ` - ${sortedLocationList.find((loc) => loc.id === event.location)?.name}`}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <EventSocialImageFields
+                            year={formData.year}
+                            month={formData.month}
+                            locations={sortedLocationList}
+                            day={event.day}
+                            startTime={event.startTime}
+                            endTime={event.endTime}
+                            location={event.location}
+                            address={event.address}
+                            description={event.description}
+                            disabled={isLoading || isGenerating}
+                            onChange={(data) => {
+                              handleEventFieldChange(index, data)
+                            }}
+                          />
 
-        {!isLoading && !isEmpty() && (
-          <form onSubmit={handleSubmit}>
-            <GeneralSocialImageFields
-              month={formData.month}
-              year={formData.year}
-              numberOfEvents={formData.numberOfEvents}
-              disabled={isLoading || isGenerating}
-              onChange={handleGeneralFieldChange}
-            />
-            {formData.events.map((event, index) => {
-              return (
-                <EventSocialImageFields
-                  year={formData.year}
-                  month={formData.month}
-                  locations={sortedLocationList}
-                  eventNumber={index + 1}
-                  day={event.day}
-                  startTime={event.startTime}
-                  endTime={event.endTime}
-                  location={event.location}
-                  address={event.address}
-                  description={event.description}
-                  disabled={isLoading || isGenerating}
-                  onChange={(data) => {
-                    handleEventFieldChange(index, data)
-                  }}
-                />
-              )
-            })}
+                          <Button
+                            className="mx-4 w-full"
+                            variant="destructive"
+                            type="button"
+                            onClick={() => handleDelete(index)}>
+                            Delete Event #{index + 1}
+                          </Button>
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
+                </Accordion>
+              )}
 
-            <CardFooter>
-              <Button className="px-6" type="submit" disabled={isLoading || isGenerating}>
-                {isGenerating && (
-                  <>
-                    <Spinner /> Generating...
-                  </>
-                )}
+              <CardFooter>
+                <Button className="px-6" type="submit" disabled={isLoading || isGenerating}>
+                  {isGenerating && (
+                    <>
+                      <Spinner /> Generating...
+                    </>
+                  )}
 
-                {!isGenerating && <>Generate</>}
-              </Button>
-            </CardFooter>
-          </form>
-        )}
-      </Card>
+                  {!isGenerating && <>Generate</>}
+                </Button>
+              </CardFooter>
+            </form>
+          )}
+        </Card>
+      </Content>
     </>
   )
 }

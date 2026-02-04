@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
-import { CardContent } from '@/components/ui/card'
 import type { EventSocialImageFormData } from '@/types/social-image'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { format } from 'date-fns'
@@ -19,7 +18,6 @@ export interface EventSocialImageFieldsProps {
   year: number
   month: number
   locations: Array<Location>
-  eventNumber: number
   day?: Date
   startTime: string
   endTime: string
@@ -34,7 +32,6 @@ export function EventSocialImageFields({
   year,
   month,
   locations,
-  eventNumber,
   location,
   address,
   day,
@@ -142,9 +139,7 @@ export function EventSocialImageFields({
   )
 
   return (
-    <CardContent className="border-t">
-      <h3 className="my-4 font-bold text-xl">Event #{eventNumber}</h3>
-
+    <div className="px-4">
       <div className="mb-4">
         <Field>
           <FieldLabel>Location</FieldLabel>
@@ -246,6 +241,6 @@ export function EventSocialImageFields({
           />
         </Field>
       </div>
-    </CardContent>
+    </div>
   )
 }

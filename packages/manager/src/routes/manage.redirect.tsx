@@ -18,6 +18,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useRedirectStore from '@/stores/redirect'
 import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
+import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/redirect')({
   component: Redirects,
@@ -112,40 +113,42 @@ function Redirects() {
         Redirects
       </Header>
 
-      <Card className="p-0">
-        <CardContent className="p-0">
-          {isLoading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Spinner />
-                </EmptyMedia>
-                <EmptyTitle>Loading redirects...</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+      <Content>
+        <Card className="p-0">
+          <CardContent className="p-0">
+            {isLoading && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading redirects...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && isEmpty() && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Waypoints />
-                </EmptyMedia>
-                <EmptyTitle>No redirects configured</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+            {!isLoading && isEmpty() && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Waypoints />
+                  </EmptyMedia>
+                  <EmptyTitle>No redirects configured</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && !isEmpty() && (
-            <RedirectsTable
-              data={list()}
-              canEdit={hasPermission('redirect', WRITE_PERMISSION)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
-        </CardContent>
-      </Card>
+            {!isLoading && !isEmpty() && (
+              <RedirectsTable
+                data={list()}
+                canEdit={hasPermission('redirect', WRITE_PERMISSION)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </Content>
 
       {hasPermission('redirect', WRITE_PERMISSION) && (
         <>

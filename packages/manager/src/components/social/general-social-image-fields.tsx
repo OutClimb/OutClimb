@@ -9,27 +9,19 @@ import { useCallback } from 'react'
 export interface GeneralSocialImageFieldsProps {
   month: number
   year: number
-  numberOfEvents: number
   disabled: boolean
   onChange: (data: GeneralSocialImageFormData) => void
 }
 
-export function GeneralSocialImageFields({
-  month,
-  year,
-  numberOfEvents,
-  disabled,
-  onChange,
-}: GeneralSocialImageFieldsProps) {
+export function GeneralSocialImageFields({ month, year, disabled, onChange }: GeneralSocialImageFieldsProps) {
   const handleMonthChange = useCallback(
     (value: string) => {
       onChange({
         month: parseInt(value, 10),
         year,
-        numberOfEvents,
       })
     },
-    [year, numberOfEvents, onChange],
+    [year, onChange],
   )
 
   const handleYearChange = useCallback(
@@ -37,21 +29,9 @@ export function GeneralSocialImageFields({
       onChange({
         month,
         year: parseInt(value, 10),
-        numberOfEvents,
       })
     },
-    [month, numberOfEvents, onChange],
-  )
-
-  const handleEventNumberChange = useCallback(
-    (value: string) => {
-      onChange({
-        month,
-        year,
-        numberOfEvents: parseInt(value, 10),
-      })
-    },
-    [month, year, onChange],
+    [month, onChange],
   )
 
   return (
@@ -97,25 +77,6 @@ export function GeneralSocialImageFields({
                   </SelectItem>
                 )
               })}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Number of Events</FieldLabel>
-          <Select
-            value={numberOfEvents === 0 ? '' : numberOfEvents.toString()}
-            disabled={disabled}
-            onValueChange={handleEventNumberChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select the number of events for the month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">Five</SelectItem>
-              <SelectItem value="6">Six</SelectItem>
-              <SelectItem value="7">Seven</SelectItem>
             </SelectContent>
           </Select>
         </Field>

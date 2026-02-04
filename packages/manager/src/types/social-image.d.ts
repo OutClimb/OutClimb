@@ -10,7 +10,6 @@ export interface EventSocialImageFormData {
 export interface GeneralSocialImageFormData {
   month: number
   year: number
-  numberOfEvents: number
 }
 
 export interface SocialImageFieldData extends GeneralSocialImageFormData {

@@ -18,6 +18,7 @@ import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
 import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
 import { CreateLocationDialog } from '@/components/location/create-location-dialog'
 import { EditLocationDialog } from '@/components/location/edit-location-dialog'
+import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/location')({
   component: Locations,
@@ -112,40 +113,42 @@ function Locations() {
         Event Locations
       </Header>
 
-      <Card className="p-0">
-        <CardContent className="p-0">
-          {isLoading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Spinner />
-                </EmptyMedia>
-                <EmptyTitle>Loading locations...</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+      <Content>
+        <Card className="p-0">
+          <CardContent className="p-0">
+            {isLoading && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading locations...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && isEmpty() && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <MapPin />
-                </EmptyMedia>
-                <EmptyTitle>No locations added</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+            {!isLoading && isEmpty() && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <MapPin />
+                  </EmptyMedia>
+                  <EmptyTitle>No locations added</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && !isEmpty() && (
-            <LocationsTable
-              data={list()}
-              canEdit={hasPermission('location', WRITE_PERMISSION)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
-        </CardContent>
-      </Card>
+            {!isLoading && !isEmpty() && (
+              <LocationsTable
+                data={list()}
+                canEdit={hasPermission('location', WRITE_PERMISSION)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </Content>
 
       {hasPermission('location', WRITE_PERMISSION) && (
         <>

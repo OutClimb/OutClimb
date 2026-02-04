@@ -25,9 +25,11 @@ const RootLayout = () => {
       <HeadContent />
       <div className="h-dvh w-screen md:flex md:flex-row">
         <Navigation />
-        <main className="grow shrink basis-full w-full h-dvh overflow-y-auto p-6 md:p-10 md:basis-(--body-width) md:w-(--body-width)">
+        <div
+          id="scrollContainer"
+          className="grow shrink basis-full w-full h-dvh overflow-y-auto md:basis-(--body-width) md:w-(--body-width)">
           <Outlet />
-        </main>
+        </div>
       </div>
     </>
   )

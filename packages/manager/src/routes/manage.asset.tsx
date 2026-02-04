@@ -17,6 +17,7 @@ import { UploadAssetDialog } from '@/components/asset/upload-asset-dialog'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useEffect, useState } from 'react'
 import useUserStore, { WRITE_PERMISSION } from '@/stores/user'
+import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/asset')({
   component: Assets,
@@ -110,40 +111,42 @@ function Assets() {
         Assets
       </Header>
 
-      <Card className="p-0">
-        <CardContent className="p-0">
-          {isLoading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Spinner />
-                </EmptyMedia>
-                <EmptyTitle>Loading assets...</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+      <Content>
+        <Card className="p-0">
+          <CardContent className="p-0">
+            {isLoading && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading assets...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && isEmpty() && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Upload />
-                </EmptyMedia>
-                <EmptyTitle>No assets uploaded</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+            {!isLoading && isEmpty() && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Upload />
+                  </EmptyMedia>
+                  <EmptyTitle>No assets uploaded</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && !isEmpty() && (
-            <AssetsTable
-              data={list()}
-              canEdit={hasPermission('asset', WRITE_PERMISSION)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
-        </CardContent>
-      </Card>
+            {!isLoading && !isEmpty() && (
+              <AssetsTable
+                data={list()}
+                canEdit={hasPermission('asset', WRITE_PERMISSION)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </Content>
 
       {hasPermission('asset', WRITE_PERMISSION) && (
         <>

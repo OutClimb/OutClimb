@@ -11,6 +11,7 @@ import { Plus } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
 import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
+import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/form')({
   component: RouteComponent,
@@ -43,20 +44,22 @@ function RouteComponent() {
         Forms
       </Header>
 
-      <Card className="p-0">
-        <CardContent className="p-0">
-          {isLoading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Spinner />
-                </EmptyMedia>
-                <EmptyTitle>Loading forms...</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
-        </CardContent>
-      </Card>
+      <Content>
+        <Card className="p-0">
+          <CardContent className="p-0">
+            {isLoading && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading forms...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
+        </Card>
+      </Content>
     </>
   )
 }
