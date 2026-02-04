@@ -33,6 +33,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var Entities = [...]string{"asset", "form", "redirect", "location", "social", "user", "role"}
+
 type StoreLayer interface {
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
@@ -230,19 +232,7 @@ func (s *storeLayer) Migrate() {
 				)
 				os.Exit(1)
 			}
-
-			entities := []string{"asset", "form", "redirect", "location", "social", "user"}
-			for _, entity := range entities {
-				_, err = s.CreatePermission(role.ID, LevelWrite, entity)
-				if err != nil {
-					slog.Error(
-						"Unable to create permission",
-						"roleID", role.ID,
-						"entity", entity,
-					)
-					os.Exit(1)
-				}
-			}
+			adminRole = *role
 		} else {
 			slog.Error(
 				"Unable to query on role table",
@@ -253,23 +243,25 @@ func (s *storeLayer) Migrate() {
 	}
 
 	// Create the user permission on the admin role if the admin role already existed
-	if result := s.db.Where("role_id = ? AND entity = 'user'", adminRole.ID).First(&Permission{}); result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			_, err = s.CreatePermission(adminRole.ID, LevelWrite, "user")
-			if err != nil {
+	for _, entity := range Entities {
+		if result := s.db.Where("role_id = ? AND entity = ?", adminRole.ID, entity).First(&Permission{}); result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				_, err = s.CreatePermission(adminRole.ID, LevelWrite, entity)
+				if err != nil {
+					slog.Error(
+						"Unable to create permission",
+						"roleID", adminRole.ID,
+						"entity", entity,
+					)
+					os.Exit(1)
+				}
+			} else {
 				slog.Error(
-					"Unable to create permission",
-					"roleID", adminRole.ID,
-					"entity", "user",
+					"Unable to query on permission table",
+					"error", result.Error,
 				)
 				os.Exit(1)
 			}
-		} else {
-			slog.Error(
-				"Unable to query on permission table",
-				"error", result.Error,
-			)
-			os.Exit(1)
 		}
 	}
 
