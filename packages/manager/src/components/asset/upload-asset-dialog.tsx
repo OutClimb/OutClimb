@@ -12,7 +12,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 interface FormData {
   fileName: string
@@ -27,7 +27,7 @@ interface UploadAssetDialogProps {
 
 export function UploadAssetDialog({ open, onOpenChange }: UploadAssetDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { populateSingle } = useAssetStore()
 
   const fileInput = useRef<HTMLInputElement>(null)

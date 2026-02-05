@@ -28,7 +28,7 @@ export interface User {
   permissions: Record<string, number>
 }
 
-export interface UserState {
+export interface SelfState {
   token: string | null
   claims: JwtClaims | null
   user: () => User | null

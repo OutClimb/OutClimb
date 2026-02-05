@@ -18,7 +18,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import useLocationStore from '@/stores/location'
-import useUserStore, { READ_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION } from '@/stores/self'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Content } from '@/components/content'
 
@@ -37,7 +37,7 @@ export const Route = createFileRoute('/manage/social')({
 
 function Social() {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { data, isEmpty, populate } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)

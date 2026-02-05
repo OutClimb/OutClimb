@@ -12,11 +12,11 @@ import type React from 'react'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import useUserStore, { READ_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION } from '@/stores/self'
 
 export function LoginForm() {
   const navigate = useNavigate()
-  const { hasPermission, user, login } = useUserStore()
+  const { hasPermission, user, login } = useSelfStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({

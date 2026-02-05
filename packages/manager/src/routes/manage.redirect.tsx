@@ -17,7 +17,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useRedirectStore from '@/stores/redirect'
-import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/redirect')({
@@ -35,7 +35,7 @@ export const Route = createFileRoute('/manage/redirect')({
 
 function Redirects() {
   const navigate = useNavigate()
-  const { hasPermission, token } = useUserStore()
+  const { hasPermission, token } = useSelfStore()
   const { isEmpty, list, populate } = useRedirectStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)

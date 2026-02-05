@@ -12,7 +12,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useRedirectStore from '@/stores/redirect'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 interface FormData {
   fromPath: string
@@ -28,7 +28,7 @@ interface CreateRedirectDialogProps {
 
 export function CreateRedirectDialog({ open, onOpenChange }: CreateRedirectDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { populateSingle } = useRedirectStore()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)

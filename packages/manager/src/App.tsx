@@ -1,7 +1,7 @@
 'use client'
 
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import useUserStore from './stores/user'
+import useSelfStore from './stores/self'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -22,7 +22,7 @@ declare module '@tanstack/react-router' {
 }
 
 export function App() {
-  const user = useUserStore()
+  const user = useSelfStore()
 
   return <RouterProvider router={router} context={{ user }} />
 }

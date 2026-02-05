@@ -12,7 +12,7 @@ import { updateAsset } from '@/api/asset'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 interface FormData {
   id: number
@@ -29,7 +29,7 @@ interface EditAssetDialogProps {
 
 export function EditAssetDialog({ id, open, onOpenChange }: EditAssetDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { data, populateSingle } = useAssetStore()
 
   const fileInput = useRef<HTMLInputElement>(null)

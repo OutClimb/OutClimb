@@ -6,12 +6,12 @@ import { LogOut, Menu, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { useState } from 'react'
-import useUserStore, { READ_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION } from '@/stores/self'
 
 export function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { hasPermission, logout } = useUserStore()
+  const { hasPermission, logout } = useSelfStore()
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleSidebar = () => {

@@ -16,7 +16,7 @@ import { Upload } from 'lucide-react'
 import { UploadAssetDialog } from '@/components/asset/upload-asset-dialog'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useEffect, useState } from 'react'
-import useUserStore, { WRITE_PERMISSION } from '@/stores/user'
+import useSelfStore, { WRITE_PERMISSION } from '@/stores/self'
 import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/asset')({
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/manage/asset')({
 
 function Assets() {
   const navigate = useNavigate()
-  const { hasPermission, token } = useUserStore()
+  const { hasPermission, token } = useSelfStore()
   const { isEmpty, list, populate } = useAssetStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)

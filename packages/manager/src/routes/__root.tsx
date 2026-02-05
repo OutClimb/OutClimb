@@ -2,10 +2,10 @@
 
 import { createRootRouteWithContext, HeadContent, Outlet, useLocation } from '@tanstack/react-router'
 import { Navigation } from '@/components/navigation'
-import type { UserState } from '@/types/user'
+import type { SelfState } from '@/types/user'
 
 export interface RouterContext {
-  user: UserState
+  user: SelfState
 }
 
 const RootLayout = () => {

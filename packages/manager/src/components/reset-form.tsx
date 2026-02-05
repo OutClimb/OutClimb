@@ -11,11 +11,11 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { updatePassword } from '@/api/user'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 export function ResetForm() {
   const navigate = useNavigate()
-  const { token, logout } = useUserStore()
+  const { token, logout } = useSelfStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({

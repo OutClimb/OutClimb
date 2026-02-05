@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { jwtDecode } from 'jwt-decode'
-import type { JwtClaims, UserState } from '@/types/user'
+import type { JwtClaims, SelfState } from '@/types/user'
 
 export const NO_PERMISSION = 0
 export const READ_PERMISSION = 1
 export const WRITE_PERMISSION = 2
 
-const useUserStore = create<UserState>()(
+const useSelfStore = create<SelfState>()(
   persist(
     devtools((set, get) => ({
       token: null,
@@ -95,9 +95,9 @@ const useUserStore = create<UserState>()(
         }),
     })),
     {
-      name: 'user-storage',
+      name: 'self-storage',
     },
   ),
 )
 
-export default useUserStore
+export default useSelfStore

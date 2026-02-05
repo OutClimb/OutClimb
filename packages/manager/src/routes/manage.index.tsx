@@ -2,7 +2,7 @@
 
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
-import { READ_PERMISSION } from '@/stores/user'
+import { READ_PERMISSION } from '@/stores/self'
 
 export const Route = createFileRoute('/manage/')({
   beforeLoad: async ({ context }) => {

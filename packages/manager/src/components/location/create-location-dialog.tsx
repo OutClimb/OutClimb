@@ -12,7 +12,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useLocationStore from '@/stores/location'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 interface FormData {
   name: string
@@ -33,7 +33,7 @@ interface CreateLocationDialogProps {
 
 export function CreateLocationDialog({ open, onOpenChange }: CreateLocationDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { populateSingle } = useLocationStore()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)

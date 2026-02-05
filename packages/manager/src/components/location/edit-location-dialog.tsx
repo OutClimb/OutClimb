@@ -10,7 +10,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useLocationStore from '@/stores/location'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 import { Field, FieldDescription, FieldLabel } from '../ui/field'
 import { Textarea } from '../ui/textarea'
 
@@ -35,7 +35,7 @@ interface EditLocationDialogProps {
 
 export function EditLocationDialog({ id, open, onOpenChange }: EditLocationDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { data, populateSingle } = useLocationStore()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)

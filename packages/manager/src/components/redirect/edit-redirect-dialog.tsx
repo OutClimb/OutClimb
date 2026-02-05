@@ -12,7 +12,7 @@ import { updateRedirect } from '@/api/redirect'
 import { useNavigate } from '@tanstack/react-router'
 import useRedirectStore from '@/stores/redirect'
 import { useCallback, useState } from 'react'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 interface FormData {
   id: number
@@ -30,7 +30,7 @@ interface EditLocationDialogProps {
 
 export function EditRedirectDialog({ id, open, onOpenChange }: EditLocationDialogProps) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { data, populateSingle } = useRedirectStore()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)

@@ -14,7 +14,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useLocationStore from '@/stores/location'
-import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
 import { CreateLocationDialog } from '@/components/location/create-location-dialog'
 import { EditLocationDialog } from '@/components/location/edit-location-dialog'
@@ -35,7 +35,7 @@ export const Route = createFileRoute('/manage/location')({
 
 function Locations() {
   const navigate = useNavigate()
-  const { hasPermission, token } = useUserStore()
+  const { hasPermission, token } = useSelfStore()
   const { isEmpty, list, populate } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)

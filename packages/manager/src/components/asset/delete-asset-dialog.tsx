@@ -7,7 +7,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import useAssetStore from '@/stores/asset'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 export function DeleteAssetDialog({
   id,
@@ -19,7 +19,7 @@ export function DeleteAssetDialog({
   onOpenChange: (isOpen: boolean) => void
 }) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { remove } = useAssetStore()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 

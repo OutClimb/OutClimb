@@ -7,7 +7,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useRedirectStore from '@/stores/redirect'
-import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 
 export function DeleteRedirectDialog({
   id,
@@ -19,7 +19,7 @@ export function DeleteRedirectDialog({
   onOpenChange: (isOpen: boolean) => void
 }) {
   const navigate = useNavigate()
-  const { token } = useUserStore()
+  const { token } = useSelfStore()
   const { remove } = useRedirectStore()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 

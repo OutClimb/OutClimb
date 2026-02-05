@@ -10,7 +10,7 @@ import permissionGuard from '@/lib/permission-guard'
 import { Plus } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
-import useUserStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/user'
+import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage/form')({
@@ -27,7 +27,7 @@ export const Route = createFileRoute('/manage/form')({
 })
 
 function RouteComponent() {
-  const { hasPermission } = useUserStore()
+  const { hasPermission } = useSelfStore()
   const [isLoading] = useState<boolean>(true)
 
   return (
