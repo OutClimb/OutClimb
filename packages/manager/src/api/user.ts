@@ -1,4 +1,4 @@
-import type { TokenResponse } from '@/types/user'
+import type { GetUsersResponse, TokenResponse } from '@/types/user'
 import { UnauthorizedError } from '@/errors/unauthorized'
 
 export async function fetchToken(username: string, password: string): Promise<TokenResponse> {
@@ -27,6 +27,33 @@ export async function fetchToken(username: string, password: string): Promise<To
 
   try {
     return await response.text()
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+}
+
+export async function fetchUsers(token: string): Promise<GetUsersResponse> {
+  let response
+  try {
+    response = await fetch(`/api/v1/user`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  } else if (response.status >= 300) {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  try {
+    return await response.json()
   } catch {
     throw new Error('An error occurred. Please try again.')
   }

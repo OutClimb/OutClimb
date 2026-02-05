@@ -1,12 +1,16 @@
+import { fetchUsers } from '@/api/user'
 import { Content } from '@/components/content'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
+import { UsersTable } from '@/components/users/users-table'
+import { UnauthorizedError } from '@/errors/unauthorized'
 import useSelfStore, { WRITE_PERMISSION } from '@/stores/self'
-import { createFileRoute } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import useUserStore from '@/stores/user'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Plus, User } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/manage/users')({
@@ -14,7 +18,9 @@ export const Route = createFileRoute('/manage/users')({
 })
 
 function Users() {
-  const { hasPermission } = useSelfStore()
+  const navigate = useNavigate()
+  const { hasPermission, token } = useSelfStore()
+  const { isEmpty, list, populate } = useUserStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -25,19 +31,19 @@ function Users() {
     const fetchUsersFromApi = async () => {
       setIsLoading(true)
 
-      // try {
-      //   const locations = await fetchLocations(token || '')
-      //   populate(locations)
-      // } catch (error) {
-      //   if (error instanceof UnauthorizedError) {
-      //     navigate({ to: '/manage/login' })
-      //   } else {
-      //     // Display error
-      //   }
-      // } finally {
-      setIsHydrated(true)
-      setIsLoading(false)
-      // }
+      try {
+        const users = await fetchUsers(token || '')
+        populate(users)
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          navigate({ to: '/manage/login' })
+        } else {
+          // Display error
+        }
+      } finally {
+        setIsHydrated(true)
+        setIsLoading(false)
+      }
     }
 
     if (!isHydrated) {
@@ -71,6 +77,26 @@ function Users() {
                   <EmptyTitle>Loading users...</EmptyTitle>
                 </EmptyHeader>
               </Empty>
+            )}
+
+            {!isLoading && isEmpty() && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <User />
+                  </EmptyMedia>
+                  <EmptyTitle>No users created</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
+
+            {!isLoading && !isEmpty() && (
+              <UsersTable
+                data={list()}
+                canEdit={hasPermission('user', WRITE_PERMISSION)}
+                onEdit={() => {}}
+                onDelete={() => {}}
+              />
             )}
           </CardContent>
         </Card>

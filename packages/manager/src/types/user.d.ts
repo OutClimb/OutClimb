@@ -1,3 +1,8 @@
+export type CreateUserResponse = User
+export type GetUsersResponse = Array<User>
+export type GetUserResponse = User
+export type UpdateUserResponse = User
+
 export interface JwtClaims {
   aud: string
   exp: number
@@ -26,6 +31,15 @@ export interface User {
   requiresPasswordReset: boolean
   role: string
   permissions: Record<string, number>
+}
+
+export interface UserStore {
+  data: Record<number, User>
+  isEmpty: () => boolean
+  list: () => Array<User>
+  populate: (redirects: Array<User>) => void
+  populateSingle: (redirect: User) => void
+  remove: (id: number) => void
 }
 
 export interface SelfState {
