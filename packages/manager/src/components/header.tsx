@@ -37,7 +37,7 @@ export function Header({ actions, children, className, ...props }: React.Compone
   return (
     <header
       className={cn(
-        'bg-white fixed top-0 w-full md:w-(--body-width) p-6 z-10 flex items-center pl-18 md:ml-0 transition-shadow duration-300',
+        'bg-white fixed top-0 w-full md:w-(--body-width) p-6 z-10 flex items-center pl-18 md:pl-6 transition-shadow duration-300',
         { 'shadow-md': hovering },
         className,
       )}

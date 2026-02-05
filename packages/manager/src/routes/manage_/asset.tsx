@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from 'react'
 import useSelfStore, { WRITE_PERMISSION } from '@/stores/self'
 import { Content } from '@/components/content'
 
-export const Route = createFileRoute('/manage/asset')({
+export const Route = createFileRoute('/manage_/asset')({
   component: Assets,
   head: () => ({
     meta: [

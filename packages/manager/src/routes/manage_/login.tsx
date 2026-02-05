@@ -3,7 +3,7 @@
 import { createFileRoute, HeadContent } from '@tanstack/react-router'
 import { LoginForm } from '@/components/login-form'
 
-export const Route = createFileRoute('/manage/login')({
+export const Route = createFileRoute('/manage_/login')({
   component: Login,
   head: () => ({
     meta: [

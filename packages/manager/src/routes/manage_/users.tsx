@@ -15,7 +15,7 @@ import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import useUserStore from '@/stores/user'
 import { UnauthorizedError } from '@/errors/unauthorized'
 
-export const Route = createFileRoute('/manage/users')({
+export const Route = createFileRoute('/manage_/users')({
   component: Users,
   head: () => ({
     meta: [

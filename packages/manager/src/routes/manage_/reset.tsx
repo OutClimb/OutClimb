@@ -4,7 +4,7 @@ import authGuard from '@/lib/auth-guard'
 import { createFileRoute, HeadContent } from '@tanstack/react-router'
 import { ResetForm } from '@/components/reset-form'
 
-export const Route = createFileRoute('/manage/reset')({
+export const Route = createFileRoute('/manage_/reset')({
   component: Reset,
   head: () => ({
     meta: [

@@ -13,7 +13,7 @@ import { useState } from 'react'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import { Content } from '@/components/content'
 
-export const Route = createFileRoute('/manage/form')({
+export const Route = createFileRoute('/manage_/form')({
   component: RouteComponent,
   head: () => ({
     meta: [

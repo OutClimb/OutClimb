@@ -12,7 +12,7 @@ import { useCallback, useState } from 'react'
 import useRoleStore from '@/stores/role'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 
-export const Route = createFileRoute('/manage/roles')({
+export const Route = createFileRoute('/manage_/roles')({
   component: Roles,
   head: () => ({
     meta: [

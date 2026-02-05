@@ -9,65 +9,71 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ManageIndexRouteImport } from './routes/manage.index'
-import { Route as ManageUsersRouteImport } from './routes/manage.users'
-import { Route as ManageSocialRouteImport } from './routes/manage.social'
-import { Route as ManageRolesRouteImport } from './routes/manage.roles'
-import { Route as ManageResetRouteImport } from './routes/manage.reset'
-import { Route as ManageRedirectRouteImport } from './routes/manage.redirect'
-import { Route as ManageLoginRouteImport } from './routes/manage.login'
-import { Route as ManageLocationRouteImport } from './routes/manage.location'
-import { Route as ManageFormRouteImport } from './routes/manage.form'
-import { Route as ManageAssetRouteImport } from './routes/manage.asset'
+import { Route as ManageIndexRouteImport } from './routes/manage_/index'
+import { Route as ManageUsersRouteImport } from './routes/manage_/users'
+import { Route as ManageRolesRouteImport } from './routes/manage_/roles'
+import { Route as ManageResetRouteImport } from './routes/manage_/reset'
+import { Route as ManageRedirectRouteImport } from './routes/manage_/redirect'
+import { Route as ManageLoginRouteImport } from './routes/manage_/login'
+import { Route as ManageLocationRouteImport } from './routes/manage_/location'
+import { Route as ManageFormRouteImport } from './routes/manage_/form'
+import { Route as ManageAssetRouteImport } from './routes/manage_/asset'
+import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/social-images/index'
+import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
 
 const ManageIndexRoute = ManageIndexRouteImport.update({
-  id: '/manage/',
+  id: '/manage_/',
   path: '/manage/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageUsersRoute = ManageUsersRouteImport.update({
-  id: '/manage/users',
+  id: '/manage_/users',
   path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageSocialRoute = ManageSocialRouteImport.update({
-  id: '/manage/social',
-  path: '/manage/social',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ManageRolesRoute = ManageRolesRouteImport.update({
-  id: '/manage/roles',
+  id: '/manage_/roles',
   path: '/manage/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageResetRoute = ManageResetRouteImport.update({
-  id: '/manage/reset',
+  id: '/manage_/reset',
   path: '/manage/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageRedirectRoute = ManageRedirectRouteImport.update({
-  id: '/manage/redirect',
+  id: '/manage_/redirect',
   path: '/manage/redirect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageLoginRoute = ManageLoginRouteImport.update({
-  id: '/manage/login',
+  id: '/manage_/login',
   path: '/manage/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageLocationRoute = ManageLocationRouteImport.update({
-  id: '/manage/location',
+  id: '/manage_/location',
   path: '/manage/location',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageFormRoute = ManageFormRouteImport.update({
-  id: '/manage/form',
+  id: '/manage_/form',
   path: '/manage/form',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageAssetRoute = ManageAssetRouteImport.update({
-  id: '/manage/asset',
+  id: '/manage_/asset',
   path: '/manage/asset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageSocialImagesIndexRoute = ManageSocialImagesIndexRouteImport.update({
+  id: '/manage_/social-images/',
+  path: '/manage/social-images/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageSocialImagesMonthlyRoute = ManageSocialImagesMonthlyRouteImport.update({
+  id: '/manage_/social-images/monthly',
+  path: '/manage/social-images/monthly',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -79,9 +85,10 @@ export interface FileRoutesByFullPath {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/roles': typeof ManageRolesRoute
-  '/manage/social': typeof ManageSocialRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
+  '/manage/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
+  '/manage/social-images': typeof ManageSocialImagesIndexRoute
 }
 export interface FileRoutesByTo {
   '/manage/asset': typeof ManageAssetRoute
@@ -91,22 +98,24 @@ export interface FileRoutesByTo {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/roles': typeof ManageRolesRoute
-  '/manage/social': typeof ManageSocialRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
+  '/manage/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
+  '/manage/social-images': typeof ManageSocialImagesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/manage/asset': typeof ManageAssetRoute
-  '/manage/form': typeof ManageFormRoute
-  '/manage/location': typeof ManageLocationRoute
-  '/manage/login': typeof ManageLoginRoute
-  '/manage/redirect': typeof ManageRedirectRoute
-  '/manage/reset': typeof ManageResetRoute
-  '/manage/roles': typeof ManageRolesRoute
-  '/manage/social': typeof ManageSocialRoute
-  '/manage/users': typeof ManageUsersRoute
-  '/manage/': typeof ManageIndexRoute
+  '/manage_/asset': typeof ManageAssetRoute
+  '/manage_/form': typeof ManageFormRoute
+  '/manage_/location': typeof ManageLocationRoute
+  '/manage_/login': typeof ManageLoginRoute
+  '/manage_/redirect': typeof ManageRedirectRoute
+  '/manage_/reset': typeof ManageResetRoute
+  '/manage_/roles': typeof ManageRolesRoute
+  '/manage_/users': typeof ManageUsersRoute
+  '/manage_/': typeof ManageIndexRoute
+  '/manage_/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
+  '/manage_/social-images/': typeof ManageSocialImagesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +127,10 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/roles'
-    | '/manage/social'
     | '/manage/users'
     | '/manage'
+    | '/manage/social-images/monthly'
+    | '/manage/social-images'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/manage/asset'
@@ -130,21 +140,23 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/roles'
-    | '/manage/social'
     | '/manage/users'
     | '/manage'
+    | '/manage/social-images/monthly'
+    | '/manage/social-images'
   id:
     | '__root__'
-    | '/manage/asset'
-    | '/manage/form'
-    | '/manage/location'
-    | '/manage/login'
-    | '/manage/redirect'
-    | '/manage/reset'
-    | '/manage/roles'
-    | '/manage/social'
-    | '/manage/users'
-    | '/manage/'
+    | '/manage_/asset'
+    | '/manage_/form'
+    | '/manage_/location'
+    | '/manage_/login'
+    | '/manage_/redirect'
+    | '/manage_/reset'
+    | '/manage_/roles'
+    | '/manage_/users'
+    | '/manage_/'
+    | '/manage_/social-images/monthly'
+    | '/manage_/social-images/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,81 +167,89 @@ export interface RootRouteChildren {
   ManageRedirectRoute: typeof ManageRedirectRoute
   ManageResetRoute: typeof ManageResetRoute
   ManageRolesRoute: typeof ManageRolesRoute
-  ManageSocialRoute: typeof ManageSocialRoute
   ManageUsersRoute: typeof ManageUsersRoute
   ManageIndexRoute: typeof ManageIndexRoute
+  ManageSocialImagesMonthlyRoute: typeof ManageSocialImagesMonthlyRoute
+  ManageSocialImagesIndexRoute: typeof ManageSocialImagesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/manage/': {
-      id: '/manage/'
+    '/manage_/': {
+      id: '/manage_/'
       path: '/manage'
       fullPath: '/manage'
       preLoaderRoute: typeof ManageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/users': {
-      id: '/manage/users'
+    '/manage_/users': {
+      id: '/manage_/users'
       path: '/manage/users'
       fullPath: '/manage/users'
       preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/social': {
-      id: '/manage/social'
-      path: '/manage/social'
-      fullPath: '/manage/social'
-      preLoaderRoute: typeof ManageSocialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage/roles': {
-      id: '/manage/roles'
+    '/manage_/roles': {
+      id: '/manage_/roles'
       path: '/manage/roles'
       fullPath: '/manage/roles'
       preLoaderRoute: typeof ManageRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/reset': {
-      id: '/manage/reset'
+    '/manage_/reset': {
+      id: '/manage_/reset'
       path: '/manage/reset'
       fullPath: '/manage/reset'
       preLoaderRoute: typeof ManageResetRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/redirect': {
-      id: '/manage/redirect'
+    '/manage_/redirect': {
+      id: '/manage_/redirect'
       path: '/manage/redirect'
       fullPath: '/manage/redirect'
       preLoaderRoute: typeof ManageRedirectRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/login': {
-      id: '/manage/login'
+    '/manage_/login': {
+      id: '/manage_/login'
       path: '/manage/login'
       fullPath: '/manage/login'
       preLoaderRoute: typeof ManageLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/location': {
-      id: '/manage/location'
+    '/manage_/location': {
+      id: '/manage_/location'
       path: '/manage/location'
       fullPath: '/manage/location'
       preLoaderRoute: typeof ManageLocationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/form': {
-      id: '/manage/form'
+    '/manage_/form': {
+      id: '/manage_/form'
       path: '/manage/form'
       fullPath: '/manage/form'
       preLoaderRoute: typeof ManageFormRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage/asset': {
-      id: '/manage/asset'
+    '/manage_/asset': {
+      id: '/manage_/asset'
       path: '/manage/asset'
       fullPath: '/manage/asset'
       preLoaderRoute: typeof ManageAssetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/social-images/': {
+      id: '/manage_/social-images/'
+      path: '/manage/social-images'
+      fullPath: '/manage/social-images'
+      preLoaderRoute: typeof ManageSocialImagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/social-images/monthly': {
+      id: '/manage_/social-images/monthly'
+      path: '/manage/social-images/monthly'
+      fullPath: '/manage/social-images/monthly'
+      preLoaderRoute: typeof ManageSocialImagesMonthlyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -243,8 +263,9 @@ const rootRouteChildren: RootRouteChildren = {
   ManageRedirectRoute: ManageRedirectRoute,
   ManageResetRoute: ManageResetRoute,
   ManageRolesRoute: ManageRolesRoute,
-  ManageSocialRoute: ManageSocialRoute,
   ManageUsersRoute: ManageUsersRoute,
   ManageIndexRoute: ManageIndexRoute,
+  ManageSocialImagesMonthlyRoute: ManageSocialImagesMonthlyRoute,
+  ManageSocialImagesIndexRoute: ManageSocialImagesIndexRoute,
 }
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()

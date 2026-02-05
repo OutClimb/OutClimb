@@ -4,39 +4,39 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { CreateRedirectDialog } from '@/components/redirect/create-redirect-dialog'
-import { DeleteRedirectDialog } from '@/components/redirect/delete-redirect-dialog'
-import { EditRedirectDialog } from '@/components/redirect/edit-redirect-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchRedirects } from '@/api/redirect'
+import { fetchLocations } from '@/api/location'
 import { Header } from '@/components/header'
+import { LocationsTable } from '@/components/location/locations-table'
+import { MapPin, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
-import { Plus, Waypoints } from 'lucide-react'
-import { RedirectsTable } from '@/components/redirect/redirects-table'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
-import useRedirectStore from '@/stores/redirect'
+import useLocationStore from '@/stores/location'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
+import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
+import { CreateLocationDialog } from '@/components/location/create-location-dialog'
+import { EditLocationDialog } from '@/components/location/edit-location-dialog'
 import { Content } from '@/components/content'
 
-export const Route = createFileRoute('/manage/redirect')({
-  component: Redirects,
+export const Route = createFileRoute('/manage_/location')({
+  component: Locations,
   head: () => ({
     meta: [
       {
-        title: 'Redirects | OutClimb Management',
+        title: 'Event Locations | OutClimb Management',
       },
     ],
   }),
   beforeLoad: ({ context, location }) =>
-    Promise.all([authGuard(context, location), permissionGuard(context, 'redirect', READ_PERMISSION)]),
+    Promise.all([authGuard(context, location), permissionGuard(context, 'location', READ_PERMISSION)]),
 })
 
-function Redirects() {
+function Locations() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useRedirectStore()
+  const { isEmpty, list, populate } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -54,7 +54,7 @@ function Redirects() {
       setSelectedId(id)
       setIsEditDialogOpen(true)
     },
-    [setSelectedId],
+    [setSelectedId, setIsEditDialogOpen],
   )
 
   const handleEditDialogOpenChange = useCallback(() => {
@@ -76,12 +76,12 @@ function Redirects() {
   }, [setSelectedId, setIsDeleteDialogOpen])
 
   useEffect(() => {
-    const fetchRedirectsFromApi = async () => {
+    const fetchLocationsFromApi = async () => {
       setIsLoading(true)
 
       try {
-        const redirects = await fetchRedirects(token || '')
-        populate(redirects)
+        const locations = await fetchLocations(token || '')
+        populate(locations)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           navigate({ to: '/manage/login' })
@@ -95,7 +95,7 @@ function Redirects() {
     }
 
     if (!isHydrated) {
-      fetchRedirectsFromApi()
+      fetchLocationsFromApi()
     }
   })
 
@@ -103,14 +103,14 @@ function Redirects() {
     <>
       <Header
         actions={
-          hasPermission('redirect', WRITE_PERMISSION) && (
+          hasPermission('location', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>
               <Plus />
-              Create Redirect
+              Create Location
             </Button>
           )
         }>
-        Redirects
+        Event Locations
       </Header>
 
       <Content>
@@ -122,7 +122,7 @@ function Redirects() {
                   <EmptyMedia variant="icon">
                     <Spinner />
                   </EmptyMedia>
-                  <EmptyTitle>Loading redirects...</EmptyTitle>
+                  <EmptyTitle>Loading locations...</EmptyTitle>
                 </EmptyHeader>
               </Empty>
             )}
@@ -131,17 +131,17 @@ function Redirects() {
               <Empty>
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
-                    <Waypoints />
+                    <MapPin />
                   </EmptyMedia>
-                  <EmptyTitle>No redirects configured</EmptyTitle>
+                  <EmptyTitle>No locations added</EmptyTitle>
                 </EmptyHeader>
               </Empty>
             )}
 
             {!isLoading && !isEmpty() && (
-              <RedirectsTable
+              <LocationsTable
                 data={list()}
-                canEdit={hasPermission('redirect', WRITE_PERMISSION)}
+                canEdit={hasPermission('location', WRITE_PERMISSION)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -150,11 +150,11 @@ function Redirects() {
         </Card>
       </Content>
 
-      {hasPermission('redirect', WRITE_PERMISSION) && (
+      {hasPermission('location', WRITE_PERMISSION) && (
         <>
-          <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-          <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteRedirectDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+          <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <DeleteLocationDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
         </>
       )}
     </>

@@ -22,12 +22,12 @@ import useSelfStore, { READ_PERMISSION } from '@/stores/self'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Content } from '@/components/content'
 
-export const Route = createFileRoute('/manage/social')({
-  component: Social,
+export const Route = createFileRoute('/manage_/social-images/monthly')({
+  component: Monthly,
   head: () => ({
     meta: [
       {
-        title: 'Social Images | OutClimb Management',
+        title: 'Monthly Event Images | OutClimb Management',
       },
     ],
   }),
@@ -35,7 +35,7 @@ export const Route = createFileRoute('/manage/social')({
     Promise.all([authGuard(context, location), permissionGuard(context, 'social', READ_PERMISSION)]),
 })
 
-function Social() {
+function Monthly() {
   const navigate = useNavigate()
   const { token } = useSelfStore()
   const { data, isEmpty, populate } = useLocationStore()
@@ -153,7 +153,7 @@ function Social() {
             Add Event
           </Button>
         }>
-        Social Images
+        Monthly Event Images
       </Header>
 
       <Content>

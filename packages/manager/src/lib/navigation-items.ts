@@ -33,7 +33,7 @@ export const NAVIGATION_ITEMS = [
   },
   {
     title: 'Social Images',
-    href: '/manage/social',
+    href: '/manage/social-images',
     icon: Image,
     entity: 'social',
   },
