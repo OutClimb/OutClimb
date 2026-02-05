@@ -1,4 +1,4 @@
-import { FileText, Image, MapPin, Upload, User, Waypoints } from 'lucide-react'
+import { FileText, Image, MapPin, Upload, User, Users, Waypoints } from 'lucide-react'
 
 export const NAVIGATION_ITEMS = [
   {
@@ -24,6 +24,12 @@ export const NAVIGATION_ITEMS = [
     href: '/manage/redirect',
     icon: Waypoints,
     entity: 'redirect',
+  },
+  {
+    title: 'Roles',
+    href: '/manage/roles',
+    icon: Users,
+    entity: 'role',
   },
   {
     title: 'Social Images',

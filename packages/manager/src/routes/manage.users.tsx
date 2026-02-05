@@ -1,20 +1,31 @@
-import { fetchUsers } from '@/api/user'
-import { Content } from '@/components/content'
-import { Header } from '@/components/header'
+import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { Spinner } from '@/components/ui/spinner'
-import { UsersTable } from '@/components/users/users-table'
-import { UnauthorizedError } from '@/errors/unauthorized'
-import useSelfStore, { WRITE_PERMISSION } from '@/stores/self'
-import useUserStore from '@/stores/user'
+import { Content } from '@/components/content'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { fetchUsers } from '@/api/user'
+import { Header } from '@/components/header'
+import permissionGuard from '@/lib/permission-guard'
 import { Plus, User } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useCallback, useEffect, useState } from 'react'
+import { UsersTable } from '@/components/users/users-table'
+import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
+import useUserStore from '@/stores/user'
+import { UnauthorizedError } from '@/errors/unauthorized'
 
 export const Route = createFileRoute('/manage/users')({
   component: Users,
+  head: () => ({
+    meta: [
+      {
+        title: 'Users | OutClimb Management',
+      },
+    ],
+  }),
+  beforeLoad: ({ context, location }) =>
+    Promise.all([authGuard(context, location), permissionGuard(context, 'user', READ_PERMISSION)]),
 })
 
 function Users() {

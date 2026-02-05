@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ManageIndexRouteImport } from './routes/manage.index'
 import { Route as ManageUsersRouteImport } from './routes/manage.users'
 import { Route as ManageSocialRouteImport } from './routes/manage.social'
+import { Route as ManageRolesRouteImport } from './routes/manage.roles'
 import { Route as ManageResetRouteImport } from './routes/manage.reset'
 import { Route as ManageRedirectRouteImport } from './routes/manage.redirect'
 import { Route as ManageLoginRouteImport } from './routes/manage.login'
@@ -32,6 +33,11 @@ const ManageUsersRoute = ManageUsersRouteImport.update({
 const ManageSocialRoute = ManageSocialRouteImport.update({
   id: '/manage/social',
   path: '/manage/social',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageRolesRoute = ManageRolesRouteImport.update({
+  id: '/manage/roles',
+  path: '/manage/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageResetRoute = ManageResetRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
+  '/manage/roles': typeof ManageRolesRoute
   '/manage/social': typeof ManageSocialRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
+  '/manage/roles': typeof ManageRolesRoute
   '/manage/social': typeof ManageSocialRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/manage/login': typeof ManageLoginRoute
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
+  '/manage/roles': typeof ManageRolesRoute
   '/manage/social': typeof ManageSocialRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage/': typeof ManageIndexRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/manage/login'
     | '/manage/redirect'
     | '/manage/reset'
+    | '/manage/roles'
     | '/manage/social'
     | '/manage/users'
     | '/manage'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/manage/login'
     | '/manage/redirect'
     | '/manage/reset'
+    | '/manage/roles'
     | '/manage/social'
     | '/manage/users'
     | '/manage'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/manage/login'
     | '/manage/redirect'
     | '/manage/reset'
+    | '/manage/roles'
     | '/manage/social'
     | '/manage/users'
     | '/manage/'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ManageLoginRoute: typeof ManageLoginRoute
   ManageRedirectRoute: typeof ManageRedirectRoute
   ManageResetRoute: typeof ManageResetRoute
+  ManageRolesRoute: typeof ManageRolesRoute
   ManageSocialRoute: typeof ManageSocialRoute
   ManageUsersRoute: typeof ManageUsersRoute
   ManageIndexRoute: typeof ManageIndexRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/manage/social'
       fullPath: '/manage/social'
       preLoaderRoute: typeof ManageSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage/roles': {
+      id: '/manage/roles'
+      path: '/manage/roles'
+      fullPath: '/manage/roles'
+      preLoaderRoute: typeof ManageRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage/reset': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageLoginRoute: ManageLoginRoute,
   ManageRedirectRoute: ManageRedirectRoute,
   ManageResetRoute: ManageResetRoute,
+  ManageRolesRoute: ManageRolesRoute,
   ManageSocialRoute: ManageSocialRoute,
   ManageUsersRoute: ManageUsersRoute,
   ManageIndexRoute: ManageIndexRoute,
