@@ -30,6 +30,7 @@ type UserRequestPublic struct {
 }
 
 type UserPublic struct {
+	Id                   uint            `json:"id"`
 	Username             string          `json:"username"`
 	Name                 string          `json:"name"`
 	Email                string          `json:"email"`
@@ -39,6 +40,7 @@ type UserPublic struct {
 }
 
 func (u *UserPublic) Publicize(user *models.UserInternal) {
+	u.Id = user.ID
 	u.Username = user.Username
 	u.Name = user.Name
 	u.Email = user.Email
