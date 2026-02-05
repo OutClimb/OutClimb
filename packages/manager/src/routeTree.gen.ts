@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ManageIndexRouteImport } from './routes/manage.index'
+import { Route as ManageUsersRouteImport } from './routes/manage.users'
 import { Route as ManageSocialRouteImport } from './routes/manage.social'
 import { Route as ManageResetRouteImport } from './routes/manage.reset'
 import { Route as ManageRedirectRouteImport } from './routes/manage.redirect'
@@ -21,6 +22,11 @@ import { Route as ManageAssetRouteImport } from './routes/manage.asset'
 const ManageIndexRoute = ManageIndexRouteImport.update({
   id: '/manage/',
   path: '/manage/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageUsersRoute = ManageUsersRouteImport.update({
+  id: '/manage/users',
+  path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageSocialRoute = ManageSocialRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/social': typeof ManageSocialRoute
+  '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/social': typeof ManageSocialRoute
+  '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/social': typeof ManageSocialRoute
+  '/manage/users': typeof ManageUsersRoute
   '/manage/': typeof ManageIndexRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/social'
+    | '/manage/users'
     | '/manage'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/social'
+    | '/manage/users'
     | '/manage'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/social'
+    | '/manage/users'
     | '/manage/'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   ManageRedirectRoute: typeof ManageRedirectRoute
   ManageResetRoute: typeof ManageResetRoute
   ManageSocialRoute: typeof ManageSocialRoute
+  ManageUsersRoute: typeof ManageUsersRoute
   ManageIndexRoute: typeof ManageIndexRoute
 }
 
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/manage'
       fullPath: '/manage'
       preLoaderRoute: typeof ManageIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage/users': {
+      id: '/manage/users'
+      path: '/manage/users'
+      fullPath: '/manage/users'
+      preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage/social': {
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageRedirectRoute: ManageRedirectRoute,
   ManageResetRoute: ManageResetRoute,
   ManageSocialRoute: ManageSocialRoute,
+  ManageUsersRoute: ManageUsersRoute,
   ManageIndexRoute: ManageIndexRoute,
 }
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
