@@ -12,6 +12,15 @@ export interface GeneralSocialImageFormData {
   year: number
 }
 
+export interface QtbipocSocialImageFormData {
+  day?: Date
+  startTime: string
+  endTime: string
+  whenDescription: string
+  location?: number
+  cost: string
+}
+
 export interface SocialImageFieldData extends GeneralSocialImageFormData {
   events: Array<EventSocialImageFormData>
 }

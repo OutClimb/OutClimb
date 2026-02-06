@@ -94,6 +94,21 @@ export function EventSocialImageFields({
     [onChange, day, startTime, endTime, location, description],
   )
 
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const { value } = e.target
+      onChange({
+        location,
+        address,
+        day,
+        startTime,
+        endTime,
+        description: value,
+      })
+    },
+    [onChange, address, day, startTime, endTime, location],
+  )
+
   const handleDayChange = useCallback(
     (value: Date) => {
       onChange({
@@ -236,7 +251,7 @@ export function EventSocialImageFields({
             name="description"
             rows={12}
             disabled={disabled}
-            onChange={handleAddressChange}
+            onChange={handleDescriptionChange}
             required
           />
         </Field>

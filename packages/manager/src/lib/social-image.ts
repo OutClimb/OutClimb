@@ -1,5 +1,5 @@
 import { BlobReader, BlobWriter, ZipWriter } from '@zip.js/zip.js'
-import type { EventSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
+import type { EventSocialImageFormData, QtbipocSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
 import { format } from 'date-fns/format'
 import { getTime } from 'date-fns/getTime'
 import type { Location } from '@/types/location'
@@ -41,6 +41,45 @@ function fillMultiLineText(ctx: CanvasRenderingContext2D, text: string, lineHeig
   })
 }
 
+export async function generateQtbipocSocialImage(data: QtbipocSocialImageFormData, locations: Array<Location>) {
+  const location = locations.find((loc) => loc.id === data.location)
+  if (!location) {
+    return
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 4500
+  canvas.height = 5625
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    return
+  }
+
+  // Draw the background
+  const backgroundImage = await loadImage('/manage/images/qtbipoc-bg.png')
+  ctx.drawImage(backgroundImage, 0, 0)
+
+  // Set font
+  ctx.font = '700 195px Arial'
+  ctx.fillStyle = '#595959'
+
+  // When
+  const whenText = `${format(data.day || new Date(), 'EEEE, MMMM Do')}\n${data.startTime} - ${data.endTime}\n${data.whenDescription}`
+  fillMultiLineText(ctx, whenText, 235, 1207, 1769)
+
+  // Where
+  const whereText = `${location.name}\n${location.address}`
+  fillMultiLineText(ctx, whereText, 235, 1207, 2955)
+
+  // Cost
+  fillMultiLineText(ctx, data.cost, 235, 1207, 4142)
+
+  // Generate the data URL
+  const dataUrl = canvas.toDataURL('image/png')
+  downloadBlob(await (await fetch(dataUrl)).blob(), `QTBIPOC - ${format(data.day || new Date(), 'yyyy-MM-dd')}.png`)
+}
+
 export async function generateSocialImages(data: SocialImageFieldData, locations: Array<Location>) {
   const mainImageBlob = await generateMainImage(data, locations)
   const eventImageBlobs = await Promise.all(
@@ -48,7 +87,7 @@ export async function generateSocialImages(data: SocialImageFieldData, locations
       .sort((a, b) => (a.day?.getTime() || 0) - (b.day?.getTime() || 0))
       .map((event, index) => generateEventImage(index + 1, event, locations)),
   )
-  downloadBlob(await compressImages(mainImageBlob, ...eventImageBlobs))
+  downloadBlob(await compressImages(mainImageBlob, ...eventImageBlobs), `SocialImages-${getTime(new Date())}.zip`)
 }
 
 async function generateMainImage(data: SocialImageFieldData, locations: Array<Location>): Promise<ImageFile> {
@@ -214,9 +253,9 @@ async function compressImages(...files: Array<ImageFile>) {
   return zipFileWriter.getData()
 }
 
-function downloadBlob(blob: Blob) {
+function downloadBlob(blob: Blob, filename: string) {
   const anchor = document.createElement('a')
   anchor.href = URL.createObjectURL(blob)
-  anchor.download = `SocialImages-${getTime(new Date())}.zip`
+  anchor.download = filename
   anchor.click()
 }

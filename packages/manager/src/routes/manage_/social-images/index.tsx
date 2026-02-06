@@ -14,9 +14,13 @@ function RouteComponent() {
       <Header>Social Images</Header>
 
       <Content>
-        <Card>
-          <Link to="/manage/social-images/monthly" className="px-6 flex font-bold w-full items-center">
+        <Card className="p-0 gap-0">
+          <Link to="/manage/social-images/monthly" className="px-6 py-3 flex font-bold w-full items-center">
             <span className="grow">Monthly Event Images</span>
+            <ChevronRight />
+          </Link>
+          <Link to="/manage/social-images/qtbipoc" className="border-t px-6 py-3 flex font-bold w-full items-center">
+            <span className="grow">QTBIPOC Event Image</span>
             <ChevronRight />
           </Link>
         </Card>
