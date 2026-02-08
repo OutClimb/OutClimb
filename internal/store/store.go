@@ -40,7 +40,7 @@ type StoreLayer interface {
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
-	CreateRole(createdBy, name string) (*Role, error)
+	CreateRole(createdBy, name string, order uint) (*Role, error)
 	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 	DeleteAsset(id uint) error
 	DeleteLocation(id uint) error
@@ -72,7 +72,7 @@ type StoreLayer interface {
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
 	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
-	UpdateRole(id uint, updatedBy, name string) (*Role, error)
+	UpdateRole(id uint, updatedBy, name string, order uint) (*Role, error)
 	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 }
 
@@ -203,7 +203,7 @@ func (s *storeLayer) Migrate() {
 	// Create owner role
 	if result := s.db.Where("name = 'Owner'").First(&Role{}); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			_, err := s.CreateRole("system", "Owner")
+			_, err := s.CreateRole("system", "Owner", 0)
 			if err != nil {
 				slog.Error(
 					"Unable to create owner role",
@@ -224,7 +224,7 @@ func (s *storeLayer) Migrate() {
 	adminRole := Role{}
 	if result := s.db.Where("name = 'Admin'").First(&adminRole); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			role, err := s.CreateRole("system", "Admin")
+			role, err := s.CreateRole("system", "Admin", 1)
 			if err != nil {
 				slog.Error(
 					"Unable to create admin role",

@@ -19,12 +19,14 @@ package store
 
 type Role struct {
 	StandardAudit
-	Name string `gorm:"uniqueIndex;not null;size:255"`
+	Name  string `gorm:"uniqueIndex;not null;size:255"`
+	Order uint   `gorm:"not null;default:0"`
 }
 
-func (s *storeLayer) CreateRole(createdBy, name string) (*Role, error) {
+func (s *storeLayer) CreateRole(createdBy, name string, order uint) (*Role, error) {
 	role := Role{
-		Name: name,
+		Name:  name,
+		Order: order,
 	}
 	role.CreatedBy = createdBy
 	role.UpdatedBy = createdBy
@@ -74,7 +76,7 @@ func (s *storeLayer) GetRoleWithName(name string) (*Role, error) {
 	return &role, nil
 }
 
-func (s *storeLayer) UpdateRole(id uint, updatedBy, name string) (*Role, error) {
+func (s *storeLayer) UpdateRole(id uint, updatedBy, name string, order uint) (*Role, error) {
 	role, err := s.GetRole(id)
 	if err != nil {
 		return nil, err
@@ -82,6 +84,7 @@ func (s *storeLayer) UpdateRole(id uint, updatedBy, name string) (*Role, error) 
 
 	role.UpdatedBy = updatedBy
 	role.Name = name
+	role.Order = order
 
 	if result := s.db.Save(&role); result.Error != nil {
 		return nil, result.Error
