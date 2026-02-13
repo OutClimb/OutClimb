@@ -29,7 +29,7 @@
     "preview:manager": "npm run preview --workspace=@outclimb/manager"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^10.0.1",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@tanstack/router-plugin": "^1.158.1",
     "@types/node": "^24.10.1",
