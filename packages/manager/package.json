@@ -28,7 +28,7 @@
     "@fontsource/poppins": "^5.2.7",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.150.0",
-    "@tanstack/react-router-devtools": "^1.157.15",
+    "@tanstack/react-router-devtools": "^1.159.4",
     "@tanstack/react-table": "^8.21.3",
     "@zip.js/zip.js": "^2.6.40",
     "class-variance-authority": "^0.7.1",
