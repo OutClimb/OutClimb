@@ -30,7 +30,7 @@
     "@tanstack/react-router": "^1.159.5",
     "@tanstack/react-router-devtools": "^1.159.4",
     "@tanstack/react-table": "^8.21.3",
-    "@zip.js/zip.js": "^2.6.40",
+    "@zip.js/zip.js": "^2.8.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
