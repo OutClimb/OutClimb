@@ -3,7 +3,7 @@ module github.com/OutClimb/OutClimb
 go 1.25.2
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.41.2
+	github.com/aws/aws-sdk-go-v2 v1.41.3
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.2
@@ -33,7 +33,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.6 // indirect
-	github.com/aws/smithy-go v1.24.1 // indirect
+	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
