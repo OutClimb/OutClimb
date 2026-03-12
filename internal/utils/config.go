@@ -168,11 +168,11 @@ func LoadConfig(env string) (config Config) {
 	if len(config.App.RecaptchaSecretKey) == 0 && len(config.App.RecaptchaSecretKeyFile) != 0 {
 		content, err := ReadFile(&config.App.RecaptchaSecretKeyFile)
 		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for Recpatcha Secret Key")
+			slog.Info("Loaded secret file for Recaptcha Secret Key")
 			config.App.RecaptchaSecretKey = content
 		}
 	} else if env == "prod" {
-		slog.Warn("Loading the Recpatcha Secret Key through environment variables is not recommended in production")
+		slog.Warn("Loading the Recaptcha Secret Key through environment variables is not recommended in production")
 	}
 
 	if len(config.Database.Password) == 0 && len(config.Database.PasswordFile) != 0 {
