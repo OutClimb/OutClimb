@@ -44,6 +44,8 @@ func (s *storeLayer) CreateAsset(createdBy, filename, contentType, key, data str
 	if err != nil {
 		slog.Error(
 			"Bad data input",
+			"layer", "store",
+			"entity", "asset",
 			"filename", filename,
 			"key", key,
 		)
@@ -62,6 +64,8 @@ func (s *storeLayer) CreateAsset(createdBy, filename, contentType, key, data str
 	if err != nil {
 		slog.Error(
 			"Unable to upload asset",
+			"layer", "store",
+			"entity", "asset",
 			"bucket", s.storageConfig.Bucket,
 			"key", strings.TrimRight(s.storageConfig.Prefix, "/")+"/"+key,
 			"error", err,
@@ -102,6 +106,13 @@ func (s *storeLayer) FindAsset(fileName string) (string, error) {
 
 	assetUrl, err := url.Parse(s.storageConfig.Endpoint)
 	if err != nil {
+		slog.Error(
+			"Unable to parse storage endpoint",
+			"layer", "store",
+			"entity", "asset",
+			"endpoint", s.storageConfig.Endpoint,
+			"error", err,
+		)
 		panic(err)
 	}
 	assetUrl.Host = s.storageConfig.Bucket + "." + assetUrl.Host
@@ -133,6 +144,13 @@ func (s *storeLayer) GetAsset(id uint) (*Asset, error) {
 func (s *storeLayer) UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error) {
 	asset, err := s.GetAsset(id)
 	if err != nil {
+		slog.Error(
+			"Unable to get asset",
+			"layer", "store",
+			"entity", "asset",
+			"assetId", id,
+			"error", err,
+		)
 		return nil, err
 	}
 
@@ -144,8 +162,11 @@ func (s *storeLayer) UpdateAsset(id uint, updatedBy, filename, contentType, data
 		if err != nil {
 			slog.Error(
 				"Bad data input",
+				"layer", "store",
+				"entity", "asset",
 				"filename", filename,
 				"key", asset.Key,
+				"error", err,
 			)
 			return nil, errors.New("bad request")
 		}
@@ -162,6 +183,8 @@ func (s *storeLayer) UpdateAsset(id uint, updatedBy, filename, contentType, data
 		if err != nil {
 			slog.Error(
 				"Unable to upload asset",
+				"layer", "store",
+				"entity", "asset",
 				"bucket", s.storageConfig.Bucket,
 				"key", strings.TrimRight(s.storageConfig.Prefix, "/")+"/"+asset.Key,
 				"error", err,

@@ -101,6 +101,8 @@ func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfi
 	if err != nil {
 		slog.Error(
 			"Unable to connect to database",
+			"layer", "store",
+			"entity", "store",
 			"databaseHost", databaseConfig.Host,
 			"databaseName", databaseConfig.Name,
 			"databasePort", databaseConfig.Port,
@@ -120,6 +122,8 @@ func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfi
 	if err != nil {
 		slog.Error(
 			"Unable to connect to storage",
+			"layer", "store",
+			"entity", "store",
 			"storageEndpoint", storageConfig.Endpoint,
 			"storageRegion", storageConfig.Region,
 			"storageAccessKey", storageConfig.AccessKey,
@@ -144,6 +148,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "asset",
 			"error", err,
 		)
@@ -154,6 +160,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "location",
 			"error", err,
 		)
@@ -164,6 +172,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "permission",
 			"error", err,
 		)
@@ -174,6 +184,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "redirect",
 			"error", err,
 		)
@@ -184,6 +196,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "role",
 			"error", err,
 		)
@@ -194,6 +208,8 @@ func (s *storeLayer) Migrate() {
 	if err != nil {
 		slog.Error(
 			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
 			"databaseTable", "user",
 			"error", err,
 		)
@@ -207,6 +223,8 @@ func (s *storeLayer) Migrate() {
 			if err != nil {
 				slog.Error(
 					"Unable to create owner role",
+					"layer", "store",
+					"entity", "store",
 					"error", err,
 				)
 				os.Exit(1)
@@ -214,6 +232,8 @@ func (s *storeLayer) Migrate() {
 		} else {
 			slog.Error(
 				"Unable to query on role table",
+				"layer", "store",
+				"entity", "store",
 				"error", result.Error,
 			)
 			os.Exit(1)
@@ -228,6 +248,8 @@ func (s *storeLayer) Migrate() {
 			if err != nil {
 				slog.Error(
 					"Unable to create admin role",
+					"layer", "store",
+					"entity", "store",
 					"error", err,
 				)
 				os.Exit(1)
@@ -236,6 +258,8 @@ func (s *storeLayer) Migrate() {
 		} else {
 			slog.Error(
 				"Unable to query on role table",
+				"layer", "store",
+				"entity", "store",
 				"error", result.Error,
 			)
 			os.Exit(1)
@@ -250,6 +274,8 @@ func (s *storeLayer) Migrate() {
 				if err != nil {
 					slog.Error(
 						"Unable to create permission",
+						"layer", "store",
+						"entity", "store",
 						"roleID", adminRole.ID,
 						"entity", entity,
 					)
@@ -258,6 +284,8 @@ func (s *storeLayer) Migrate() {
 			} else {
 				slog.Error(
 					"Unable to query on permission table",
+					"layer", "store",
+					"entity", "store",
 					"error", result.Error,
 				)
 				os.Exit(1)
@@ -271,6 +299,8 @@ func (s *storeLayer) Migrate() {
 		if err != nil {
 			slog.Error(
 				"Unable to find admin role",
+				"layer", "store",
+				"entity", "store",
 				"error", err,
 			)
 			os.Exit(1)

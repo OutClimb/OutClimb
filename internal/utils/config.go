@@ -120,6 +120,8 @@ func LoadConfig(env string) (config Config) {
 		if err := viper.BindEnv(env); err != nil {
 			slog.Error(
 				"Issue when binding environment variable",
+				"layer", "utils",
+				"entity", "config",
 				"env", env,
 				"error", err,
 			)
@@ -130,37 +132,67 @@ func LoadConfig(env string) (config Config) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		slog.Error("Unable to load config", "error", err)
+		slog.Error(
+			"Unable to load config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.App)
 	if err != nil {
-		slog.Error("Unable to parse app config", "error", err)
+		slog.Error(
+			"Unable to parse app config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Database)
 	if err != nil {
-		slog.Error("Unable to parse database config", "error", err)
+		slog.Error(
+			"Unable to parse database config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Http)
 	if err != nil {
-		slog.Error("Unable to parse http config", "error", err)
+		slog.Error(
+			"Unable to parse http config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Http.Jwt)
 	if err != nil {
-		slog.Error("Unable to parse http jwt config", "error", err)
+		slog.Error(
+			"Unable to parse http jwt config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&config.Storage)
 	if err != nil {
-		slog.Error("Unable to parse storage config", "error", err)
+		slog.Error(
+			"Unable to parse storage config",
+			"layer", "utils",
+			"entity", "config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
@@ -170,6 +202,13 @@ func LoadConfig(env string) (config Config) {
 		if len(content) > 0 && err == nil {
 			slog.Info("Loaded secret file for Recaptcha Secret Key")
 			config.App.RecaptchaSecretKey = content
+		} else if err != nil {
+			slog.Error(
+				"Unable to load Recaptcha Secret Key from file",
+				"layer", "utils",
+				"entity", "config",
+				"error", err,
+			)
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the Recaptcha Secret Key through environment variables is not recommended in production")
@@ -180,6 +219,13 @@ func LoadConfig(env string) (config Config) {
 		if len(content) > 0 && err == nil {
 			slog.Info("Loaded secret file for Database Password")
 			config.Database.Password = content
+		} else if err != nil {
+			slog.Error(
+				"Unable to load Database Password from file",
+				"layer", "utils",
+				"entity", "config",
+				"error", err,
+			)
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the Database Password through environment variables is not recommended in production")
@@ -190,6 +236,13 @@ func LoadConfig(env string) (config Config) {
 		if len(content) > 0 && err == nil {
 			slog.Info("Loaded secret file for JWT Secret")
 			config.Http.Jwt.Secret = content
+		} else if err != nil {
+			slog.Error(
+				"Unable to load JWT Secret from file",
+				"layer", "utils",
+				"entity", "config",
+				"error", err,
+			)
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the JWT Secret through environment variables is not recommended in production")
@@ -200,6 +253,13 @@ func LoadConfig(env string) (config Config) {
 		if len(content) > 0 && err == nil {
 			slog.Info("Loaded secret file for Storage Secret Key")
 			config.Storage.SecretKey = strings.TrimSpace(content)
+		} else if err != nil {
+			slog.Error(
+				"Unable to load Storeage Secret Key from file",
+				"layer", "utils",
+				"entity", "config",
+				"error", err,
+			)
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the Storage Secret Key through environment variables is not recommended in production")

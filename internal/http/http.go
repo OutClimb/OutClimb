@@ -56,6 +56,8 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 		if err != nil {
 			slog.Error(
 				"Unable to set trusted proxy",
+				"layer", "http",
+				"entity", "http",
 				"trustedProxy", config.TrustedProxies,
 				"error", err,
 			)
@@ -69,6 +71,12 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 		if strings.HasPrefix(c.Request.URL.Path, "/manage/") {
 			indexData, err := os.ReadFile("./web/manager/index.html")
 			if err != nil {
+				slog.Error(
+					"Unable to read manager index file",
+					"layer", "http",
+					"entity", "http",
+					"error", err,
+				)
 				panic(err)
 			}
 
@@ -162,6 +170,8 @@ func (h *httpLayer) Run() {
 	if err != nil {
 		slog.Error(
 			"Issue while running Gin",
+			"layer", "http",
+			"entity", "http",
 			"listeningAddress", h.config.ListeningAddress,
 			"error", err,
 		)

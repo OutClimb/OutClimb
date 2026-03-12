@@ -56,7 +56,12 @@ func runService(cmd *cobra.Command, args []string) {
 
 	err := config.Validate()
 	if err != nil {
-		slog.Error("Unable to validate config", "error", err)
+		slog.Error(
+			"Unable to validate config",
+			"layer", "cmd",
+			"entity", "service",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 

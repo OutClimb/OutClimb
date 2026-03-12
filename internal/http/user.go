@@ -34,6 +34,12 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	// Get the authentication data
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
+		slog.Error(
+			"Unable to retrieve request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, responses.Error("Unable to retrieve request body"))
 		return
 	}
@@ -42,6 +48,12 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	jsonMap := make(map[string]string)
 	err = json.Unmarshal(bodyAsByteArray, &jsonMap)
 	if err != nil {
+		slog.Error(
+			"Unable to parse request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, responses.Error("Unable to parse request body"))
 		return
 	}
@@ -55,6 +67,13 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	// Authenticate the user
 	user, err := h.app.AuthenticateUser(jsonMap["username"], jsonMap["password"])
 	if err != nil {
+		slog.Error(
+			"Unable to authenticate user",
+			"layer", "http",
+			"entity", "user",
+			"username", jsonMap["username"],
+			"error", err,
+		)
 		c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 		return
 	}
@@ -92,7 +111,13 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	if signedToken, err := token.SignedString([]byte(secret)); err != nil {
-		slog.Error("Failed to sign token", "username", user.Username, "error", err)
+		slog.Error(
+			"Failed to sign token",
+			"layer", "http",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		return ""
 	} else {
 		return signedToken
@@ -103,6 +128,13 @@ func (h *httpLayer) createUser(c *gin.Context) {
 	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
 	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
+		slog.Error(
+			"Failed to get current user",
+			"layer", "http",
+			"entity", "user",
+			"userID", userClaim.ID,
+			"error", err,
+		)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -110,6 +142,12 @@ func (h *httpLayer) createUser(c *gin.Context) {
 	// Get the body data
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
+		slog.Error(
+			"Unable to retrieve request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
 		return
 	}
@@ -118,12 +156,29 @@ func (h *httpLayer) createUser(c *gin.Context) {
 	body := responses.UserRequestPublic{}
 	err = json.Unmarshal(bodyAsByteArray, &body)
 	if err != nil {
+		slog.Error(
+			"Unable to parse request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
 		return
 	}
 
 	if user, err := h.app.CreateUser(user, body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.Username, body.Role); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create location"})
+		slog.Error(
+			"Unable to create user",
+			"layer", "http",
+			"entity", "user",
+			"userId", user.ID,
+			"newEmail", body.Email,
+			"newName", body.Name,
+			"newUsername", body.Username,
+			"newRole", body.Role,
+			"error", err,
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create user"})
 	} else {
 		userPublic := responses.UserPublic{}
 		userPublic.Publicize(user)
@@ -135,12 +190,26 @@ func (h *httpLayer) createUser(c *gin.Context) {
 func (h *httpLayer) deleteUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
+		slog.Error(
+			"Unable to parse user id",
+			"layer", "http",
+			"entity", "user",
+			"userId", c.Param("id"),
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
 	err = h.app.DeleteUser(uint(id))
 	if err != nil {
+		slog.Error(
+			"Unable to delete user",
+			"layer", "http",
+			"entity", "user",
+			"userId", id,
+			"error", err,
+		)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -151,12 +220,26 @@ func (h *httpLayer) deleteUser(c *gin.Context) {
 func (h *httpLayer) getUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
+		slog.Error(
+			"Unable to parse user id",
+			"layer", "http",
+			"entity", "user",
+			"userId", c.Param("id"),
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
 	internalUser, error := h.app.GetUser(uint(id))
 	if error != nil {
+		slog.Error(
+			"Unable to get user",
+			"layer", "http",
+			"entity", "user",
+			"userId", id,
+			"error", err,
+		)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -169,6 +252,12 @@ func (h *httpLayer) getUser(c *gin.Context) {
 
 func (h *httpLayer) getUsers(c *gin.Context) {
 	if internalUsers, err := h.app.GetAllUsers(); err != nil {
+		slog.Error(
+			"Unable to get users",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve users"})
 	} else {
 		users := make([]responses.UserPublic, len(*internalUsers))
@@ -184,6 +273,13 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
 	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
+		slog.Error(
+			"Unable to get current user",
+			"layer", "http",
+			"entity", "user",
+			"userId", userClaim.ID,
+			"error", err,
+		)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -196,7 +292,12 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	// Get the authentication data
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
-		slog.Error("Retrieving request body", "error", err)
+		slog.Error(
+			"Retrieving request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
@@ -205,19 +306,38 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 	jsonMap := make(map[string]string)
 	err = json.Unmarshal(bodyAsByteArray, &jsonMap)
 	if err != nil {
-		slog.Error("Parsing request body", "error", err)
+		slog.Error(
+			"Parsing request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	// Validate password
 	if err := h.app.ValidatePassword(user.Username, user.Password, jsonMap["password"]); err != nil {
+		slog.Error(
+			"Bad password",
+			"layer", "http",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Update the password
 	if err := h.app.UpdatePassword(user, jsonMap["password"]); err != nil {
+		slog.Error(
+			"Unable to update password",
+			"layer", "http",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
@@ -227,9 +347,15 @@ func (h *httpLayer) updatePassword(c *gin.Context) {
 
 func (h *httpLayer) updateUser(c *gin.Context) {
 	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
-	userId := c.GetUint(userClaim.ID)
-	user, err := h.app.GetUser(userId)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
+		slog.Error(
+			"Unable to get current user",
+			"layer", "http",
+			"entity", "user",
+			"userId", userClaim.ID,
+			"error", err,
+		)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -237,6 +363,13 @@ func (h *httpLayer) updateUser(c *gin.Context) {
 	// Get the id from the URL
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
+		slog.Error(
+			"Unable to parse user id",
+			"layer", "http",
+			"entity", "user",
+			"userId", c.Param("id"),
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
@@ -252,11 +385,24 @@ func (h *httpLayer) updateUser(c *gin.Context) {
 	body := responses.UserRequestPublic{}
 	err = json.Unmarshal(bodyAsByteArray, &body)
 	if err != nil {
+		slog.Error(
+			"Unable to parse request body",
+			"layer", "http",
+			"entity", "user",
+			"error", err,
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
 		return
 	}
 
 	if user, err := h.app.UpdateUser(user, uint(id), body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.Username, body.Role); err != nil {
+		slog.Error(
+			"Unable to update user",
+			"layer", "http",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update user"})
 	} else {
 		userPublic := responses.UserPublic{}

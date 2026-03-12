@@ -58,6 +58,8 @@ func (a *appLayer) CreateUser(user *models.UserInternal, disabled bool, email, n
 	if err != nil {
 		slog.Error(
 			"Could not get permissions for role",
+			"layer", "app",
+			"entity", "user",
 			"id", role.ID,
 			"error", err,
 		)
@@ -70,7 +72,13 @@ func (a *appLayer) CreateUser(user *models.UserInternal, disabled bool, email, n
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
 	if err != nil {
-		slog.Error("Failed to hash password", "username", user.Username, "error", err)
+		slog.Error(
+			"Failed to hash password",
+			"layer", "app",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		return &models.UserInternal{}, errors.New("failed to hash password")
 	}
 
@@ -88,6 +96,8 @@ func (a *appLayer) DeleteUser(id uint) error {
 	if userBeingDeleted, err := a.GetUser(id); err != nil {
 		slog.Error(
 			"Could not get user being deleted",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"error", err,
 		)
@@ -95,6 +105,8 @@ func (a *appLayer) DeleteUser(id uint) error {
 	} else if userBeingDeleted.Role == "Owner" {
 		slog.Error(
 			"User attempted to delete owner user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"error", err,
 		)
@@ -102,6 +114,8 @@ func (a *appLayer) DeleteUser(id uint) error {
 	} else if err = a.store.DeleteUser(id); err != nil {
 		slog.Error(
 			"Unable to delete user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"error", err,
 		)
@@ -115,6 +129,8 @@ func (a *appLayer) GetUser(id uint) (*models.UserInternal, error) {
 	if user, err := a.store.GetUser(id); err != nil {
 		slog.Error(
 			"Unable to get user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"error", err,
 		)
@@ -122,6 +138,8 @@ func (a *appLayer) GetUser(id uint) (*models.UserInternal, error) {
 	} else if role, err := a.store.GetRole(user.RoleId); err != nil {
 		slog.Error(
 			"Unable to get role while getting user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"roleId", user.RoleId,
 			"error", err,
@@ -130,6 +148,8 @@ func (a *appLayer) GetUser(id uint) (*models.UserInternal, error) {
 	} else if permissions, err := a.store.GetPermissionsWithRole(user.RoleId); err != nil {
 		slog.Error(
 			"Unable to get permissions while getting user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"roleId", user.RoleId,
 			"error", err,
@@ -154,6 +174,8 @@ func (a *appLayer) GetAllUsers() (*[]models.UserInternal, error) {
 		if role, err := a.store.GetRole(user.RoleId); err != nil {
 			slog.Error(
 				"Unable to get role for user while getting all users",
+				"layer", "app",
+				"entity", "user",
 				"roleId", user.RoleId,
 				"error", err,
 			)
@@ -161,6 +183,8 @@ func (a *appLayer) GetAllUsers() (*[]models.UserInternal, error) {
 		} else if permissions, err := a.store.GetPermissionsWithRole(user.RoleId); err != nil {
 			slog.Error(
 				"Unable to get permissions for user while getting all users",
+				"layer", "app",
+				"entity", "user",
 				"roleId", user.RoleId,
 				"error", err,
 			)
@@ -176,13 +200,21 @@ func (a *appLayer) GetAllUsers() (*[]models.UserInternal, error) {
 func (a *appLayer) UpdatePassword(user *models.UserInternal, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
 	if err != nil {
-		slog.Error("Failed to hash password", "username", user.Username, "error", err)
+		slog.Error(
+			"Failed to hash password",
+			"layer", "app",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		return errors.New("failed to hash password")
 	}
 
 	if err := a.store.UpdatePassword(user.ID, string(hashedPassword), user.Username); err != nil {
 		slog.Error(
 			"Unable to update password",
+			"layer", "app",
+			"entity", "user",
 			"username", user.Username,
 			"error", err,
 		)
@@ -206,6 +238,8 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 	if err != nil {
 		slog.Error(
 			"Could not get permissions for role",
+			"layer", "app",
+			"entity", "user",
 			"id", role.ID,
 			"error", err,
 		)
@@ -216,6 +250,8 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 	if err != nil {
 		slog.Error(
 			"Could not get user",
+			"layer", "app",
+			"entity", "user",
 			"id", id,
 			"error", err,
 		)
@@ -228,7 +264,13 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
 	if err != nil {
-		slog.Error("Failed to hash password", "username", user.Username, "error", err)
+		slog.Error(
+			"Failed to hash password",
+			"layer", "app",
+			"entity", "user",
+			"username", user.Username,
+			"error", err,
+		)
 		return &models.UserInternal{}, errors.New("failed to hash password")
 	}
 
