@@ -69,7 +69,7 @@ func (s *storeLayer) GetAllUsers() (*[]User, error) {
 func (s *storeLayer) GetUser(id uint) (*User, error) {
 	user := User{}
 
-	if result := s.db.Where("id = ?", id).First(&user); result.Error != nil {
+	if result := s.db.First(&user, id); result.Error != nil {
 		return &User{}, result.Error
 	}
 
@@ -79,7 +79,7 @@ func (s *storeLayer) GetUser(id uint) (*User, error) {
 func (s *storeLayer) GetUsersWithRole(roleId uint) (*[]User, error) {
 	users := []User{}
 
-	if result := s.db.Where("role_id = ?", roleId).Find(&users); result.Error != nil {
+	if result := s.db.Find(&users, "role_id = ?", roleId); result.Error != nil {
 		return &[]User{}, result.Error
 	}
 
@@ -89,7 +89,7 @@ func (s *storeLayer) GetUsersWithRole(roleId uint) (*[]User, error) {
 func (s *storeLayer) GetUserWithUsername(username string) (*User, error) {
 	user := User{}
 
-	if result := s.db.Where("username = ?", username).First(&user); result.Error != nil {
+	if result := s.db.First(&user, "username = ?", username); result.Error != nil {
 		return &User{}, result.Error
 	}
 

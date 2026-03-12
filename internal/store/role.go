@@ -59,7 +59,7 @@ func (s *storeLayer) GetAllRoles() (*[]Role, error) {
 func (s *storeLayer) GetRole(id uint) (*Role, error) {
 	role := Role{}
 
-	if result := s.db.Where("id = ?", id).First(&role); result.Error != nil {
+	if result := s.db.First(&role, id); result.Error != nil {
 		return &Role{}, result.Error
 	}
 
@@ -69,7 +69,7 @@ func (s *storeLayer) GetRole(id uint) (*Role, error) {
 func (s *storeLayer) GetRoleWithName(name string) (*Role, error) {
 	role := Role{}
 
-	if result := s.db.Where("name = ?", name).First(&role); result.Error != nil {
+	if result := s.db.First(&role, "name = ?", name); result.Error != nil {
 		return &Role{}, result.Error
 	}
 

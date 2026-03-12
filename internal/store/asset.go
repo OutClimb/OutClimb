@@ -96,7 +96,7 @@ func (s *storeLayer) DeleteAsset(id uint) error {
 func (s *storeLayer) FindAsset(fileName string) (string, error) {
 	asset := Asset{}
 
-	if result := s.db.Model(&Asset{}).Where("file_name = ?", fileName).First(&asset); result.Error != nil {
+	if result := s.db.First(&asset, "file_name = ?", fileName); result.Error != nil {
 		return "", result.Error
 	}
 
@@ -123,7 +123,7 @@ func (s *storeLayer) GetAllAssets() (*[]Asset, error) {
 func (s *storeLayer) GetAsset(id uint) (*Asset, error) {
 	asset := Asset{}
 
-	if result := s.db.Where("id = ?", id).First(&asset); result.Error != nil {
+	if result := s.db.First(&asset, id); result.Error != nil {
 		return &Asset{}, result.Error
 	}
 

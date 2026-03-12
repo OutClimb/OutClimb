@@ -74,7 +74,7 @@ func (s *storeLayer) GetAllLocations() (*[]Location, error) {
 func (s *storeLayer) GetLocation(id uint) (*Location, error) {
 	location := Location{}
 
-	if result := s.db.Where("id = ?", id).First(&location); result.Error != nil {
+	if result := s.db.First(&location, id); result.Error != nil {
 		return &Location{}, result.Error
 	}
 

@@ -67,7 +67,7 @@ func (s *storeLayer) GetAllPermissions() (*[]Permission, error) {
 func (s *storeLayer) GetPermission(id uint) (*Permission, error) {
 	permission := Permission{}
 
-	if result := s.db.Where("id = ?", id).First(&permission); result.Error != nil {
+	if result := s.db.First(&permission, id); result.Error != nil {
 		return &Permission{}, result.Error
 	}
 
@@ -77,7 +77,7 @@ func (s *storeLayer) GetPermission(id uint) (*Permission, error) {
 func (s *storeLayer) GetPermissionsWithRole(roleId uint) (*[]Permission, error) {
 	permission := []Permission{}
 
-	if result := s.db.Where("role_id = ?", roleId).Find(&permission); result.Error != nil {
+	if result := s.db.Find(&permission, "role_id = ?", roleId); result.Error != nil {
 		return &[]Permission{}, result.Error
 	}
 
@@ -87,7 +87,7 @@ func (s *storeLayer) GetPermissionsWithRole(roleId uint) (*[]Permission, error) 
 func (s *storeLayer) GetPermissionWithRoleAndAccess(roleId, accessId uint) (*Permission, error) {
 	permission := Permission{}
 
-	if result := s.db.Where("role_id = ? AND access_id = ?", roleId, accessId).First(&permission); result.Error != nil {
+	if result := s.db.First(&permission, "role_id = ? AND access_id = ?", roleId, accessId); result.Error != nil {
 		return &Permission{}, result.Error
 	}
 

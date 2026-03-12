@@ -56,7 +56,7 @@ func (s *storeLayer) DeleteRedirect(id uint) error {
 func (s *storeLayer) FindActiveRedirectByPath(path string) (*Redirect, error) {
 	redirect := Redirect{}
 
-	if result := s.db.Model(&Redirect{}).Where("from_path = ? AND (starts_on IS NULL or starts_on <= NOW()) AND (stops_on IS NULL or stops_on > NOW())", path).First(&redirect); result.Error != nil {
+	if result := s.db.First(&redirect, "from_path = ? AND (starts_on IS NULL or starts_on <= NOW()) AND (stops_on IS NULL or stops_on > NOW())", path); result.Error != nil {
 		return &Redirect{}, result.Error
 	}
 
@@ -76,7 +76,7 @@ func (s *storeLayer) GetAllRedirects() (*[]Redirect, error) {
 func (s *storeLayer) GetRedirect(id uint) (*Redirect, error) {
 	redirect := Redirect{}
 
-	if result := s.db.Where("id = ?", id).First(&redirect); result.Error != nil {
+	if result := s.db.First(&redirect, id); result.Error != nil {
 		return &Redirect{}, result.Error
 	}
 

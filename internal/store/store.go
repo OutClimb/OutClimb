@@ -201,7 +201,7 @@ func (s *storeLayer) Migrate() {
 	}
 
 	// Create owner role
-	if result := s.db.Where("name = 'Owner'").First(&Role{}); result.Error != nil {
+	if result := s.db.First(&Role{}, "name = 'Owner'"); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			_, err := s.CreateRole("system", "Owner", 0)
 			if err != nil {
@@ -222,7 +222,7 @@ func (s *storeLayer) Migrate() {
 
 	// Create admin role
 	adminRole := Role{}
-	if result := s.db.Where("name = 'Admin'").First(&adminRole); result.Error != nil {
+	if result := s.db.First(&adminRole, "name = 'Admin'"); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			role, err := s.CreateRole("system", "Admin", 1)
 			if err != nil {
@@ -244,7 +244,7 @@ func (s *storeLayer) Migrate() {
 
 	// Create the user permission on the admin role if the admin role already existed
 	for _, entity := range Entities {
-		if result := s.db.Where("role_id = ? AND entity = ?", adminRole.ID, entity).First(&Permission{}); result.Error != nil {
+		if result := s.db.First(&Permission{}, "role_id = ? AND entity = ?", adminRole.ID, entity); result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				_, err = s.CreatePermission(adminRole.ID, LevelWrite, entity)
 				if err != nil {
@@ -266,7 +266,7 @@ func (s *storeLayer) Migrate() {
 	}
 
 	// Apply admin roles to users who don't have roles
-	if result := s.db.Where("role_id = 0").Find(&[]User{}); result.Error == nil {
+	if result := s.db.Find(&[]User{}, "role_id = 0"); result.Error == nil {
 		role, err := s.GetRoleWithName("Admin")
 		if err != nil {
 			slog.Error(
@@ -276,6 +276,6 @@ func (s *storeLayer) Migrate() {
 			os.Exit(1)
 		}
 
-		s.db.Model(&User{}).Where("role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
+		s.db.Find(&User{}, "role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
 	}
 }
