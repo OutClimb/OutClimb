@@ -64,19 +64,13 @@ func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 			return []byte(config.Jwt.Secret), nil
 		})
 
-		if err != nil {
+		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
 		} else if claims, ok := token.Claims.(*JwtClaims); !ok {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
-		} else if claims.Audience != c.ClientIP() {
-			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
-			c.Abort()
-		} else if claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion {
-			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
-			c.Abort()
-		} else if claims.User.RequirePasswordReset && !resetAllowed {
+		} else if claims.Audience != c.ClientIP() || claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion || (claims.User.RequirePasswordReset && !resetAllowed) {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else {
