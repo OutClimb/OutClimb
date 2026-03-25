@@ -65,7 +65,7 @@ export async function generateQtbipocSocialImage(data: QtbipocSocialImageFormDat
   ctx.fillStyle = '#595959'
 
   // When
-  const whenText = `${format(data.day || new Date(), 'EEEE, MMMM Do')}\n${data.startTime} - ${data.endTime}\n${data.whenDescription}`
+  const whenText = `${format(data.day || new Date(), 'EEEE, MMMM do')}\n${data.startTime} - ${data.endTime}\n${data.whenDescription}`
   fillMultiLineText(ctx, whenText, 235, 1207, 1769)
 
   // Where
