@@ -1,5 +1,5 @@
 export type CreateRoleResponse = Role
-export type GetRoleResponse = Array<Role>
+export type GetRolesResponse = Array<Role>
 export type GetRoleResponse = Role
 export type UpdateRoleResponse = Role
 
