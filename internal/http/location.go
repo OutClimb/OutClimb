@@ -110,8 +110,7 @@ func (h *httpLayer) getLocations(c *gin.Context) {
 
 func (h *httpLayer) updateLocation(c *gin.Context) {
 	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
-	userId := c.GetUint(userClaim.ID)
-	user, err := h.app.GetUser(userId)
+	user, err := h.app.GetUser(userClaim.ID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
