@@ -162,6 +162,15 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			userApi.PUT("/:id", h.updateUser)
 			userApi.DELETE("/:id", h.deleteUser)
 		}
+
+		roleApi := api.Group("/role").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("role"))
+		{
+			roleApi.GET("", h.getRoles)
+			roleApi.GET("/:id", h.getRole)
+			roleApi.POST("", h.createRole)
+			roleApi.PUT("/:id", h.updateRole)
+			roleApi.DELETE("/:id", h.deleteRole)
+		}
 	}
 }
 

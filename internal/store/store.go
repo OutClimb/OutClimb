@@ -294,7 +294,9 @@ func (s *storeLayer) Migrate() {
 	}
 
 	// Apply admin roles to users who don't have roles
-	if result := s.db.Find(&[]User{}, "role_id = 0"); result.Error == nil {
+	var unknownRoleCount int64
+	result := s.db.Model(&User{}).Where("role_id = 0").Count(&unknownRoleCount)
+	if result.Error == nil && unknownRoleCount > 0 {
 		role, err := s.GetRoleWithName("Admin")
 		if err != nil {
 			slog.Error(
@@ -306,6 +308,6 @@ func (s *storeLayer) Migrate() {
 			os.Exit(1)
 		}
 
-		s.db.Find(&User{}, "role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
+		s.db.Model(&User{}).Where("role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
 	}
 }
