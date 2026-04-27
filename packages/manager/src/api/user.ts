@@ -1,5 +1,90 @@
-import type { GetUsersResponse, TokenResponse } from '@/types/user'
+import type {
+  CreateUserResponse,
+  GetUsersResponse,
+  TokenResponse,
+  UpdateUserResponse,
+  UserRequest,
+} from '@/types/user'
 import { UnauthorizedError } from '@/errors/unauthorized'
+
+export async function createUser(token: string, user: UserRequest): Promise<CreateUserResponse> {
+  let response
+  try {
+    response = await fetch(`/api/v1/user`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    })
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  } else if (response.status >= 300) {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  try {
+    return await response.json()
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+}
+
+export async function removeUser(token: string, id: number): Promise<boolean> {
+  let response
+  try {
+    response = await fetch(`/api/v1/user/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  } else if (response.status >= 300) {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  return true
+}
+
+export async function updateUser(token: string, id: number, user: UserRequest): Promise<UpdateUserResponse> {
+  let response
+  try {
+    response = await fetch(`/api/v1/user/${id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    })
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  } else if (response.status >= 300) {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  try {
+    return await response.json()
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+}
 
 export async function fetchToken(username: string, password: string): Promise<TokenResponse> {
   const formData = {

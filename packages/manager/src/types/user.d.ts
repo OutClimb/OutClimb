@@ -3,6 +3,16 @@ export type GetUsersResponse = Array<User>
 export type GetUserResponse = User
 export type UpdateUserResponse = User
 
+export interface UserRequest {
+  disabled: boolean
+  email: string
+  name: string
+  password: string
+  requirePasswordReset: boolean
+  username: string
+  role: string
+}
+
 export interface JwtClaims {
   aud: string
   exp: number

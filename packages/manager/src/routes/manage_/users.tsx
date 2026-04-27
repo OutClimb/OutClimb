@@ -2,7 +2,10 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
+import { CreateUserDialog } from '@/components/users/create-user-dialog'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { DeleteUserDialog } from '@/components/users/delete-user-dialog'
+import { EditUserDialog } from '@/components/users/edit-user-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchUsers } from '@/api/user'
 import { Header } from '@/components/header'
@@ -35,8 +38,40 @@ function Users() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
 
-  const handleCreate = useCallback(() => {}, [])
+  const handleCreate = useCallback(() => {
+    setIsCreateDialogOpen(true)
+  }, [setIsCreateDialogOpen])
+
+  const handleEdit = useCallback(
+    (id: number) => {
+      setSelectedId(id)
+      setIsEditDialogOpen(true)
+    },
+    [setSelectedId, setIsEditDialogOpen],
+  )
+
+  const handleEditDialogOpenChange = useCallback(() => {
+    setSelectedId(null)
+    setIsEditDialogOpen(false)
+  }, [])
+
+  const handleDelete = useCallback(
+    (id: number) => {
+      setSelectedId(id)
+      setIsDeleteDialogOpen(true)
+    },
+    [setSelectedId, setIsDeleteDialogOpen],
+  )
+
+  const handleDeleteDialogOpenChange = useCallback(() => {
+    setSelectedId(null)
+    setIsDeleteDialogOpen(false)
+  }, [setSelectedId, setIsDeleteDialogOpen])
 
   useEffect(() => {
     const fetchUsersFromApi = async () => {
@@ -105,13 +140,21 @@ function Users() {
               <UsersTable
                 data={list()}
                 canEdit={hasPermission('user', WRITE_PERMISSION)}
-                onEdit={() => {}}
-                onDelete={() => {}}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             )}
           </CardContent>
         </Card>
       </Content>
+
+      {hasPermission('user', WRITE_PERMISSION) && (
+        <>
+          <CreateUserDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+          <EditUserDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <DeleteUserDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+        </>
+      )}
     </>
   )
 }

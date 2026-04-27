@@ -12,10 +12,11 @@ import { updatePassword } from '@/api/user'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import useSelfStore from '@/stores/self'
+import { validatePassword } from '@/lib/validate-password'
 
 export function ResetForm() {
   const navigate = useNavigate()
-  const { token, logout } = useSelfStore()
+  const { token, user, logout } = useSelfStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -34,40 +35,9 @@ export function ResetForm() {
     e.preventDefault()
     setError('')
 
-    // Validate form
-    if (!formData.password) {
-      setError('Please fill in all fields')
-      return
-    }
-
-    if (formData.password.length < 16) {
-      setError('Password must be at least 16 characters long')
-      return
-    }
-
-    if (formData.password.length > 72) {
-      setError('Password must be at most 72 characters long')
-      return
-    }
-
-    if (!/[^a-zA-Z0-9]/.test(formData.password)) {
-      setError('Password must contain at least one special character')
-      return
-    }
-
-    if (!/[A-Z]/.test(formData.password)) {
-      setError('Password must contain at least one uppercase letter')
-      return
-    }
-
-    if (!/[a-z]/.test(formData.password)) {
-      setError('Password must contain at least one lowercase letter')
-      return
-    }
-
-    if (!/[0-9]/.test(formData.password)) {
-      setError('Password must contain at least one number')
-      return
+    const passwordError = validatePassword(formData.password, user()?.username || '')
+    if (passwordError) {
+      setError(passwordError)
     }
 
     setIsLoading(true)

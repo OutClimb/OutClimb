@@ -72,16 +72,18 @@ const ManageSocialImagesIndexRoute = ManageSocialImagesIndexRouteImport.update({
   path: '/manage/social-images/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageSocialImagesQtbipocRoute = ManageSocialImagesQtbipocRouteImport.update({
-  id: '/manage_/social-images/qtbipoc',
-  path: '/manage/social-images/qtbipoc',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageSocialImagesMonthlyRoute = ManageSocialImagesMonthlyRouteImport.update({
-  id: '/manage_/social-images/monthly',
-  path: '/manage/social-images/monthly',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ManageSocialImagesQtbipocRoute =
+  ManageSocialImagesQtbipocRouteImport.update({
+    id: '/manage_/social-images/qtbipoc',
+    path: '/manage/social-images/qtbipoc',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ManageSocialImagesMonthlyRoute =
+  ManageSocialImagesMonthlyRouteImport.update({
+    id: '/manage_/social-images/monthly',
+    path: '/manage/social-images/monthly',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/manage/asset': typeof ManageAssetRoute
@@ -92,10 +94,10 @@ export interface FileRoutesByFullPath {
   '/manage/reset': typeof ManageResetRoute
   '/manage/roles': typeof ManageRolesRoute
   '/manage/users': typeof ManageUsersRoute
-  '/manage': typeof ManageIndexRoute
+  '/manage/': typeof ManageIndexRoute
   '/manage/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
   '/manage/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
-  '/manage/social-images': typeof ManageSocialImagesIndexRoute
+  '/manage/social-images/': typeof ManageSocialImagesIndexRoute
 }
 export interface FileRoutesByTo {
   '/manage/asset': typeof ManageAssetRoute
@@ -137,10 +139,10 @@ export interface FileRouteTypes {
     | '/manage/reset'
     | '/manage/roles'
     | '/manage/users'
-    | '/manage'
+    | '/manage/'
     | '/manage/social-images/monthly'
     | '/manage/social-images/qtbipoc'
-    | '/manage/social-images'
+    | '/manage/social-images/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/manage/asset'
@@ -191,7 +193,7 @@ declare module '@tanstack/react-router' {
     '/manage_/': {
       id: '/manage_/'
       path: '/manage'
-      fullPath: '/manage'
+      fullPath: '/manage/'
       preLoaderRoute: typeof ManageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -254,7 +256,7 @@ declare module '@tanstack/react-router' {
     '/manage_/social-images/': {
       id: '/manage_/social-images/'
       path: '/manage/social-images'
-      fullPath: '/manage/social-images'
+      fullPath: '/manage/social-images/'
       preLoaderRoute: typeof ManageSocialImagesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -289,4 +291,6 @@ const rootRouteChildren: RootRouteChildren = {
   ManageSocialImagesQtbipocRoute: ManageSocialImagesQtbipocRoute,
   ManageSocialImagesIndexRoute: ManageSocialImagesIndexRoute,
 }
-export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()

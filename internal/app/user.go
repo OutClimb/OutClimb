@@ -309,23 +309,27 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 		return &models.UserInternal{}, err
 	}
 
-	if err := a.ValidatePassword(username, currentUser.Password, password); err != nil {
-		return &models.UserInternal{}, err
+	hashedPassword := ""
+	if len(password) != 0 {
+		if err := a.ValidatePassword(username, currentUser.Password, password); err != nil {
+			return &models.UserInternal{}, err
+		}
+
+		newHashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
+		if err != nil {
+			slog.Error(
+				"Failed to hash password",
+				"layer", "app",
+				"entity", "user",
+				"username", user.Username,
+				"error", err,
+			)
+			return &models.UserInternal{}, errors.New("failed to hash password")
+		}
+		hashedPassword = string(newHashedPassword)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), a.config.PasswordCost)
-	if err != nil {
-		slog.Error(
-			"Failed to hash password",
-			"layer", "app",
-			"entity", "user",
-			"username", user.Username,
-			"error", err,
-		)
-		return &models.UserInternal{}, errors.New("failed to hash password")
-	}
-
-	if newUser, err := a.store.UpdateUser(id, user.Username, disabled, email, name, string(hashedPassword), requirePasswordReset, username, role.ID); err != nil {
+	if newUser, err := a.store.UpdateUser(id, user.Username, disabled, email, name, hashedPassword, requirePasswordReset, username, role.ID); err != nil {
 		return &models.UserInternal{}, err
 	} else {
 		userInternal := models.UserInternal{}
