@@ -24,8 +24,23 @@ import (
 	"strings"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
+	"github.com/OutClimb/OutClimb/internal/store"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func (a *appLayer) assertActorOutranks(actor *models.UserInternal, targetRole *store.Role) error {
+	actorRole, err := a.store.GetRoleWithName(actor.Role)
+	if err != nil {
+		return errors.New("internal server error")
+	}
+
+	// Skip for role with highest privilege
+	if actorRole.Order != 0 && actorRole.Order > targetRole.Order {
+		return errors.New("forbidden")
+	}
+
+	return nil
+}
 
 func (a *appLayer) AuthenticateUser(username string, password string) (*models.UserInternal, error) {
 	if user, err := a.store.GetUserWithUsername(username); err != nil {
@@ -52,6 +67,10 @@ func (a *appLayer) CreateUser(user *models.UserInternal, disabled bool, email, n
 	role, err := a.store.GetRoleWithName(roleName)
 	if err != nil {
 		return &models.UserInternal{}, errors.New("bad request")
+	}
+
+	if err := a.assertActorOutranks(user, role); err != nil {
+		return &models.UserInternal{}, err
 	}
 
 	permissions, err := a.store.GetPermissionsWithRole(role.ID)
@@ -92,7 +111,7 @@ func (a *appLayer) CreateUser(user *models.UserInternal, disabled bool, email, n
 	}
 }
 
-func (a *appLayer) DeleteUser(id uint) error {
+func (a *appLayer) DeleteUser(user *models.UserInternal, id uint) error {
 	if userBeingDeleted, err := a.GetUser(id); err != nil {
 		slog.Error(
 			"Could not get user being deleted",
@@ -111,6 +130,17 @@ func (a *appLayer) DeleteUser(id uint) error {
 			"error", err,
 		)
 		return errors.New("can not delete owners")
+	} else if targetRole, err := a.store.GetRoleWithName(userBeingDeleted.Role); err != nil {
+		slog.Error(
+			"Could not get role for user being deleted",
+			"layer", "app",
+			"entity", "user",
+			"id", id,
+			"error", err,
+		)
+		return errors.New("internal server error")
+	} else if err := a.assertActorOutranks(user, targetRole); err != nil {
+		return err
 	} else if err = a.store.DeleteUser(id); err != nil {
 		slog.Error(
 			"Unable to delete user",
@@ -234,6 +264,10 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 		return &models.UserInternal{}, errors.New("bad request")
 	}
 
+	if err := a.assertActorOutranks(user, role); err != nil {
+		return &models.UserInternal{}, err
+	}
+
 	permissions, err := a.store.GetPermissionsWithRole(role.ID)
 	if err != nil {
 		slog.Error(
@@ -256,6 +290,23 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 			"error", err,
 		)
 		return &models.UserInternal{}, errors.New("internal server error")
+	}
+
+	currentRole, err := a.store.GetRole(currentUser.RoleId)
+	if err != nil {
+		slog.Error(
+			"Could not get current role for user being updated",
+			"layer", "app",
+			"entity", "user",
+			"id", id,
+			"roleId", currentUser.RoleId,
+			"error", err,
+		)
+		return &models.UserInternal{}, errors.New("internal server error")
+	}
+
+	if err := a.assertActorOutranks(user, currentRole); err != nil {
+		return &models.UserInternal{}, err
 	}
 
 	if err := a.ValidatePassword(username, currentUser.Password, password); err != nil {

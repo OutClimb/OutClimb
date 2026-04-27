@@ -188,6 +188,20 @@ func (h *httpLayer) createUser(c *gin.Context) {
 }
 
 func (h *httpLayer) deleteUser(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		slog.Error(
+			"Failed to get current user",
+			"layer", "http",
+			"entity", "user",
+			"userID", userClaim.ID,
+			"error", err,
+		)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		slog.Error(
@@ -201,7 +215,7 @@ func (h *httpLayer) deleteUser(c *gin.Context) {
 		return
 	}
 
-	err = h.app.DeleteUser(uint(id))
+	err = h.app.DeleteUser(user, uint(id))
 	if err != nil {
 		slog.Error(
 			"Unable to delete user",

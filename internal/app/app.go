@@ -32,7 +32,7 @@ type AppLayer interface {
 	DeleteAsset(id uint) error
 	DeleteLocation(id uint) error
 	DeleteRedirect(id uint) error
-	DeleteUser(id uint) error
+	DeleteUser(user *models.UserInternal, id uint) error
 	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
 	GetAllAssets() (*[]models.AssetInternal, error)
