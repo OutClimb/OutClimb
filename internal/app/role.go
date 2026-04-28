@@ -25,9 +25,71 @@ import (
 	"github.com/OutClimb/OutClimb/internal/store"
 )
 
-func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint) (*models.RoleInternal, error) {
+func validatePermissions(permissions map[string]uint) error {
+	for entity, level := range permissions {
+		valid := false
+		for _, e := range store.Entities {
+			if e == entity {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errors.New("invalid entity in permissions")
+		}
+		if level > uint(store.LevelWrite) {
+			return errors.New("invalid permission level")
+		}
+	}
+	return nil
+}
+
+func assertActorCanGrantPermissions(actor *models.UserInternal, permissions map[string]uint) error {
+	if actor.Role == "Owner" {
+		return nil
+	}
+
+	for entity, level := range permissions {
+		actorLevel, ok := actor.Permissions[entity]
+		if !ok || actorLevel < level {
+			return errors.New("forbidden")
+		}
+	}
+	return nil
+}
+
+func (a *appLayer) syncRolePermissions(roleID uint, permissions map[string]uint) error {
+	existing, err := a.store.GetPermissionsWithRole(roleID)
+	if err != nil {
+		return err
+	}
+
+	for _, permission := range *existing {
+		if err := a.store.DeletePermission(permission.ID); err != nil {
+			return err
+		}
+	}
+
+	for entity, level := range permissions {
+		if _, err := a.store.CreatePermission(roleID, store.PermissionLevel(level), entity); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error) {
 	if len(name) == 0 {
 		return &models.RoleInternal{}, errors.New("bad request")
+	}
+
+	if err := validatePermissions(permissions); err != nil {
+		return &models.RoleInternal{}, err
+	}
+
+	if err := assertActorCanGrantPermissions(user, permissions); err != nil {
+		return &models.RoleInternal{}, err
 	}
 
 	if err := a.assertActorOutranks(user, &store.Role{Order: order}); err != nil {
@@ -46,8 +108,24 @@ func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint
 		return &models.RoleInternal{}, err
 	}
 
+	if err := a.syncRolePermissions(role.ID, permissions); err != nil {
+		slog.Error(
+			"Unable to sync role permissions",
+			"layer", "app",
+			"entity", "role",
+			"id", role.ID,
+			"error", err,
+		)
+		return &models.RoleInternal{}, errors.New("internal server error")
+	}
+
+	storedPermissions, err := a.store.GetPermissionsWithRole(role.ID)
+	if err != nil {
+		return &models.RoleInternal{}, err
+	}
+
 	roleInternal := models.RoleInternal{}
-	roleInternal.Internalize(role)
+	roleInternal.Internalize(role, storedPermissions)
 
 	return &roleInternal, nil
 }
@@ -89,6 +167,17 @@ func (a *appLayer) DeleteRole(user *models.UserInternal, id uint) error {
 		return errors.New("can not delete role with users")
 	}
 
+	if err := a.syncRolePermissions(id, nil); err != nil {
+		slog.Error(
+			"Unable to clear role permissions",
+			"layer", "app",
+			"entity", "role",
+			"id", id,
+			"error", err,
+		)
+		return errors.New("internal server error")
+	}
+
 	if err := a.store.DeleteRole(id); err != nil {
 		slog.Error(
 			"Unable to delete role",
@@ -116,8 +205,20 @@ func (a *appLayer) GetRole(id uint) (*models.RoleInternal, error) {
 		return &models.RoleInternal{}, err
 	}
 
+	permissions, err := a.store.GetPermissionsWithRole(id)
+	if err != nil {
+		slog.Error(
+			"Unable to get permissions for role",
+			"layer", "app",
+			"entity", "role",
+			"id", id,
+			"error", err,
+		)
+		return &models.RoleInternal{}, err
+	}
+
 	roleInternal := models.RoleInternal{}
-	roleInternal.Internalize(role)
+	roleInternal.Internalize(role, permissions)
 
 	return &roleInternal, nil
 }
@@ -130,15 +231,34 @@ func (a *appLayer) GetAllRoles() (*[]models.RoleInternal, error) {
 
 	rolesInternal := make([]models.RoleInternal, len(*roles))
 	for i, role := range *roles {
-		rolesInternal[i].Internalize(&role)
+		permissions, err := a.store.GetPermissionsWithRole(role.ID)
+		if err != nil {
+			slog.Error(
+				"Unable to get permissions for role while getting all roles",
+				"layer", "app",
+				"entity", "role",
+				"id", role.ID,
+				"error", err,
+			)
+			return &[]models.RoleInternal{}, err
+		}
+		rolesInternal[i].Internalize(&role, permissions)
 	}
 
 	return &rolesInternal, nil
 }
 
-func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, order uint) (*models.RoleInternal, error) {
+func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error) {
 	if len(name) == 0 {
 		return &models.RoleInternal{}, errors.New("bad request")
+	}
+
+	if err := validatePermissions(permissions); err != nil {
+		return &models.RoleInternal{}, err
+	}
+
+	if err := assertActorCanGrantPermissions(user, permissions); err != nil {
+		return &models.RoleInternal{}, err
 	}
 
 	currentRole, err := a.store.GetRole(id)
@@ -177,8 +297,24 @@ func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, o
 		return &models.RoleInternal{}, err
 	}
 
+	if err := a.syncRolePermissions(role.ID, permissions); err != nil {
+		slog.Error(
+			"Unable to sync role permissions",
+			"layer", "app",
+			"entity", "role",
+			"id", role.ID,
+			"error", err,
+		)
+		return &models.RoleInternal{}, errors.New("internal server error")
+	}
+
+	storedPermissions, err := a.store.GetPermissionsWithRole(role.ID)
+	if err != nil {
+		return &models.RoleInternal{}, err
+	}
+
 	roleInternal := models.RoleInternal{}
-	roleInternal.Internalize(role)
+	roleInternal.Internalize(role, storedPermissions)
 
 	return &roleInternal, nil
 }

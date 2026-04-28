@@ -20,13 +20,26 @@ package models
 import "github.com/OutClimb/OutClimb/internal/store"
 
 type RoleInternal struct {
-	ID    uint
-	Name  string
-	Order uint
+	ID          uint
+	Name        string
+	Order       uint
+	Permissions map[string]uint
 }
 
-func (r *RoleInternal) Internalize(role *store.Role) {
+func (r *RoleInternal) Internalize(role *store.Role, permissions *[]store.Permission) {
 	r.ID = role.ID
 	r.Name = role.Name
 	r.Order = role.Order
+
+	permissionMap := map[string]uint{}
+	if role.Name == "Owner" {
+		for _, entity := range store.Entities {
+			permissionMap[entity] = uint(store.LevelWrite)
+		}
+	} else {
+		for _, permission := range *permissions {
+			permissionMap[permission.Entity] = uint(permission.Level)
+		}
+	}
+	r.Permissions = permissionMap
 }

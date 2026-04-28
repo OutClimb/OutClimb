@@ -28,7 +28,7 @@ type AppLayer interface {
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
-	CreateRole(user *models.UserInternal, name string, order uint) (*models.RoleInternal, error)
+	CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
 	CreateUser(user *models.UserInternal, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	DeleteAsset(id uint) error
 	DeleteLocation(id uint) error
@@ -51,7 +51,7 @@ type AppLayer interface {
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
-	UpdateRole(user *models.UserInternal, id uint, name string, order uint) (*models.RoleInternal, error)
+	UpdateRole(user *models.UserInternal, id uint, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
 	UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	ValidatePassword(username, oldPasswordHash, password string) error
 }

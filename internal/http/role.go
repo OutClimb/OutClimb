@@ -48,7 +48,7 @@ func (h *httpLayer) createRole(c *gin.Context) {
 		return
 	}
 
-	if role, err := h.app.CreateRole(user, body.Name, body.Order); err != nil {
+	if role, err := h.app.CreateRole(user, body.Name, body.Order, body.Permissions); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create role"})
 	} else {
 		rolePublic := responses.RolePublic{}
@@ -139,7 +139,7 @@ func (h *httpLayer) updateRole(c *gin.Context) {
 		return
 	}
 
-	if role, err := h.app.UpdateRole(user, uint(id), body.Name, body.Order); err != nil {
+	if role, err := h.app.UpdateRole(user, uint(id), body.Name, body.Order, body.Permissions); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update role"})
 	} else {
 		rolePublic := responses.RolePublic{}

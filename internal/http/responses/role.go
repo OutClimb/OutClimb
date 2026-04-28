@@ -20,13 +20,15 @@ package responses
 import "github.com/OutClimb/OutClimb/internal/app/models"
 
 type RolePublic struct {
-	Id    uint   `json:"id"`
-	Name  string `json:"name"`
-	Order uint   `json:"order"`
+	Id          uint            `json:"id"`
+	Name        string          `json:"name"`
+	Order       uint            `json:"order"`
+	Permissions map[string]uint `json:"permissions"`
 }
 
 func (r *RolePublic) Publicize(role *models.RoleInternal) {
 	r.Id = role.ID
 	r.Name = role.Name
 	r.Order = role.Order
+	r.Permissions = role.Permissions
 }
