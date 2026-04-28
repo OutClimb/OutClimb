@@ -218,7 +218,7 @@ export function EditRoleDialog({ id, open, onOpenChange }: EditRoleDialogProps) 
                     <SelectContent>
                       <SelectItem value={String(NO_PERMISSION)}>None</SelectItem>
                       <SelectItem value={String(READ_PERMISSION)}>Read</SelectItem>
-                      <SelectItem value={String(WRITE_PERMISSION)}>Write</SelectItem>
+                      <SelectItem value={String(WRITE_PERMISSION)}>Read & Write</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
