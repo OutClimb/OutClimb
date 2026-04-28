@@ -7,6 +7,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { DeleteUserDialog } from '@/components/users/delete-user-dialog'
 import { EditUserDialog } from '@/components/users/edit-user-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { fetchRoles } from '@/api/role'
 import { fetchUsers } from '@/api/user'
 import { Header } from '@/components/header'
 import permissionGuard from '@/lib/permission-guard'
@@ -14,6 +15,7 @@ import { Plus, User } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useCallback, useEffect, useState } from 'react'
 import { UsersTable } from '@/components/users/users-table'
+import useRoleStore from '@/stores/role'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 import useUserStore from '@/stores/user'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -35,6 +37,7 @@ function Users() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
   const { isEmpty, list, populate } = useUserStore()
+  const { populate: populateRoles } = useRoleStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -74,12 +77,13 @@ function Users() {
   }, [setSelectedId, setIsDeleteDialogOpen])
 
   useEffect(() => {
-    const fetchUsersFromApi = async () => {
+    const fetchFromApi = async () => {
       setIsLoading(true)
 
       try {
-        const users = await fetchUsers(token || '')
+        const [users, roles] = await Promise.all([fetchUsers(token || ''), fetchRoles(token || '')])
         populate(users)
+        populateRoles(roles)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           navigate({ to: '/manage/login' })
@@ -93,7 +97,7 @@ function Users() {
     }
 
     if (!isHydrated) {
-      fetchUsersFromApi()
+      fetchFromApi()
     }
   })
 

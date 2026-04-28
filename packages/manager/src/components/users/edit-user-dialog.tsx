@@ -11,6 +11,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { updateUser } from '@/api/user'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import useRoleStore from '@/stores/role'
 import useSelfStore from '@/stores/self'
 import useUserStore from '@/stores/user'
 import { validatePassword } from '@/lib/validate-password'
@@ -59,8 +60,19 @@ interface EditUserDialogProps {
 
 export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) {
   const navigate = useNavigate()
-  const { token } = useSelfStore()
+  const { token, user: getUser } = useSelfStore()
   const { data, populateSingle } = useUserStore()
+  const { list: listRoles } = useRoleStore()
+
+  const allRoles = listRoles()
+  const selfUser = getUser()
+  const actorRole = allRoles.find((role) => role.name === selfUser?.role)
+  const availableRoles =
+    actorRole === undefined
+      ? []
+      : actorRole.order === 0
+        ? allRoles
+        : allRoles.filter((role) => role.order >= actorRole.order)
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [formError, setFormError] = useState<FormError>(emptyFormError)
@@ -287,8 +299,11 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Owner">Owner</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    {availableRoles.map((role) => (
+                      <SelectItem key={role.id} value={role.name}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {formError.role && (
