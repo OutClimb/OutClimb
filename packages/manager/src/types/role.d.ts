@@ -7,6 +7,7 @@ export interface Role {
   id: number
   name: string
   order: number
+  permissions: Record<string, number>
 }
 
 export interface RoleStore {
