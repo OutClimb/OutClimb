@@ -23,12 +23,14 @@ type SubmissionValueInternal struct {
 	ID           uint
 	SubmissionID uint
 	FormFieldID  uint
+	FieldSlug    string
 	Value        string
 }
 
-func (s *SubmissionValueInternal) Internalize(value *store.SubmissionValue) {
+func (s *SubmissionValueInternal) Internalize(value *store.SubmissionValue, fieldSlug string) {
 	s.ID = value.ID
 	s.SubmissionID = value.SubmissionID
 	s.FormFieldID = value.FormFieldID
+	s.FieldSlug = fieldSlug
 	s.Value = value.Value
 }

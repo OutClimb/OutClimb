@@ -30,14 +30,14 @@ type SubmissionInternal struct {
 	Values      []SubmissionValueInternal
 }
 
-func (s *SubmissionInternal) Internalize(submission *store.Submission, values *[]store.SubmissionValue) {
+func (s *SubmissionInternal) Internalize(submission *store.Submission, values *[]store.SubmissionValue, fieldSlugByID map[uint]string) {
 	s.ID = submission.ID
 	s.FormID = submission.FormID
 	s.SubmittedOn = submission.SubmittedOn
 
 	valueList := make([]SubmissionValueInternal, len(*values))
 	for i, v := range *values {
-		valueList[i].Internalize(&v)
+		valueList[i].Internalize(&v, fieldSlugByID[v.FormFieldID])
 	}
 	s.Values = valueList
 }

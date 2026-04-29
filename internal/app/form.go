@@ -312,6 +312,14 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 		return nil, err
 	}
 
+	fieldBySlug := map[string]*store.FormField{}
+	fieldSlugByID := map[uint]string{}
+	for i := range *fields {
+		f := &(*fields)[i]
+		fieldBySlug[f.Slug] = f
+		fieldSlugByID[f.ID] = f.Slug
+	}
+
 	for _, field := range *fields {
 		if err := validateFieldValue(field, values[field.Slug]); err != nil {
 			return nil, err
@@ -322,12 +330,6 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 	if err != nil {
 		slog.Error("Unable to create submission", "layer", "app", "entity", "form", "formId", form.ID, "error", err)
 		return nil, err
-	}
-
-	fieldBySlug := map[string]*store.FormField{}
-	for i := range *fields {
-		f := &(*fields)[i]
-		fieldBySlug[f.Slug] = f
 	}
 
 	for slug, val := range values {
@@ -355,7 +357,7 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 	}
 
 	submissionInternal := models.SubmissionInternal{}
-	submissionInternal.Internalize(submission, storedValues)
+	submissionInternal.Internalize(submission, storedValues, fieldSlugByID)
 
 	return &submissionInternal, nil
 }
@@ -370,6 +372,16 @@ func (a *appLayer) GetSubmissionsForForm(user *models.UserInternal, formId uint)
 		return nil, ErrForbidden
 	}
 
+	fields, err := a.store.GetAllFormFieldsForForm(formId)
+	if err != nil {
+		return nil, err
+	}
+
+	fieldSlugByID := map[uint]string{}
+	for _, f := range *fields {
+		fieldSlugByID[f.ID] = f.Slug
+	}
+
 	submissions, err := a.store.GetSubmissionsForForm(formId)
 	if err != nil {
 		return nil, err
@@ -381,7 +393,7 @@ func (a *appLayer) GetSubmissionsForForm(user *models.UserInternal, formId uint)
 		if err != nil {
 			return nil, err
 		}
-		result[i].Internalize(&submission, values)
+		result[i].Internalize(&submission, values, fieldSlugByID)
 	}
 
 	return &result, nil
