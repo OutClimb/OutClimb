@@ -46,6 +46,14 @@ func (s *storeLayer) DeleteSubmissionValue(id uint) error {
 	return nil
 }
 
+func (s *storeLayer) DeleteSubmissionValuesForSubmission(submissionId uint) error {
+	if result := s.db.Where("submission_id = ?", submissionId).Delete(&SubmissionValue{}); result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func (s *storeLayer) GetAllSubmissionValue() (*[]SubmissionValue, error) {
 	submissionValues := []SubmissionValue{}
 

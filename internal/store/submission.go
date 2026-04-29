@@ -46,6 +46,14 @@ func (s *storeLayer) DeleteSubmission(id uint) error {
 	return nil
 }
 
+func (s *storeLayer) DeleteSubmissionsForForm(formId uint) error {
+	if result := s.db.Where("form_id = ?", formId).Delete(&Submission{}); result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func (s *storeLayer) GetAllSubmissions() (*[]Submission, error) {
 	submissions := []Submission{}
 
