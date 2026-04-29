@@ -103,6 +103,7 @@ type StoreLayer interface {
 	UpdateRole(id uint, updatedBy, name string, order uint) (*Role, error)
 	UpdateSubmissionValue(id uint, value string) (*SubmissionValue, error)
 	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
+	WithTransaction(fn func(StoreLayer) error) error
 }
 
 type storeLayer struct {
@@ -387,4 +388,10 @@ func (s *storeLayer) Migrate() {
 
 		s.db.Model(&User{}).Where("role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
 	}
+}
+
+func (s *storeLayer) WithTransaction(fn func(StoreLayer) error) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return fn(&storeLayer{db: tx, s3: s.s3, storageConfig: s.storageConfig})
+	})
 }

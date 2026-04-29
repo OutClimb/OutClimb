@@ -26,28 +26,37 @@ import (
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
+	CreateForm(user *models.UserInternal, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
+	CreateSubmission(slug string, values map[string]string) (*models.SubmissionInternal, error)
 	CreateUser(user *models.UserInternal, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	DeleteAsset(id uint) error
+	DeleteForm(user *models.UserInternal, id uint) error
 	DeleteLocation(id uint) error
 	DeleteRedirect(id uint) error
 	DeleteRole(user *models.UserInternal, id uint) error
+	DeleteSubmission(user *models.UserInternal, formId, submissionId uint) error
 	DeleteUser(user *models.UserInternal, id uint) error
 	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
 	GetAllAssets() (*[]models.AssetInternal, error)
+	GetAllForms() (*[]models.FormInternal, error)
 	GetAllLocations() (*[]models.LocationInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
 	GetAllRoles() (*[]models.RoleInternal, error)
 	GetAllUsers() (*[]models.UserInternal, error)
 	GetAsset(id uint) (*models.AssetInternal, error)
+	GetForm(user *models.UserInternal, id uint) (*models.FormInternal, error)
+	GetFormBySlug(slug string) (*models.FormInternal, error)
 	GetLocation(id uint) (*models.LocationInternal, error)
 	GetRedirect(id uint) (*models.RedirectInternal, error)
 	GetRole(id uint) (*models.RoleInternal, error)
+	GetSubmissionsForForm(user *models.UserInternal, formId uint) (*[]models.SubmissionInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
 	UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error)
+	UpdateForm(user *models.UserInternal, id uint, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
