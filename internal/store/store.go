@@ -36,6 +36,7 @@ import (
 var Entities = [...]string{"asset", "form", "redirect", "location", "social", "user", "role"}
 
 type StoreLayer interface {
+	CountSubmissionsForForm(formId uint) (int64, error)
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
 	CreateForm(createdBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
 	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
@@ -49,12 +50,16 @@ type StoreLayer interface {
 	DeleteAsset(id uint) error
 	DeleteForm(id uint) error
 	DeleteFormField(id uint) error
+	DeleteFormFieldForForm(formId uint) error
 	DeleteLocation(id uint) error
 	DeletePermission(id uint) error
 	DeleteRedirect(id uint) error
 	DeleteRole(id uint) error
 	DeleteSubmission(id uint) error
+	DeleteSubmissionsForForm(formId uint) error
 	DeleteSubmissionValue(id uint) error
+	DeleteSubmissionValuesForForm(formId uint) error
+	DeleteSubmissionValuesForSubmission(submissionId uint) error
 	DeleteUser(id uint) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
@@ -73,6 +78,7 @@ type StoreLayer interface {
 	GetAsset(id uint) (*Asset, error)
 	GetForm(id uint) (*Form, error)
 	GetFormField(id uint) (*FormField, error)
+	GetFormWithSlug(slug string) (*Form, error)
 	GetLocation(id uint) (*Location, error)
 	GetPermission(id uint) (*Permission, error)
 	GetPermissionsWithRole(roleId uint) (*[]Permission, error)
@@ -81,10 +87,12 @@ type StoreLayer interface {
 	GetRole(id uint) (*Role, error)
 	GetRoleWithName(name string) (*Role, error)
 	GetSubmission(id uint) (*Submission, error)
+	GetSubmissionsForForm(formId uint) (*[]Submission, error)
 	GetSubmissionValue(id uint) (*SubmissionValue, error)
 	GetUser(id uint) (*User, error)
 	GetUsersWithRole(roleId uint) (*[]User, error)
 	GetUserWithUsername(username string) (*User, error)
+	SetFormViewableBy(formId uint, userIds []uint) error
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
 	UpdateForm(id uint, updatedBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
 	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)

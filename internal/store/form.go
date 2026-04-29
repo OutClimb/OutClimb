@@ -92,6 +92,29 @@ func (s *storeLayer) GetForm(id uint) (*Form, error) {
 	return &form, nil
 }
 
+func (s *storeLayer) GetFormWithSlug(slug string) (*Form, error) {
+	form := Form{}
+
+	if result := s.db.Preload("ViewableBy").Where("slug = ?", slug).First(&form); result.Error != nil {
+		return &Form{}, result.Error
+	}
+
+	return &form, nil
+}
+
+func (s *storeLayer) SetFormViewableBy(formId uint, userIds []uint) error {
+	users := make([]User, len(userIds))
+	for i, id := range userIds {
+		users[i] = User{}
+		users[i].ID = id
+	}
+
+	form := Form{}
+	form.ID = formId
+
+	return s.db.Model(&form).Association("ViewableBy").Replace(users)
+}
+
 func (s *storeLayer) UpdateForm(id uint, updatedBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error) {
 	form, err := s.GetForm(id)
 	if err != nil {

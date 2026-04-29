@@ -25,6 +25,16 @@ type Submission struct {
 	SubmittedOn time.Time
 }
 
+func (s *storeLayer) CountSubmissionsForForm(formId uint) (int64, error) {
+	var count int64
+
+	if result := s.db.Model(&Submission{}).Where("form_id = ?", formId).Count(&count); result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
+}
+
 func (s *storeLayer) CreateSubmission(formId uint) (*Submission, error) {
 	submission := Submission{
 		FormID:      formId,
@@ -72,4 +82,14 @@ func (s *storeLayer) GetSubmission(id uint) (*Submission, error) {
 	}
 
 	return &submission, nil
+}
+
+func (s *storeLayer) GetSubmissionsForForm(formId uint) (*[]Submission, error) {
+	submissions := []Submission{}
+
+	if result := s.db.Where("form_id = ?", formId).Find(&submissions); result.Error != nil {
+		return &[]Submission{}, result.Error
+	}
+
+	return &submissions, nil
 }
