@@ -24,39 +24,32 @@ import (
 )
 
 type FormInternal struct {
-	ID                 uint
-	Name               string
-	Slug               string
-	Template           string
-	OpensOn            *time.Time
-	ClosesOn           *time.Time
-	MaxSubmissions     *uint
-	NotOpenMessage     *string
-	ClosedMessage      *string
-	SuccessMessage     *string
-	EmailFormFieldSlug *string
-	EmailTo            *string
-	EmailSubject       *string
-	EmailTemplate      *string
-	ViewableBy         []uint
-	Fields             []FormFieldInternal
+	ID             uint
+	Name           string
+	Slug           string
+	OpensOn        *time.Time
+	ClosesOn       *time.Time
+	MaxSubmissions *uint
+	NotOpenMessage *string
+	ClosedMessage  *string
+	FilledMessage  *string
+	SuccessMessage *string
+	Status         string
+	ViewableBy     []uint
+	Fields         []FormFieldInternal
 }
 
 func (f *FormInternal) Internalize(form *store.Form, fields *[]store.FormField) {
 	f.ID = form.ID
 	f.Name = form.Name
 	f.Slug = form.Slug
-	f.Template = form.Template
 	f.OpensOn = form.OpensOn
 	f.ClosesOn = form.ClosesOn
 	f.MaxSubmissions = form.MaxSubmissions
 	f.NotOpenMessage = form.NotOpenMessage
 	f.ClosedMessage = form.ClosedMessage
+	f.FilledMessage = form.FilledMessage
 	f.SuccessMessage = form.SuccessMessage
-	f.EmailFormFieldSlug = form.EmailFormFieldSlug
-	f.EmailTo = form.EmailTo
-	f.EmailSubject = form.EmailSubject
-	f.EmailTemplate = form.EmailTemplate
 
 	viewableBy := make([]uint, len(form.ViewableBy))
 	for i, u := range form.ViewableBy {

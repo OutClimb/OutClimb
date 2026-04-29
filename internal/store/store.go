@@ -38,7 +38,7 @@ var Entities = [...]string{"asset", "form", "redirect", "location", "social", "u
 type StoreLayer interface {
 	CountSubmissionsForForm(formId uint) (int64, error)
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
-	CreateForm(createdBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
+	CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error)
 	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
@@ -94,7 +94,7 @@ type StoreLayer interface {
 	GetUserWithUsername(username string) (*User, error)
 	SetFormViewableBy(formId uint, userIds []uint) error
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
-	UpdateForm(id uint, updatedBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
+	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error)
 	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)

@@ -26,7 +26,7 @@ import (
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
-	CreateForm(user *models.UserInternal, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
+	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
@@ -37,7 +37,7 @@ type AppLayer interface {
 	DeleteLocation(id uint) error
 	DeleteRedirect(id uint) error
 	DeleteRole(user *models.UserInternal, id uint) error
-	DeleteSubmission(user *models.UserInternal, formId, submissionId uint) error
+	DeleteSubmission(user *models.UserInternal, submissionId uint) error
 	DeleteUser(user *models.UserInternal, id uint) error
 	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
@@ -56,7 +56,7 @@ type AppLayer interface {
 	GetSubmissionsForForm(user *models.UserInternal, formId uint) (*[]models.SubmissionInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
 	UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error)
-	UpdateForm(user *models.UserInternal, id uint, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
+	UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)

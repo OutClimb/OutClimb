@@ -69,12 +69,12 @@ func canViewSubmissions(user *models.UserInternal, form *models.FormInternal) bo
 	return false
 }
 
-func millisToTime(ms int64) *time.Time {
-	if ms <= 0 {
+func millisToTime(ms *int64) *time.Time {
+	if ms == nil || *ms <= 0 {
 		return nil
 	}
 
-	t := time.UnixMilli(ms)
+	t := time.UnixMilli(*ms)
 	return &t
 }
 
@@ -134,21 +134,11 @@ func validateFieldValue(field store.FormField, val string) error {
 	return nil
 }
 
-func sendFormEmail(form *models.FormInternal, emailAddress string) {
-	slog.Info("Form email send TODO",
-		"layer", "app",
-		"entity", "form",
-		"formId", form.ID,
-		"emailTo", form.EmailTo,
-		"emailAddress", emailAddress,
-	)
-}
-
-func (a *appLayer) CreateForm(user *models.UserInternal, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
 	var formId uint
 
 	err := a.store.WithTransaction(func(tx store.StoreLayer) error {
-		form, err := tx.CreateForm(user.Username, name, slug, template, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate)
+		form, err := tx.CreateForm(user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage)
 		if err != nil {
 			return err
 		}
@@ -175,9 +165,9 @@ func (a *appLayer) CreateForm(user *models.UserInternal, name, slug, template st
 	return a.loadFormInternal(formId)
 }
 
-func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug, template string, opensOn, closesOn int64, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
 	err := a.store.WithTransaction(func(tx store.StoreLayer) error {
-		form, err := tx.UpdateForm(id, user.Username, name, slug, template, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate)
+		form, err := tx.UpdateForm(id, user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage)
 		if err != nil {
 			return err
 		}
@@ -278,8 +268,30 @@ func (a *appLayer) GetFormBySlug(slug string) (*models.FormInternal, error) {
 
 	internal := models.FormInternal{}
 	internal.Internalize(form, fields)
+	internal.Status = a.computeFormStatus(form)
 
 	return &internal, nil
+}
+
+func (a *appLayer) computeFormStatus(form *store.Form) string {
+	now := time.Now()
+
+	if form.OpensOn != nil && now.Before(*form.OpensOn) {
+		return "notOpen"
+	}
+
+	if form.ClosesOn != nil && now.After(*form.ClosesOn) {
+		return "closed"
+	}
+
+	if form.MaxSubmissions != nil {
+		count, err := a.store.CountSubmissionsForForm(form.ID)
+		if err == nil && count >= int64(*form.MaxSubmissions) {
+			return "filled"
+		}
+	}
+
+	return "open"
 }
 
 func (a *appLayer) GetAllForms() (*[]models.FormInternal, error) {
@@ -343,14 +355,6 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 		}
 	}
 
-	if form.EmailFormFieldSlug != nil && form.EmailTo != nil && form.EmailSubject != nil && form.EmailTemplate != nil {
-		formInternal := models.FormInternal{}
-		formInternal.Internalize(form, fields)
-
-		emailAddress := values[*form.EmailFormFieldSlug]
-		sendFormEmail(&formInternal, emailAddress)
-	}
-
 	storedValues, err := a.store.GetAllSubmissionValueForSubmission(submission.ID)
 	if err != nil {
 		return nil, err
@@ -399,16 +403,7 @@ func (a *appLayer) GetSubmissionsForForm(user *models.UserInternal, formId uint)
 	return &result, nil
 }
 
-func (a *appLayer) DeleteSubmission(user *models.UserInternal, formId, submissionId uint) error {
-	submission, err := a.store.GetSubmission(submissionId)
-	if err != nil {
-		return err
-	}
-
-	if submission.FormID != formId {
-		return ErrForbidden
-	}
-
+func (a *appLayer) DeleteSubmission(user *models.UserInternal, submissionId uint) error {
 	if err := a.store.DeleteSubmissionValuesForSubmission(submissionId); err != nil {
 		slog.Error("Unable to delete submission values", "layer", "app", "entity", "form", "submissionId", submissionId, "error", err)
 		return err

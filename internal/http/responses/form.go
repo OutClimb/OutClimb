@@ -20,47 +20,39 @@ package responses
 import "github.com/OutClimb/OutClimb/internal/app/models"
 
 type FormPublic struct {
-	Id                 uint              `json:"id"`
-	Name               string            `json:"name"`
-	Slug               string            `json:"slug"`
-	Template           string            `json:"template"`
-	OpensOn            int64             `json:"opensOn"`
-	ClosesOn           int64             `json:"closesOn"`
-	MaxSubmissions     *uint             `json:"maxSubmissions"`
-	NotOpenMessage     *string           `json:"notOpenMessage"`
-	ClosedMessage      *string           `json:"closedMessage"`
-	SuccessMessage     *string           `json:"successMessage"`
-	EmailFormFieldSlug *string           `json:"emailFormFieldSlug"`
-	EmailTo            *string           `json:"emailTo"`
-	EmailSubject       *string           `json:"emailSubject"`
-	EmailTemplate      *string           `json:"emailTemplate"`
-	ViewableBy         []uint            `json:"viewableBy"`
-	Fields             []FormFieldPublic `json:"fields"`
+	Id             uint              `json:"id"`
+	Name           string            `json:"name"`
+	Slug           string            `json:"slug"`
+	OpensOn        *int64            `json:"opensOn,omitempty"`
+	ClosesOn       *int64            `json:"closesOn,omitempty"`
+	MaxSubmissions *uint             `json:"maxSubmissions,omitempty"`
+	NotOpenMessage *string           `json:"notOpenMessage,omitempty"`
+	ClosedMessage  *string           `json:"closedMessage,omitempty"`
+	FilledMessage  *string           `json:"filledMessage,omitempty"`
+	SuccessMessage *string           `json:"successMessage,omitempty"`
+	ViewableBy     []uint            `json:"viewableBy"`
+	Fields         []FormFieldPublic `json:"fields"`
 }
 
 func (f *FormPublic) Publicize(form *models.FormInternal) {
 	f.Id = form.ID
 	f.Name = form.Name
 	f.Slug = form.Slug
-	f.Template = form.Template
 	f.MaxSubmissions = form.MaxSubmissions
 	f.NotOpenMessage = form.NotOpenMessage
 	f.ClosedMessage = form.ClosedMessage
+	f.FilledMessage = form.FilledMessage
 	f.SuccessMessage = form.SuccessMessage
-	f.EmailFormFieldSlug = form.EmailFormFieldSlug
-	f.EmailTo = form.EmailTo
-	f.EmailSubject = form.EmailSubject
-	f.EmailTemplate = form.EmailTemplate
 	f.ViewableBy = form.ViewableBy
 
-	f.OpensOn = 0
 	if form.OpensOn != nil {
-		f.OpensOn = form.OpensOn.UnixMilli()
+		opensOn := form.OpensOn.UnixMilli()
+		f.OpensOn = &opensOn
 	}
 
-	f.ClosesOn = 0
 	if form.ClosesOn != nil {
-		f.ClosesOn = form.ClosesOn.UnixMilli()
+		closesOn := form.ClosesOn.UnixMilli()
+		f.ClosesOn = &closesOn
 	}
 
 	f.Fields = make([]FormFieldPublic, len(form.Fields))
@@ -73,12 +65,13 @@ type FormDisplay struct {
 	Id             uint               `json:"id"`
 	Name           string             `json:"name"`
 	Slug           string             `json:"slug"`
-	Template       string             `json:"template"`
-	OpensOn        int64              `json:"opensOn"`
-	ClosesOn       int64              `json:"closesOn"`
-	NotOpenMessage *string            `json:"notOpenMessage"`
-	ClosedMessage  *string            `json:"closedMessage"`
-	SuccessMessage *string            `json:"successMessage"`
+	Status         string             `json:"status"`
+	OpensOn        *int64             `json:"opensOn,omitempty"`
+	ClosesOn       *int64             `json:"closesOn,omitempty"`
+	NotOpenMessage *string            `json:"notOpenMessage,omitempty"`
+	ClosedMessage  *string            `json:"closedMessage,omitempty"`
+	FilledMessage  *string            `json:"filledMessage,omitempty"`
+	SuccessMessage *string            `json:"successMessage,omitempty"`
 	Fields         []FormFieldDisplay `json:"fields"`
 }
 
@@ -86,19 +79,20 @@ func (f *FormDisplay) Publicize(form *models.FormInternal) {
 	f.Id = form.ID
 	f.Name = form.Name
 	f.Slug = form.Slug
-	f.Template = form.Template
+	f.Status = form.Status
 	f.NotOpenMessage = form.NotOpenMessage
 	f.ClosedMessage = form.ClosedMessage
+	f.FilledMessage = form.FilledMessage
 	f.SuccessMessage = form.SuccessMessage
 
-	f.OpensOn = 0
 	if form.OpensOn != nil {
-		f.OpensOn = form.OpensOn.UnixMilli()
+		opensOn := form.OpensOn.UnixMilli()
+		f.OpensOn = &opensOn
 	}
 
-	f.ClosesOn = 0
 	if form.ClosesOn != nil {
-		f.ClosesOn = form.ClosesOn.UnixMilli()
+		closesOn := form.ClosesOn.UnixMilli()
+		f.ClosesOn = &closesOn
 	}
 
 	f.Fields = make([]FormFieldDisplay, len(form.Fields))

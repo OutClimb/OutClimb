@@ -120,6 +120,9 @@ func (h *httpLayer) setupV1ApiRoutes() {
 	{
 		api.GET("/ping", h.getPing)
 
+		api.GET("/form/:slug", h.getForm)
+		api.POST("/submission/:slug", h.createSubmission)
+
 		api.POST("/token", h.createToken)
 
 		api.PUT("/password", h.updatePassword).Use(middleware.Auth(h.config, true))
@@ -168,9 +171,6 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			roleApi.PUT("/:id", h.updateRole)
 			roleApi.DELETE("/:id", h.deleteRole)
 		}
-
-		api.GET("/form/:slug", h.getForm)
-		api.POST("/submission/:slug", h.createSubmission)
 
 		authFormApi := api.Group("/").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("form"))
 		{

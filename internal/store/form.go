@@ -21,37 +21,29 @@ import "time"
 
 type Form struct {
 	StandardAudit
-	Name               string `gorm:"not null"`
-	Slug               string `gorm:"uniqueIndex;not null;size:255"`
-	Template           string `gorm:"not null"`
-	OpensOn            *time.Time
-	ClosesOn           *time.Time
-	MaxSubmissions     *uint
-	ViewableBy         []User `gorm:"many2many:form_viewable_users;"`
-	NotOpenMessage     *string
-	ClosedMessage      *string
-	SuccessMessage     *string
-	EmailFormFieldSlug *string
-	EmailTo            *string
-	EmailSubject       *string
-	EmailTemplate      *string
+	Name           string `gorm:"not null"`
+	Slug           string `gorm:"uniqueIndex;not null;size:255"`
+	OpensOn        *time.Time
+	ClosesOn       *time.Time
+	MaxSubmissions *uint
+	ViewableBy     []User `gorm:"many2many:form_viewable_users;"`
+	NotOpenMessage *string
+	ClosedMessage  *string
+	FilledMessage  *string
+	SuccessMessage *string
 }
 
-func (s *storeLayer) CreateForm(createdBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error) {
+func (s *storeLayer) CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error) {
 	form := Form{
-		Name:               name,
-		Slug:               slug,
-		Template:           template,
-		OpensOn:            opensOn,
-		ClosesOn:           closesOn,
-		MaxSubmissions:     maxSubmissions,
-		NotOpenMessage:     notOpenMessage,
-		ClosedMessage:      closedMessage,
-		SuccessMessage:     successMessage,
-		EmailFormFieldSlug: emailFormFieldSlug,
-		EmailTo:            emailTo,
-		EmailSubject:       emailSubject,
-		EmailTemplate:      emailTemplate,
+		Name:           name,
+		Slug:           slug,
+		OpensOn:        opensOn,
+		ClosesOn:       closesOn,
+		MaxSubmissions: maxSubmissions,
+		NotOpenMessage: notOpenMessage,
+		ClosedMessage:  closedMessage,
+		FilledMessage:  filledMessage,
+		SuccessMessage: successMessage,
 	}
 
 	form.CreatedBy = createdBy
@@ -115,7 +107,7 @@ func (s *storeLayer) SetFormViewableBy(formId uint, userIds []uint) error {
 	return s.db.Model(&form).Association("ViewableBy").Replace(users)
 }
 
-func (s *storeLayer) UpdateForm(id uint, updatedBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error) {
+func (s *storeLayer) UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error) {
 	form, err := s.GetForm(id)
 	if err != nil {
 		return nil, err
@@ -124,17 +116,13 @@ func (s *storeLayer) UpdateForm(id uint, updatedBy, name, slug, template string,
 	form.UpdatedBy = updatedBy
 	form.Name = name
 	form.Slug = slug
-	form.Template = template
 	form.OpensOn = opensOn
 	form.ClosesOn = closesOn
 	form.MaxSubmissions = maxSubmissions
 	form.NotOpenMessage = notOpenMessage
 	form.ClosedMessage = closedMessage
+	form.FilledMessage = filledMessage
 	form.SuccessMessage = successMessage
-	form.EmailFormFieldSlug = emailFormFieldSlug
-	form.EmailTo = emailTo
-	form.EmailSubject = emailSubject
-	form.EmailTemplate = emailTemplate
 
 	if result := s.db.Save(&form); result.Error != nil {
 		return nil, result.Error
