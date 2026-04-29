@@ -18,10 +18,12 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
@@ -127,6 +129,39 @@ func validateFieldValue(field store.FormField, val string) error {
 	if field.Validation != nil && len(val) > 0 {
 		matched, err := regexp.MatchString(*field.Validation, val)
 		if err != nil || !matched {
+			return ErrInvalidField
+		}
+	}
+
+	var metadata *interface{}
+	if field.Metadata != nil && len(*field.Metadata) > 0 {
+		err := json.Unmarshal([]byte(*field.Metadata), &metadata)
+		if err != nil {
+			metadata = nil
+		}
+	}
+
+	if field.Type == "checkboxes" && val != "" {
+		options := (*metadata).(map[string]interface{})
+		selectedOptions := strings.Split(val, ", ")
+		for _, selectedOption := range selectedOptions {
+			if _, ok := options[selectedOption]; !ok {
+				return ErrInvalidField
+			}
+		}
+	}
+
+	if (field.Type == "radios" || field.Type == "select") && val != "" {
+		options := (*metadata).(map[string]interface{})
+		if _, ok := options[val]; !ok {
+			return ErrInvalidField
+		}
+	}
+
+	if field.Type == "bool" && val != "" {
+		lowerValue := strings.ToLower(val)
+		possibleValues := map[string]bool{"true": true, "false": true, "1": true, "0": true, "yes": true, "no": true}
+		if _, ok := possibleValues[lowerValue]; !ok {
 			return ErrInvalidField
 		}
 	}
