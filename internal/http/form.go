@@ -44,13 +44,7 @@ func (h *httpLayer) deleteForm(c *gin.Context) {
 }
 
 func (h *httpLayer) deleteSubmission(c *gin.Context) {
-	_, err := strconv.ParseUint(c.Param("formId"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Form ID"})
-		return
-	}
-
-	_, err = strconv.ParseUint(c.Param("submissionId"), 10, 32)
+	_, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Submission ID"})
 		return
@@ -68,12 +62,11 @@ func (h *httpLayer) getForms(c *gin.Context) {
 }
 
 func (h *httpLayer) getSubmissions(c *gin.Context) {
-	_, err := strconv.ParseUint(c.Param("formId"), 10, 32)
-	if err != nil {
+	formId := c.Query("formId")
+	if len(formId) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Form ID"})
 		return
 	}
-
 }
 
 func (h *httpLayer) updateForm(c *gin.Context) {

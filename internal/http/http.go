@@ -175,11 +175,11 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		authFormApi := api.Group("/").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("form"))
 		{
 			authFormApi.GET("/form", h.getForms)
-			authFormApi.GET("/form/:formId/submission", h.getSubmissions)
 			authFormApi.POST("/form", h.createForm)
 			authFormApi.PUT("/form/:id", h.updateForm)
 			authFormApi.DELETE("/form/:id", h.deleteForm)
-			authFormApi.DELETE("/form/:formId/submission/:submissionId", h.deleteSubmission)
+			authFormApi.GET("/submission", h.getSubmissions)
+			authFormApi.DELETE("/submission/:id", h.deleteSubmission)
 		}
 	}
 }
