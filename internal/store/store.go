@@ -37,26 +37,42 @@ var Entities = [...]string{"asset", "form", "redirect", "location", "social", "u
 
 type StoreLayer interface {
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
+	CreateForm(createdBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
+	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateRole(createdBy, name string, order uint) (*Role, error)
+	CreateSubmission(formId uint) (*Submission, error)
+	CreateSubmissionValue(submissionId, formFieldId uint, value string) (*SubmissionValue, error)
 	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 	DeleteAsset(id uint) error
+	DeleteForm(id uint) error
+	DeleteFormField(id uint) error
 	DeleteLocation(id uint) error
 	DeletePermission(id uint) error
 	DeleteRedirect(id uint) error
 	DeleteRole(id uint) error
+	DeleteSubmission(id uint) error
+	DeleteSubmissionValue(id uint) error
 	DeleteUser(id uint) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
+	GetAllForms() (*[]Form, error)
+	GetAllFormFields() (*[]FormField, error)
+	GetAllFormFieldsForForm(formId uint) (*[]FormField, error)
 	GetAllLocations() (*[]Location, error)
 	GetAllPermissions() (*[]Permission, error)
 	GetAllRedirects() (*[]Redirect, error)
 	GetAllRoles() (*[]Role, error)
+	GetAllSubmissions() (*[]Submission, error)
+	GetAllSubmissionValue() (*[]SubmissionValue, error)
+	GetAllSubmissionValueForSubmission(submissionId uint) (*[]SubmissionValue, error)
 	GetAllUsers() (*[]User, error)
 	GetAsset(id uint) (*Asset, error)
+	GetForm(id uint) (*Form, error)
+	GetFormField(id uint) (*FormField, error)
 	GetLocation(id uint) (*Location, error)
 	GetPermission(id uint) (*Permission, error)
 	GetPermissionsWithRole(roleId uint) (*[]Permission, error)
@@ -64,15 +80,20 @@ type StoreLayer interface {
 	GetRedirect(id uint) (*Redirect, error)
 	GetRole(id uint) (*Role, error)
 	GetRoleWithName(name string) (*Role, error)
+	GetSubmission(id uint) (*Submission, error)
+	GetSubmissionValue(id uint) (*SubmissionValue, error)
 	GetUser(id uint) (*User, error)
 	GetUsersWithRole(roleId uint) (*[]User, error)
 	GetUserWithUsername(username string) (*User, error)
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
+	UpdateForm(id uint, updatedBy, name, slug, template string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, successMessage, emailFormFieldSlug, emailTo, emailSubject, emailTemplate *string) (*Form, error)
+	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
 	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	UpdateRole(id uint, updatedBy, name string, order uint) (*Role, error)
+	UpdateSubmissionValue(id uint, value string) (*SubmissionValue, error)
 	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 }
 
@@ -211,6 +232,54 @@ func (s *storeLayer) Migrate() {
 			"layer", "store",
 			"entity", "store",
 			"databaseTable", "user",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Form{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
+			"databaseTable", "form",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&FormField{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
+			"databaseTable", "form_field",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Submission{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
+			"databaseTable", "submission",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&SubmissionValue{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
+			"databaseTable", "submission_value",
 			"error", err,
 		)
 		os.Exit(1)
