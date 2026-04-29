@@ -122,10 +122,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 
 		api.POST("/token", h.createToken)
 
-		userReset := api.Group("/").Use(middleware.Auth(h.config, true))
-		{
-			userReset.PUT("/password", h.updatePassword)
-		}
+		api.PUT("/password", h.updatePassword).Use(middleware.Auth(h.config, true))
 
 		assetApi := api.Group("/asset").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("asset"))
 		{
@@ -170,6 +167,19 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			roleApi.POST("", h.createRole)
 			roleApi.PUT("/:id", h.updateRole)
 			roleApi.DELETE("/:id", h.deleteRole)
+		}
+
+		api.GET("/form/:slug", h.getForm)
+		api.POST("/submission/:slug", h.createSubmission)
+
+		authFormApi := api.Group("/").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("form"))
+		{
+			authFormApi.GET("/form", h.getForms)
+			authFormApi.GET("/form/:formId/submission", h.getSubmissions)
+			authFormApi.POST("/form", h.createForm)
+			authFormApi.PUT("/form/:id`", h.updateForm)
+			authFormApi.DELETE("/form/:id", h.deleteForm)
+			authFormApi.DELETE("/form/:formId/submission/:submissionId", h.deleteSubmission)
 		}
 	}
 }
