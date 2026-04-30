@@ -3,7 +3,9 @@
 import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Content } from '@/components/content'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { DeleteFormDialog } from '@/components/form/delete-form-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchForms } from '@/api/form'
 import { FormsTable } from '@/components/form/forms-table'
@@ -15,7 +17,6 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useFormStore from '@/stores/form'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
-import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage_/form')({
   component: Forms,
@@ -37,8 +38,8 @@ function Forms() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [_selectedId, setSelectedId] = useState<number | null>(null)
-  const [_isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
 
   const handleDelete = useCallback(
     (id: number) => {
@@ -77,12 +78,12 @@ function Forms() {
       <Header
         actions={
           hasPermission('form', WRITE_PERMISSION) && (
-            <Link to="/manage/form/create">
-              <Button disabled={isLoading}>
+            <Button asChild disabled={isLoading}>
+              <Link to="/manage/form/create">
                 <Plus />
                 Create Form
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )
         }>
         Forms
@@ -125,11 +126,14 @@ function Forms() {
       </Content>
 
       {hasPermission('form', WRITE_PERMISSION) && (
-        <>
-          {/* <CreateFormDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} /> */}
-          {/* <EditFormDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} /> */}
-          {/* <DeleteFormDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} /> */}
-        </>
+        <DeleteFormDialog
+          id={selectedId}
+          open={isDeleteDialogOpen}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setSelectedId(null)
+            setIsDeleteDialogOpen(isOpen)
+          }}
+        />
       )}
     </>
   )

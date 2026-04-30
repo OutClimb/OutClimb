@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { format } from 'date-fns'
 import type { Redirect } from '@/types/redirect'
 import { SquareArrowOutUpRight } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -16,11 +17,6 @@ export function RedirectsTable({
   onEdit: (id: number) => void
   onDelete: (id: number) => void
 }) {
-  const dateFormatter = new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'full',
-    timeStyle: 'short',
-  })
-
   const handleEdit = (id: number) => {
     return () => {
       onEdit(id)
@@ -66,8 +62,8 @@ export function RedirectsTable({
                   {item.toUrl} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>{item.startsOn === 0 ? '-' : dateFormatter.format(new Date(item.startsOn))}</TableCell>
-              <TableCell>{item.stopsOn === 0 ? '-' : dateFormatter.format(new Date(item.stopsOn))}</TableCell>
+              <TableCell>{item.startsOn === 0 ? '-' : format(item.startsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
+              <TableCell>{item.stopsOn === 0 ? '-' : format(item.stopsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
               {canEdit && (
                 <TableCell>
                   <div className="flex justify-end gap-2">
