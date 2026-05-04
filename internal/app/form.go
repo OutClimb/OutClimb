@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"net/mail"
 	"regexp"
 	"slices"
 	"strings"
@@ -31,13 +32,14 @@ import (
 )
 
 var (
-	ErrFormNotFound = errors.New("form not found")
-	ErrFormNotOpen  = errors.New("form not open")
-	ErrFormClosed   = errors.New("form closed")
-	ErrFormFull     = errors.New("form max submissions reached")
-	ErrInvalidField = errors.New("invalid field value")
-	ErrMissingField = errors.New("missing required field")
-	ErrForbidden    = errors.New("forbidden")
+	ErrFormNotFound              = errors.New("form not found")
+	ErrFormNotOpen               = errors.New("form not open")
+	ErrFormClosed                = errors.New("form closed")
+	ErrFormFull                  = errors.New("form max submissions reached")
+	ErrInvalidField              = errors.New("invalid field value")
+	ErrInvalidNotificationEmail  = errors.New("invalid notification email address")
+	ErrMissingField              = errors.New("missing required field")
+	ErrForbidden                 = errors.New("forbidden")
 )
 
 type FormFieldInput struct {
@@ -169,11 +171,29 @@ func validateFieldValue(field store.FormField, val string) error {
 	return nil
 }
 
-func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+func validateNotificationEmailTo(notificationEmailTo *string) error {
+	if notificationEmailTo == nil || *notificationEmailTo == "" {
+		return nil
+	}
+
+	for _, addr := range strings.Split(*notificationEmailTo, ",") {
+		if _, err := mail.ParseAddress(strings.TrimSpace(addr)); err != nil {
+			return ErrInvalidNotificationEmail
+		}
+	}
+
+	return nil
+}
+
+func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+	if err := validateNotificationEmailTo(notificationEmailTo); err != nil {
+		return nil, err
+	}
+
 	var formId uint
 
 	err := a.store.WithTransaction(func(tx store.StoreLayer) error {
-		form, err := tx.CreateForm(user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage)
+		form, err := tx.CreateForm(user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug)
 		if err != nil {
 			return err
 		}
@@ -200,9 +220,13 @@ func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, open
 	return a.loadFormInternal(formId)
 }
 
-func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
+	if err := validateNotificationEmailTo(notificationEmailTo); err != nil {
+		return nil, err
+	}
+
 	err := a.store.WithTransaction(func(tx store.StoreLayer) error {
-		form, err := tx.UpdateForm(id, user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage)
+		form, err := tx.UpdateForm(id, user.Username, name, slug, millisToTime(opensOn), millisToTime(closesOn), maxSubmissions, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug)
 		if err != nil {
 			return err
 		}

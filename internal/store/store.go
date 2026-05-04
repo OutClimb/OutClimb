@@ -33,12 +33,13 @@ import (
 	"gorm.io/gorm"
 )
 
-var Entities = [...]string{"asset", "form", "redirect", "location", "social", "user", "role"}
+var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role"}
 
 type StoreLayer interface {
 	CountSubmissionsForForm(formId uint) (int64, error)
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
-	CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error)
+	CreateEmail(createdBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
+	CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
@@ -48,6 +49,7 @@ type StoreLayer interface {
 	CreateSubmissionValue(submissionId, formFieldId uint, value string) (*SubmissionValue, error)
 	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 	DeleteAsset(id uint) error
+	DeleteEmail(id uint) error
 	DeleteForm(id uint) error
 	DeleteFormField(id uint) error
 	DeleteFormFieldForForm(formId uint) error
@@ -64,6 +66,7 @@ type StoreLayer interface {
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
+	GetAllEmails() (*[]Email, error)
 	GetAllForms() (*[]Form, error)
 	GetAllFormFields() (*[]FormField, error)
 	GetAllFormFieldsForForm(formId uint) (*[]FormField, error)
@@ -76,6 +79,8 @@ type StoreLayer interface {
 	GetAllSubmissionValueForSubmission(submissionId uint) (*[]SubmissionValue, error)
 	GetAllUsers() (*[]User, error)
 	GetAsset(id uint) (*Asset, error)
+	GetEmail(id uint) (*Email, error)
+	GetEmailWithSlug(slug string) (*Email, error)
 	GetForm(id uint) (*Form, error)
 	GetFormField(id uint) (*FormField, error)
 	GetFormWithSlug(slug string) (*Form, error)
@@ -94,7 +99,8 @@ type StoreLayer interface {
 	GetUserWithUsername(username string) (*User, error)
 	SetFormViewableBy(formId uint, userIds []uint) error
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
-	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage *string) (*Form, error)
+	UpdateEmail(id uint, updatedBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
+	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
@@ -180,7 +186,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "asset",
+			"databaseTable", "assets",
 			"error", err,
 		)
 		os.Exit(1)
@@ -192,7 +198,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "location",
+			"databaseTable", "locations",
 			"error", err,
 		)
 		os.Exit(1)
@@ -204,7 +210,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "permission",
+			"databaseTable", "permissions",
 			"error", err,
 		)
 		os.Exit(1)
@@ -216,7 +222,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "redirect",
+			"databaseTable", "redirects",
 			"error", err,
 		)
 		os.Exit(1)
@@ -228,7 +234,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "role",
+			"databaseTable", "roles",
 			"error", err,
 		)
 		os.Exit(1)
@@ -240,7 +246,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "user",
+			"databaseTable", "users",
 			"error", err,
 		)
 		os.Exit(1)
@@ -252,7 +258,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "form",
+			"databaseTable", "forms",
 			"error", err,
 		)
 		os.Exit(1)
@@ -264,7 +270,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "form_field",
+			"databaseTable", "form_fields",
 			"error", err,
 		)
 		os.Exit(1)
@@ -276,7 +282,7 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "submission",
+			"databaseTable", "submissions",
 			"error", err,
 		)
 		os.Exit(1)
@@ -288,7 +294,19 @@ func (s *storeLayer) Migrate() {
 			"Unable to migrate table",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "submission_value",
+			"databaseTable", "submission_values",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+
+	err = s.db.AutoMigrate(&Email{})
+	if err != nil {
+		slog.Error(
+			"Unable to migrate table",
+			"layer", "store",
+			"entity", "store",
+			"databaseTable", "emails",
 			"error", err,
 		)
 		os.Exit(1)

@@ -62,9 +62,13 @@ func (h *httpLayer) createForm(c *gin.Context) {
 		}
 	}
 
-	form, err := h.app.CreateForm(user, body.Name, body.Slug, body.OpensOn, body.ClosesOn, body.MaxSubmissions, body.NotOpenMessage, body.ClosedMessage, body.FilledMessage, body.SuccessMessage, body.ViewableBy, fields)
+	form, err := h.app.CreateForm(user, body.Name, body.Slug, body.OpensOn, body.ClosesOn, body.MaxSubmissions, body.NotOpenMessage, body.ClosedMessage, body.FilledMessage, body.SuccessMessage, body.ConfirmationEmailFieldSlug, body.ConfirmationEmailSlug, body.NotificationEmailTo, body.NotificationEmailSlug, body.ViewableBy, fields)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create form"})
+		if errors.Is(err, app.ErrInvalidNotificationEmail) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification email address"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create form"})
+		}
 		return
 	}
 
@@ -250,9 +254,13 @@ func (h *httpLayer) updateForm(c *gin.Context) {
 		}
 	}
 
-	form, err := h.app.UpdateForm(user, uint(id), body.Name, body.Slug, body.OpensOn, body.ClosesOn, body.MaxSubmissions, body.NotOpenMessage, body.ClosedMessage, body.FilledMessage, body.SuccessMessage, body.ViewableBy, fields)
+	form, err := h.app.UpdateForm(user, uint(id), body.Name, body.Slug, body.OpensOn, body.ClosesOn, body.MaxSubmissions, body.NotOpenMessage, body.ClosedMessage, body.FilledMessage, body.SuccessMessage, body.ConfirmationEmailFieldSlug, body.ConfirmationEmailSlug, body.NotificationEmailTo, body.NotificationEmailSlug, body.ViewableBy, fields)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update form"})
+		if errors.Is(err, app.ErrInvalidNotificationEmail) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification email address"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update form"})
+		}
 		return
 	}
 

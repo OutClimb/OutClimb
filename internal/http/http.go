@@ -201,6 +201,15 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			authFormApi.GET("/submission", h.getSubmissions)
 			authFormApi.DELETE("/submission/:id", h.deleteSubmission)
 		}
+
+		emailApi := api.Group("/email").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("email"))
+		{
+			emailApi.GET("", h.getEmails)
+			emailApi.GET("/:id", h.getEmail)
+			emailApi.POST("", h.createEmail)
+			emailApi.PUT("/:id", h.updateEmail)
+			emailApi.DELETE("/:id", h.deleteEmail)
+		}
 	}
 }
 
