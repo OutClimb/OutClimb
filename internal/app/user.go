@@ -44,6 +44,9 @@ func (a *appLayer) assertActorOutranks(actor *models.UserInternal, targetRole *s
 
 func (a *appLayer) AuthenticateUser(username string, password string) (*models.UserInternal, error) {
 	if user, err := a.store.GetUserWithUsername(username); err != nil {
+		// Prevents timing to know whether or not a user exists.
+		_ = bcrypt.CompareHashAndPassword([]byte(a.dummyHash), []byte(password))
+
 		return &models.UserInternal{}, err
 	} else if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return &models.UserInternal{}, errors.New("invalid password")

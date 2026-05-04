@@ -21,6 +21,7 @@ import (
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
 	"github.com/OutClimb/OutClimb/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AppLayer interface {
@@ -66,13 +67,17 @@ type AppLayer interface {
 }
 
 type appLayer struct {
-	config *utils.AppConfig
-	store  store.StoreLayer
+	config    *utils.AppConfig
+	store     store.StoreLayer
+	dummyHash []byte
 }
 
 func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
+	dummyHash, _ := bcrypt.GenerateFromPassword([]byte("dummy_password"), config.PasswordCost)
+
 	return &appLayer{
-		config: config,
-		store:  storeLayer,
+		config:    config,
+		store:     storeLayer,
+		dummyHash: dummyHash,
 	}
 }
