@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
@@ -121,9 +122,28 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		api.GET("/ping", h.getPing)
 
 		api.GET("/form/:slug", h.getForm)
-		api.POST("/submission/:slug", h.createSubmission)
 
-		api.POST("/token", h.createToken)
+		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
+		if err != nil {
+			slog.Error(
+				"Failed to parse submission rate limit window, defaulting to 1 min",
+				"input", h.config.SubmissionRateLimitWindow,
+				"error", err,
+			)
+			submissionRateLimitWindow = time.Minute
+		}
+		api.POST("/submission/:slug", h.createSubmission).Use(middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow))
+
+		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
+		if err != nil {
+			slog.Error(
+				"Failed to parse login rate limit window, defaulting to 1 min",
+				"input", h.config.LoginRateLimitWindow,
+				"error", err,
+			)
+			loginRateLimitWindow = time.Minute
+		}
+		api.POST("/token", h.createToken).Use(middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow))
 
 		api.PUT("/password", h.updatePassword).Use(middleware.Auth(h.config, true))
 

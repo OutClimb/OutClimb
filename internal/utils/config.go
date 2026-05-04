@@ -74,14 +74,18 @@ type DatabaseConfig struct {
 }
 
 type HttpConfig struct {
-	AssetsDomain       string `mapstructure:"OC_ASSETS_DOMAIN"`
-	DefaultRedirectURL string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
-	Jwt                JwtConfig
-	ListeningAddress   string   `mapstructure:"OC_LISTENING_ADDRESS"`
-	MaxUploadSize      int64    `mapstructure:"OC_MAX_UPLOAD_SIZE"`
-	RedirectDomain     string   `mapstructure:"OC_REDIRECT_DOMAIN"`
-	RegisterDomain     string   `mapstructure:"OC_REGISTER_DOMAIN"`
-	TrustedProxies     []string `mapstructure:"OC_TRUSTED_PROXIES"`
+	AssetsDomain              string `mapstructure:"OC_ASSETS_DOMAIN"`
+	DefaultRedirectURL        string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
+	Jwt                       JwtConfig
+	ListeningAddress          string   `mapstructure:"OC_LISTENING_ADDRESS"`
+	LoginRateLimit            int      `mapstructure:"OC_LOGIN_RATE_LIMIT"`
+	LoginRateLimitWindow      string   `mapstructure:"OC_LOGIN_RATE_LIMIT_WINDOW"`
+	MaxUploadSize             int64    `mapstructure:"OC_MAX_UPLOAD_SIZE"`
+	RedirectDomain            string   `mapstructure:"OC_REDIRECT_DOMAIN"`
+	RegisterDomain            string   `mapstructure:"OC_REGISTER_DOMAIN"`
+	SubmissionRateLimit       int      `mapstructure:"OC_SUBMISSION_RATE_LIMIT"`
+	SubmissionRateLimitWindow string   `mapstructure:"OC_SUBMISSION_RATE_LIMIT_WINDOW"`
+	TrustedProxies            []string `mapstructure:"OC_TRUSTED_PROXIES"`
 }
 
 type JwtConfig struct {
