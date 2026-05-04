@@ -17,6 +17,7 @@ import { Route as ManageRedirectRouteImport } from './routes/manage_/redirect'
 import { Route as ManageLoginRouteImport } from './routes/manage_/login'
 import { Route as ManageLocationRouteImport } from './routes/manage_/location'
 import { Route as ManageFormRouteImport } from './routes/manage_/form'
+import { Route as ManageEmailRouteImport } from './routes/manage_/email'
 import { Route as ManageAssetRouteImport } from './routes/manage_/asset'
 import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/social-images/index'
 import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
@@ -65,6 +66,11 @@ const ManageFormRoute = ManageFormRouteImport.update({
   path: '/manage/form',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageEmailRoute = ManageEmailRouteImport.update({
+  id: '/manage_/email',
+  path: '/manage/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageAssetRoute = ManageAssetRouteImport.update({
   id: '/manage_/asset',
   path: '/manage/asset',
@@ -105,6 +111,7 @@ const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/manage/asset': typeof ManageAssetRoute
+  '/manage/email': typeof ManageEmailRoute
   '/manage/form': typeof ManageFormRoute
   '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/manage/asset': typeof ManageAssetRoute
+  '/manage/email': typeof ManageEmailRoute
   '/manage/form': typeof ManageFormRoute
   '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/manage_/asset': typeof ManageAssetRoute
+  '/manage_/email': typeof ManageEmailRoute
   '/manage_/form': typeof ManageFormRoute
   '/manage_/location': typeof ManageLocationRoute
   '/manage_/login': typeof ManageLoginRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/manage/asset'
+    | '/manage/email'
     | '/manage/form'
     | '/manage/location'
     | '/manage/login'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/manage/asset'
+    | '/manage/email'
     | '/manage/form'
     | '/manage/location'
     | '/manage/login'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/manage_/asset'
+    | '/manage_/email'
     | '/manage_/form'
     | '/manage_/location'
     | '/manage_/login'
@@ -211,6 +223,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   ManageAssetRoute: typeof ManageAssetRoute
+  ManageEmailRoute: typeof ManageEmailRoute
   ManageFormRoute: typeof ManageFormRoute
   ManageLocationRoute: typeof ManageLocationRoute
   ManageLoginRoute: typeof ManageLoginRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageFormRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage_/email': {
+      id: '/manage_/email'
+      path: '/manage/email'
+      fullPath: '/manage/email'
+      preLoaderRoute: typeof ManageEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage_/asset': {
       id: '/manage_/asset'
       path: '/manage/asset'
@@ -339,6 +359,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   ManageAssetRoute: ManageAssetRoute,
+  ManageEmailRoute: ManageEmailRoute,
   ManageFormRoute: ManageFormRoute,
   ManageLocationRoute: ManageLocationRoute,
   ManageLoginRoute: ManageLoginRoute,

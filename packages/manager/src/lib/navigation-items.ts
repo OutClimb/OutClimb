@@ -1,4 +1,4 @@
-import { FileText, Image, MapPin, Upload, User, Users, Waypoints } from 'lucide-react'
+import { FileText, Image, Mail, MapPin, Upload, User, Users, Waypoints } from 'lucide-react'
 
 export const NAVIGATION_ITEMS = [
   {
@@ -6,6 +6,12 @@ export const NAVIGATION_ITEMS = [
     href: '/manage/asset',
     icon: Upload,
     entity: 'asset',
+  },
+  {
+    title: 'Emails',
+    href: '/manage/email',
+    icon: Mail,
+    entity: 'email',
   },
   {
     title: 'Forms',
