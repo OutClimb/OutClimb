@@ -17,7 +17,64 @@
 
 package app
 
-import "github.com/OutClimb/OutClimb/internal/app/models"
+import (
+	"bytes"
+	htmltemplate "html/template"
+	"log/slog"
+	"text/template"
+
+	"github.com/OutClimb/OutClimb/internal/app/models"
+	"github.com/resend/resend-go/v3"
+)
+
+func (a *appLayer) sendEmail(to []string, email *models.EmailInternal, data interface{}) error {
+	if len(a.config.ResendApiKey) == 0 {
+		slog.Warn("Resend API key not configured, skipping email",
+			"layer", "app",
+			"entity", "email",
+			"slug", email.Slug,
+		)
+		return nil
+	}
+
+	subjectTmpl, err := template.New("subject").Parse(email.Subject)
+	if err != nil {
+		return err
+	}
+	var subjectBuf bytes.Buffer
+	if err := subjectTmpl.Execute(&subjectBuf, data); err != nil {
+		return err
+	}
+
+	htmlTmpl, err := htmltemplate.New("html").Parse(email.HtmlBody)
+	if err != nil {
+		return err
+	}
+	var htmlBuf bytes.Buffer
+	if err := htmlTmpl.Execute(&htmlBuf, data); err != nil {
+		return err
+	}
+
+	textTmpl, err := template.New("text").Parse(email.TextBody)
+	if err != nil {
+		return err
+	}
+	var textBuf bytes.Buffer
+	if err := textTmpl.Execute(&textBuf, data); err != nil {
+		return err
+	}
+
+	client := resend.NewClient(a.config.ResendApiKey)
+	params := &resend.SendEmailRequest{
+		From:    a.config.EmailFromAddress,
+		To:      to,
+		Subject: subjectBuf.String(),
+		Html:    htmlBuf.String(),
+		Text:    textBuf.String(),
+	}
+	_, err = client.Emails.Send(params)
+	return err
+}
 
 func (a *appLayer) CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error) {
 	email, err := a.store.CreateEmail(user.Username, name, slug, subject, htmlBody, textBody)

@@ -32,14 +32,14 @@ import (
 )
 
 var (
-	ErrFormNotFound              = errors.New("form not found")
-	ErrFormNotOpen               = errors.New("form not open")
-	ErrFormClosed                = errors.New("form closed")
-	ErrFormFull                  = errors.New("form max submissions reached")
-	ErrInvalidField              = errors.New("invalid field value")
-	ErrInvalidNotificationEmail  = errors.New("invalid notification email address")
-	ErrMissingField              = errors.New("missing required field")
-	ErrForbidden                 = errors.New("forbidden")
+	ErrFormNotFound             = errors.New("form not found")
+	ErrFormNotOpen              = errors.New("form not open")
+	ErrFormClosed               = errors.New("form closed")
+	ErrFormFull                 = errors.New("form max submissions reached")
+	ErrInvalidField             = errors.New("invalid field value")
+	ErrInvalidNotificationEmail = errors.New("invalid notification email address")
+	ErrMissingField             = errors.New("missing required field")
+	ErrForbidden                = errors.New("forbidden")
 )
 
 type FormFieldInput struct {
@@ -164,6 +164,13 @@ func validateFieldValue(field store.FormField, val string) error {
 		lowerValue := strings.ToLower(val)
 		possibleValues := map[string]bool{"true": true, "false": true, "1": true, "0": true, "yes": true, "no": true}
 		if _, ok := possibleValues[lowerValue]; !ok {
+			return ErrInvalidField
+		}
+	}
+
+	if field.Type == "email" && val != "" {
+		addr, err := mail.ParseAddress(val)
+		if err != nil || addr.Address != val {
 			return ErrInvalidField
 		}
 	}
@@ -421,6 +428,63 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 
 	submissionInternal := models.SubmissionInternal{}
 	submissionInternal.Internalize(submission, storedValues, fieldSlugByID)
+
+	if form.ConfirmationEmailSlug != nil && form.ConfirmationEmailFieldSlug != nil {
+		toAddress := values[*form.ConfirmationEmailFieldSlug]
+		if toAddress != "" {
+			confirmationEmail, err := a.store.GetEmailWithSlug(*form.ConfirmationEmailSlug)
+			if err != nil {
+				slog.Error("Unable to get confirmation email template",
+					"layer", "app",
+					"entity", "form",
+					"slug", *form.ConfirmationEmailSlug,
+					"error", err,
+				)
+			} else {
+				emailInternal := models.EmailInternal{}
+				emailInternal.Internalize(confirmationEmail)
+
+				if err := a.sendEmail([]string{toAddress}, &emailInternal, values); err != nil {
+					slog.Error("Unable to send confirmation email",
+						"layer", "app",
+						"entity", "form",
+						"formId", form.ID,
+						"error", err,
+					)
+				}
+			}
+		}
+	}
+
+	if form.NotificationEmailSlug != nil && form.NotificationEmailTo != nil && *form.NotificationEmailTo != "" {
+		notificationEmail, err := a.store.GetEmailWithSlug(*form.NotificationEmailSlug)
+		if err != nil {
+			slog.Error("Unable to get notification email template",
+				"layer", "app",
+				"entity", "form",
+				"slug", *form.NotificationEmailSlug,
+				"error", err,
+			)
+		} else {
+			parts := strings.Split(*form.NotificationEmailTo, ",")
+			toAddresses := make([]string, len(parts))
+			for i, addr := range parts {
+				toAddresses[i] = strings.TrimSpace(addr)
+			}
+
+			emailInternal := models.EmailInternal{}
+			emailInternal.Internalize(notificationEmail)
+
+			if err := a.sendEmail(toAddresses, &emailInternal, values); err != nil {
+				slog.Error("Unable to send notification email",
+					"layer", "app",
+					"entity", "form",
+					"formId", form.ID,
+					"error", err,
+				)
+			}
+		}
+	}
 
 	return &submissionInternal, nil
 }

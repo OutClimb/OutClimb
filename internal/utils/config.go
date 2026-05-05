@@ -28,9 +28,12 @@ import (
 
 var EnvironmentVariables = []string{
 	"OC_ASSETS_DOMAIN",
+	"OC_EMAIL_FROM_ADDRESS",
 	"OC_PASSWORD_COST",
 	"OC_RECAPTCHA_SECRET_KEY",
 	"OC_RECAPTCHA_SECRET_KEY_FILE",
+	"OC_RESEND_API_KEY",
+	"OC_RESEND_API_KEY_FILE",
 	"OC_DATABASE_HOST",
 	"OC_DATABASE_NAME",
 	"OC_DATABASE_PASSWORD",
@@ -62,9 +65,12 @@ var EnvironmentVariables = []string{
 }
 
 type AppConfig struct {
-	PasswordCost           int    `mapstructure:"OC_PASSWORD_COST"`
+	EmailFromAddress string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	PasswordCost     int    `mapstructure:"OC_PASSWORD_COST"`
 	RecaptchaSecretKey     string `mapstructure:"OC_RECAPTCHA_SECRET_KEY"`
 	RecaptchaSecretKeyFile string `mapstructure:"OC_RECAPTCHA_SECRET_KEY_FILE"`
+	ResendApiKey     string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile string `mapstructure:"OC_RESEND_API_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
@@ -271,6 +277,23 @@ func LoadConfig(env string) (config Config) {
 		}
 	} else if env == "prod" {
 		slog.Warn("Loading the Storage Secret Key through environment variables is not recommended in production")
+	}
+
+	if len(config.App.ResendApiKey) == 0 && len(config.App.ResendApiKeyFile) != 0 {
+		content, err := ReadFile(&config.App.ResendApiKeyFile)
+		if len(content) > 0 && err == nil {
+			slog.Info("Loaded secret file for Resend API Key")
+			config.App.ResendApiKey = strings.TrimSpace(content)
+		} else if err != nil {
+			slog.Error(
+				"Unable to load Resend API Key from file",
+				"layer", "utils",
+				"entity", "config",
+				"error", err,
+			)
+		}
+	} else if env == "prod" && len(config.App.ResendApiKey) != 0 {
+		slog.Warn("Loading the Resend API Key through environment variables is not recommended in production")
 	}
 
 	return
