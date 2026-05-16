@@ -52,6 +52,12 @@ type FormFieldInput struct {
 	Order      uint
 }
 
+type emailTemplateData struct {
+	Form   *store.Form
+	Fields []store.FormField
+	Values map[string]string
+}
+
 func canViewSubmissions(user *models.UserInternal, form *models.FormInternal) bool {
 	if user.Role == "Owner" {
 		return true
@@ -429,6 +435,12 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 	submissionInternal := models.SubmissionInternal{}
 	submissionInternal.Internalize(submission, storedValues, fieldSlugByID)
 
+	emailData := emailTemplateData{
+		Form:   form,
+		Fields: *fields,
+		Values: values,
+	}
+
 	if form.ConfirmationEmailSlug != nil && form.ConfirmationEmailFieldSlug != nil {
 		toAddress := values[*form.ConfirmationEmailFieldSlug]
 		if toAddress != "" {
@@ -444,7 +456,7 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 				emailInternal := models.EmailInternal{}
 				emailInternal.Internalize(confirmationEmail)
 
-				if err := a.sendEmail([]string{toAddress}, &emailInternal, values); err != nil {
+				if err := a.sendEmail([]string{toAddress}, &emailInternal, emailData); err != nil {
 					slog.Error("Unable to send confirmation email",
 						"layer", "app",
 						"entity", "form",
@@ -475,7 +487,7 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 			emailInternal := models.EmailInternal{}
 			emailInternal.Internalize(notificationEmail)
 
-			if err := a.sendEmail(toAddresses, &emailInternal, values); err != nil {
+			if err := a.sendEmail(toAddresses, &emailInternal, emailData); err != nil {
 				slog.Error("Unable to send notification email",
 					"layer", "app",
 					"entity", "form",
