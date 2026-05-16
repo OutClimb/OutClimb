@@ -4,15 +4,19 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { EmailsTable } from '@/components/email/emails-table'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { fetchEmails } from '@/api/email'
 import { Header } from '@/components/header'
 import { Mail, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
-// import { Spinner } from '@/components/ui/spinner'
-// import { UnauthorizedError } from '@/errors/unauthorized'
-// import { useCallback, useEffect, useState } from 'react'
+import { Spinner } from '@/components/ui/spinner'
+import { UnauthorizedError } from '@/errors/unauthorized'
+import { useCallback, useEffect, useState } from 'react'
+import useEmailStore from '@/stores/email'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
+import { DeleteEmailDialog } from '@/components/email/delete-email-dialog'
 
 export const Route = createFileRoute('/manage_/email')({
   component: Forms,
@@ -28,55 +32,57 @@ export const Route = createFileRoute('/manage_/email')({
 })
 
 function Forms() {
-  // const navigate = useNavigate()
-  const { hasPermission } = useSelfStore()
-  // const { isEmpty, list, populate } = useFormStore()
+  const navigate = useNavigate()
+  const { hasPermission, token } = useSelfStore()
+  const { isEmpty, list, populate } = useEmailStore()
 
-  // const [isHydrated, setIsHydrated] = useState<boolean>(false)
-  // const [isLoading, setIsLoading] = useState<boolean>(false)
-  // const [selectedId, setSelectedId] = useState<number | null>(null)
-  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
+  const [isHydrated, setIsHydrated] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
 
-  // const handleDelete = useCallback(
-  //   (id: number) => {
-  //     setSelectedId(id)
-  //     setIsDeleteDialogOpen(true)
-  //   },
-  //   [setSelectedId, setIsDeleteDialogOpen],
-  // )
+  const handleDelete = useCallback(
+    (id: number) => {
+      setSelectedId(id)
+      setIsDeleteDialogOpen(true)
+    },
+    [setSelectedId, setIsDeleteDialogOpen],
+  )
 
-  // useEffect(() => {
-  //   const fetchFormsFromApi = async () => {
-  //     setIsLoading(true)
+  useEffect(() => {
+    const fetchFormsFromApi = async () => {
+      setIsLoading(true)
 
-  //     try {
-  //       const forms = await fetchForms(token || '')
-  //       populate(forms)
-  //     } catch (error) {
-  //       if (error instanceof UnauthorizedError) {
-  //         navigate({ to: '/manage/login' })
-  //       } else {
-  //         // Display error
-  //       }
-  //     } finally {
-  //       setIsHydrated(true)
-  //       setIsLoading(false)
-  //     }
-  //   }
+      try {
+        const forms = await fetchEmails(token || '')
+        populate(forms)
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          navigate({ to: '/manage/login' })
+        } else {
+          // Display error
+        }
+      } finally {
+        setIsHydrated(true)
+        setIsLoading(false)
+      }
+    }
 
-  //   if (!isHydrated) {
-  //     fetchFormsFromApi()
-  //   }
-  // })
+    if (!isHydrated) {
+      fetchFormsFromApi()
+    }
+  })
 
   return (
     <>
       <Header
         actions={
           hasPermission('email', WRITE_PERMISSION) && (
-            <Button>
-              <Plus />
-              Create Email
+            <Button asChild disabled={isLoading}>
+              <Link to="/manage/email/create">
+                <Plus />
+                Create Email
+              </Link>
             </Button>
           )
         }>
@@ -86,7 +92,7 @@ function Forms() {
       <Content>
         <Card className="p-0">
           <CardContent className="p-0">
-            {/* {isLoading && (
+            {isLoading && (
               <Empty>
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
@@ -95,9 +101,9 @@ function Forms() {
                   <EmptyTitle>Loading emails...</EmptyTitle>
                 </EmptyHeader>
               </Empty>
-            )} */}
+            )}
 
-            {/* {!isLoading && isEmpty() && ( */}
+            {!isLoading && isEmpty() && (
               <Empty>
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
@@ -106,11 +112,29 @@ function Forms() {
                   <EmptyTitle>No emails added</EmptyTitle>
                 </EmptyHeader>
               </Empty>
-            {/* )} */}
+            )}
+
+            {!isLoading && !isEmpty() && (
+              <EmailsTable
+                data={list()}
+                canEdit={hasPermission('email', WRITE_PERMISSION)}
+                onDelete={handleDelete}
+              />
+            )}
           </CardContent>
         </Card>
       </Content>
 
+      {hasPermission('email', WRITE_PERMISSION) && (
+        <DeleteEmailDialog
+          id={selectedId}
+          open={isDeleteDialogOpen}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setSelectedId(null)
+            setIsDeleteDialogOpen(isOpen)
+          }}
+        />
+      )}
     </>
   )
 }
