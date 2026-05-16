@@ -85,7 +85,7 @@ export function UploadAssetDialog({ open, onOpenChange }: UploadAssetDialogProps
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       setFormError({

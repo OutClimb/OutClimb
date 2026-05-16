@@ -78,7 +78,7 @@ export function CreateRedirectDialog({ open, onOpenChange }: CreateRedirectDialo
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       setFormError({

@@ -104,7 +104,7 @@ export function EditRoleDialog({ id, open, onOpenChange }: EditRoleDialogProps) 
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       const nextError: FormError = { ...emptyFormError }

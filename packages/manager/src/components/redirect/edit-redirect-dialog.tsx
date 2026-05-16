@@ -93,7 +93,7 @@ export function EditRedirectDialog({ id, open, onOpenChange }: EditLocationDialo
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       setFormError({

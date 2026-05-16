@@ -113,7 +113,7 @@ export function EditAssetDialog({ id, open, onOpenChange }: EditAssetDialogProps
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       setFormError({

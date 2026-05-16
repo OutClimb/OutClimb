@@ -115,7 +115,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       const nextError: FormError = { ...emptyFormError }

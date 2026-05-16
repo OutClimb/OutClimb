@@ -123,7 +123,7 @@ export function CreateLocationDialog({ open, onOpenChange }: CreateLocationDialo
   }, [onOpenChange])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
       let hasError = false
       setFormError({
