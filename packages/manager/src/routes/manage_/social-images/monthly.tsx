@@ -152,7 +152,8 @@ function Monthly() {
             <Plus />
             Add Event
           </Button>
-        }>
+        }
+        backTo="/manage/social-images">
         Monthly Event Images
       </Header>
 

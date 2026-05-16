@@ -142,7 +142,7 @@ function QTBIPOC() {
 
   return (
     <>
-      <Header>QTBIPOC Event Image</Header>
+      <Header backTo="/manage/social-images">QTBIPOC Event Image</Header>
 
       <Content>
         <Card>

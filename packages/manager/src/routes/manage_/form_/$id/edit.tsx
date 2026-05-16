@@ -25,7 +25,7 @@ function EditForm() {
 
   return (
     <>
-      <Header>Edit Form</Header>
+      <Header backTo="/manage/form">Edit Form</Header>
 
       <Content></Content>
     </>

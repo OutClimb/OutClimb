@@ -1,13 +1,16 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { ArrowLeft } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { useEffect, useState, type ReactNode } from 'react'
 
 interface HeaderProps {
   actions?: ReactNode
+  backTo?: string
 }
 
-export function Header({ actions, children, className, ...props }: React.ComponentProps<'header'> & HeaderProps) {
+export function Header({ actions, backTo, children, className, ...props }: React.ComponentProps<'header'> & HeaderProps) {
   const [hovering, setHovering] = useState(false)
 
   useEffect(() => {
@@ -42,6 +45,11 @@ export function Header({ actions, children, className, ...props }: React.Compone
         className,
       )}
       {...props}>
+      {backTo && (
+        <Link to={backTo} className="mr-3 text-gray-500 hover:text-gray-900 transition-colors">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+      )}
       <h2 className="grow font-bold text-2xl">{children}</h2>
       <div>{actions}</div>
     </header>

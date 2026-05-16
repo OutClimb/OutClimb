@@ -175,7 +175,7 @@ function EditEmail() {
 
   return (
     <>
-      <Header>Edit Email</Header>
+      <Header backTo="/manage/email">Edit Email</Header>
 
       <Content>
         <Card>

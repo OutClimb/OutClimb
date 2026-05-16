@@ -138,7 +138,7 @@ function CreateEmail() {
 
   return (
     <>
-      <Header>Create Email</Header>
+      <Header backTo="/manage/email">Create Email</Header>
 
       <Content>
         <Card>
