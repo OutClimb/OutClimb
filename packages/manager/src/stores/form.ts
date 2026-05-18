@@ -20,18 +20,11 @@ const useFormStore = create<FormState>()(
       })
     },
     populateSingle: (form: Form) => {
-      const newData = get().data
-      newData[form.id] = form
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [form.id]: form } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

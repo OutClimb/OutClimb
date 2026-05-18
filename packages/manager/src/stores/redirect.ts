@@ -20,18 +20,11 @@ const useRedirectStore = create<RedirectState>()(
       })
     },
     populateSingle: (redirect: Redirect) => {
-      const newData = get().data
-      newData[redirect.id] = redirect
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [redirect.id]: redirect } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

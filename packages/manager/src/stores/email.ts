@@ -20,18 +20,11 @@ const useEmailStore = create<EmailState>()(
       })
     },
     populateSingle: (email: Email) => {
-      const newData = get().data
-      newData[email.id] = email
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [email.id]: email } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

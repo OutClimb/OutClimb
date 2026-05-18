@@ -20,18 +20,11 @@ const useUserStore = create<UserStore>()(
       })
     },
     populateSingle: (user: User) => {
-      const newData = get().data
-      newData[user.id] = user
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [user.id]: user } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

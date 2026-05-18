@@ -20,18 +20,11 @@ const useRoleStore = create<RoleStore>()(
       })
     },
     populateSingle: (role: Role) => {
-      const newData = get().data
-      newData[role.id] = role
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [role.id]: role } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

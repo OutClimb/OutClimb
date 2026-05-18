@@ -20,18 +20,11 @@ const useLocationStore = create<LocationState>()(
       })
     },
     populateSingle: (location: Location) => {
-      const newData = get().data
-      newData[location.id] = location
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [location.id]: location } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )

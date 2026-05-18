@@ -20,18 +20,11 @@ const useAssetStore = create<AssetState>()(
       })
     },
     populateSingle: (asset: Asset) => {
-      const newData = get().data
-      newData[asset.id] = asset
-      set({
-        data: newData,
-      })
+      set({ data: { ...get().data, [asset.id]: asset } })
     },
     remove: (id: number) => {
-      const newData = get().data
-      delete newData[id]
-      set({
-        data: newData,
-      })
+      const { [id]: _, ...rest } = get().data
+      set({ data: rest })
     },
   })),
 )
