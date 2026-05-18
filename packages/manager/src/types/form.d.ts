@@ -25,6 +25,10 @@ export interface Form {
   filledMessage?: string | null
   successMessage?: string | null
   viewableBy: Array<number>
+  confirmationEmailFieldSlug?: string | null
+  confirmationEmailSlug?: string | null
+  notificationEmailTo?: string | null
+  notificationEmailSlug?: string | null
   fields: Array<FormField>
 }
 

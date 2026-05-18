@@ -45,6 +45,28 @@ type JwtClaims struct {
 	User     JwtUserClaim `json:"usr"`
 }
 
+func OptionalAuth(config *utils.HttpConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authorization := c.GetHeader("Authorization")
+		if authorization == "" || !strings.HasPrefix(authorization, "Bearer ") {
+			c.Next()
+			return
+		}
+
+		token, err := jwt.ParseWithClaims(authorization[7:], &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(config.Jwt.Secret), nil
+		})
+
+		if err == nil && token.Valid {
+			if claims, ok := token.Claims.(*JwtClaims); ok && claims.Audience == c.ClientIP() && claims.Issuer == config.Jwt.Issuer+"-"+JwtVersion && !claims.User.RequirePasswordReset {
+				c.Set("user", claims.User)
+			}
+		}
+
+		c.Next()
+	}
+}
+
 func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")

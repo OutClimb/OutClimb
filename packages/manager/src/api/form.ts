@@ -35,6 +35,33 @@ export async function createForm(token: string, form: Form): Promise<CreateFormR
   }
 }
 
+export async function fetchForm(token: string, slug: string): Promise<Form> {
+  let response
+  try {
+    response = await fetch(`/api/v1/form/${slug}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  } else if (response.status >= 300) {
+    throw new Error('An error occurred. Please try again.')
+  }
+
+  try {
+    return await response.json()
+  } catch {
+    throw new Error('An error occurred. Please try again.')
+  }
+}
+
 export async function fetchForms(token: string): Promise<GetFormsResponse> {
   let response
   try {

@@ -121,7 +121,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 	{
 		api.GET("/ping", h.getPing)
 
-		api.GET("/form/:slug", h.getForm)
+		api.GET("/form/:slug", middleware.OptionalAuth(h.config), h.getForm)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {
@@ -132,10 +132,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			submissionRateLimitWindow = time.Minute
 		}
-		submissionApi := api.Group("/submission/:slug").Use(middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow))
-		{
-			submissionApi.POST("/", h.createSubmission)
-		}
+		api.POST("/submission/:slug", middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow), h.createSubmission)
 
 		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
 		if err != nil {
@@ -146,15 +143,9 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			loginRateLimitWindow = time.Minute
 		}
-		tokenApi := api.Group("/token").Use(middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow))
-		{
-			tokenApi.POST("/", h.createToken)
-		}
+		api.POST("/token", middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow), h.createToken)
 
-		passwordApi := api.Group("/password").Use(middleware.Auth(h.config, true))
-		{
-			passwordApi.PUT("/", h.updatePassword)
-		}
+		api.PUT("/password", middleware.Auth(h.config, true), h.updatePassword)
 
 		assetApi := api.Group("/asset").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("asset"))
 		{

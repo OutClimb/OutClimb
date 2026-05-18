@@ -163,9 +163,15 @@ func (h *httpLayer) getForm(c *gin.Context) {
 		return
 	}
 
-	resp := responses.FormDisplay{}
-	resp.Publicize(form)
-	c.JSON(http.StatusOK, resp)
+	if _, authenticated := c.Get("user"); authenticated {
+		resp := responses.FormPublic{}
+		resp.Publicize(form)
+		c.JSON(http.StatusOK, resp)
+	} else {
+		resp := responses.FormDisplay{}
+		resp.Publicize(form)
+		c.JSON(http.StatusOK, resp)
+	}
 }
 
 func (h *httpLayer) getForms(c *gin.Context) {
