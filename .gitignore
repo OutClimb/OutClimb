@@ -1,6 +1,7 @@
 configs/local.env
 web/form/
 web/manager/
+/llm_*
 
 # macOS.gitignore (https://github.com/github/gitignore/blob/main/Global/macOS.gitignore)
 
