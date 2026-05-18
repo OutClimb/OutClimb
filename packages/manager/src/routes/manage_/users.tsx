@@ -13,7 +13,8 @@ import { Header } from '@/components/header'
 import permissionGuard from '@/lib/permission-guard'
 import { Plus, User } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
-import { useCallback, useEffect, useState } from 'react'
+import { useCrudDialogs } from '@/lib/use-crud-dialogs'
+import { useEffect, useState } from 'react'
 import { UsersTable } from '@/components/users/users-table'
 import useRoleStore from '@/stores/role'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
@@ -41,40 +42,7 @@ function Users() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-
-  const handleCreate = useCallback(() => {
-    setIsCreateDialogOpen(true)
-  }, [setIsCreateDialogOpen])
-
-  const handleEdit = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsEditDialogOpen(true)
-    },
-    [setSelectedId, setIsEditDialogOpen],
-  )
-
-  const handleEditDialogOpenChange = useCallback(() => {
-    setSelectedId(null)
-    setIsEditDialogOpen(false)
-  }, [])
-
-  const handleDelete = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsDeleteDialogOpen(true)
-    },
-    [setSelectedId, setIsDeleteDialogOpen],
-  )
-
-  const handleDeleteDialogOpenChange = useCallback(() => {
-    setSelectedId(null)
-    setIsDeleteDialogOpen(false)
-  }, [setSelectedId, setIsDeleteDialogOpen])
+  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   useEffect(() => {
     const fetchFromApi = async () => {

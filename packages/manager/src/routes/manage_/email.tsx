@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { EmailsTable } from '@/components/email/emails-table'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchEmails, removeEmail } from '@/api/email'
@@ -13,10 +14,10 @@ import { Mail, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
-import { useCallback, useEffect, useState } from 'react'
+import { useCrudDialogs } from '@/lib/use-crud-dialogs'
+import { useEffect, useState } from 'react'
 import useEmailStore from '@/stores/email'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
-import { DeleteDialog } from '@/components/delete-dialog'
 
 export const Route = createFileRoute('/manage_/email')({
   component: Forms,
@@ -38,16 +39,7 @@ function Forms() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-
-  const handleDelete = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsDeleteDialogOpen(true)
-    },
-    [setSelectedId, setIsDeleteDialogOpen],
-  )
+  const { selectedId, isDeleteDialogOpen, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   useEffect(() => {
     const fetchFormsFromApi = async () => {
@@ -129,10 +121,7 @@ function Forms() {
         <DeleteDialog
           id={selectedId}
           open={isDeleteDialogOpen}
-          onOpenChange={(isOpen: boolean) => {
-            if (!isOpen) setSelectedId(null)
-            setIsDeleteDialogOpen(isOpen)
-          }}
+          onOpenChange={handleDeleteDialogOpenChange}
           label="email"
           deleteFn={removeEmail}
           removeFromStore={remove}

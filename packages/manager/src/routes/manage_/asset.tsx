@@ -4,6 +4,7 @@ import { AssetsTable } from '@/components/asset/assets-table'
 import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Content } from '@/components/content'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
 import { EditAssetDialog } from '@/components/asset/edit-asset-dialog'
@@ -15,9 +16,9 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { Upload } from 'lucide-react'
 import { UploadAssetDialog } from '@/components/asset/upload-asset-dialog'
 import useAssetStore from '@/stores/asset'
-import { useCallback, useEffect, useState } from 'react'
+import { useCrudDialogs } from '@/lib/use-crud-dialogs'
+import { useEffect, useState } from 'react'
 import useSelfStore, { WRITE_PERMISSION } from '@/stores/self'
-import { Content } from '@/components/content'
 
 export const Route = createFileRoute('/manage_/asset')({
   component: Assets,
@@ -38,40 +39,7 @@ function Assets() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState<boolean>(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-
-  const handleUpload = useCallback(() => {
-    setIsUploadDialogOpen(true)
-  }, [setIsUploadDialogOpen])
-
-  const handleEdit = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsEditDialogOpen(true)
-    },
-    [setSelectedId, setIsEditDialogOpen],
-  )
-
-  const handleEditDialogOpenChange = useCallback(() => {
-    setSelectedId(null)
-    setIsEditDialogOpen(false)
-  }, [])
-
-  const handleDelete = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsDeleteDialogOpen(true)
-    },
-    [setSelectedId, setIsDeleteDialogOpen],
-  )
-
-  const handleDeleteDialogOpenChange = useCallback(() => {
-    setSelectedId(null)
-    setIsDeleteDialogOpen(false)
-  }, [setSelectedId, setIsDeleteDialogOpen])
+  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   useEffect(() => {
     const fetchAssetsFromApi = async () => {
@@ -102,7 +70,7 @@ function Assets() {
       <Header
         actions={
           hasPermission('asset', WRITE_PERMISSION) && (
-            <Button onClick={handleUpload} disabled={isLoading}>
+            <Button onClick={handleCreate} disabled={isLoading}>
               <Upload />
               Upload Asset
             </Button>
@@ -150,7 +118,7 @@ function Assets() {
 
       {hasPermission('asset', WRITE_PERMISSION) && (
         <>
-          <UploadAssetDialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} />
+          <UploadAssetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
           <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="asset" deleteFn={removeAsset} removeFromStore={remove} />
         </>

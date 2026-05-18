@@ -14,7 +14,8 @@ import { NotebookPen, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
-import { useCallback, useEffect, useState } from 'react'
+import { useCrudDialogs } from '@/lib/use-crud-dialogs'
+import { useEffect, useState } from 'react'
 import useFormStore from '@/stores/form'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 
@@ -38,16 +39,7 @@ function Forms() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-
-  const handleDelete = useCallback(
-    (id: number) => {
-      setSelectedId(id)
-      setIsDeleteDialogOpen(true)
-    },
-    [setSelectedId, setIsDeleteDialogOpen],
-  )
+  const { selectedId, isDeleteDialogOpen, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   useEffect(() => {
     const fetchFormsFromApi = async () => {
@@ -129,10 +121,7 @@ function Forms() {
         <DeleteDialog
           id={selectedId}
           open={isDeleteDialogOpen}
-          onOpenChange={(isOpen: boolean) => {
-            if (!isOpen) setSelectedId(null)
-            setIsDeleteDialogOpen(isOpen)
-          }}
+          onOpenChange={handleDeleteDialogOpenChange}
           label="form"
           deleteFn={removeForm}
           removeFromStore={remove}
