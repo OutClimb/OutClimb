@@ -5,10 +5,10 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { DeleteAssetDialog } from '@/components/asset/delete-asset-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { EditAssetDialog } from '@/components/asset/edit-asset-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchAssets } from '@/api/asset'
+import { fetchAssets, removeAsset } from '@/api/asset'
 import { Header } from '@/components/header'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/manage_/asset')({
 function Assets() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useAssetStore()
+  const { isEmpty, list, populate, remove } = useAssetStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -152,7 +152,7 @@ function Assets() {
         <>
           <UploadAssetDialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen} />
           <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteAssetDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="asset" deleteFn={removeAsset} removeFromStore={remove} />
         </>
       )}
     </>

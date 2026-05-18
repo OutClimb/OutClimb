@@ -7,7 +7,7 @@ import { Content } from '@/components/content'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { EmailsTable } from '@/components/email/emails-table'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchEmails } from '@/api/email'
+import { fetchEmails, removeEmail } from '@/api/email'
 import { Header } from '@/components/header'
 import { Mail, Plus } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
@@ -16,7 +16,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useEmailStore from '@/stores/email'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
-import { DeleteEmailDialog } from '@/components/email/delete-email-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 
 export const Route = createFileRoute('/manage_/email')({
   component: Forms,
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/manage_/email')({
 function Forms() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useEmailStore()
+  const { isEmpty, list, populate, remove } = useEmailStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -126,13 +126,16 @@ function Forms() {
       </Content>
 
       {hasPermission('email', WRITE_PERMISSION) && (
-        <DeleteEmailDialog
+        <DeleteDialog
           id={selectedId}
           open={isDeleteDialogOpen}
-          onOpenChange={(isOpen) => {
+          onOpenChange={(isOpen: boolean) => {
             if (!isOpen) setSelectedId(null)
             setIsDeleteDialogOpen(isOpen)
           }}
+          label="email"
+          deleteFn={removeEmail}
+          removeFromStore={remove}
         />
       )}
     </>

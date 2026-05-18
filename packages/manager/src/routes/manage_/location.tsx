@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchLocations } from '@/api/location'
+import { fetchLocations, removeLocation } from '@/api/location'
 import { Header } from '@/components/header'
 import { LocationsTable } from '@/components/location/locations-table'
 import { MapPin, Plus } from 'lucide-react'
@@ -15,7 +15,7 @@ import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useLocationStore from '@/stores/location'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
-import { DeleteLocationDialog } from '@/components/location/delete-location-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { CreateLocationDialog } from '@/components/location/create-location-dialog'
 import { EditLocationDialog } from '@/components/location/edit-location-dialog'
 import { Content } from '@/components/content'
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/manage_/location')({
 function Locations() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useLocationStore()
+  const { isEmpty, list, populate, remove } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -154,7 +154,7 @@ function Locations() {
         <>
           <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteLocationDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="location" deleteFn={removeLocation} removeFromStore={remove} />
         </>
       )}
     </>

@@ -4,11 +4,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { CreateUserDialog } from '@/components/users/create-user-dialog'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { DeleteUserDialog } from '@/components/users/delete-user-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { EditUserDialog } from '@/components/users/edit-user-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchRoles } from '@/api/role'
-import { fetchUsers } from '@/api/user'
+import { fetchUsers, removeUser } from '@/api/user'
 import { Header } from '@/components/header'
 import permissionGuard from '@/lib/permission-guard'
 import { Plus, User } from 'lucide-react'
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/manage_/users')({
 function Users() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useUserStore()
+  const { isEmpty, list, populate, remove } = useUserStore()
   const { populate: populateRoles } = useRoleStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
@@ -156,7 +156,7 @@ function Users() {
         <>
           <CreateUserDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditUserDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteUserDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="user" deleteFn={removeUser} removeFromStore={remove} />
         </>
       )}
     </>

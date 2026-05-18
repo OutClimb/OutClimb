@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { CreateRedirectDialog } from '@/components/redirect/create-redirect-dialog'
-import { DeleteRedirectDialog } from '@/components/redirect/delete-redirect-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { EditRedirectDialog } from '@/components/redirect/edit-redirect-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchRedirects } from '@/api/redirect'
+import { fetchRedirects, removeRedirect } from '@/api/redirect'
 import { Header } from '@/components/header'
 import permissionGuard from '@/lib/permission-guard'
 import { Plus, Waypoints } from 'lucide-react'
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/manage_/redirect')({
 function Redirects() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useRedirectStore()
+  const { isEmpty, list, populate, remove } = useRedirectStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -154,7 +154,7 @@ function Redirects() {
         <>
           <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteRedirectDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="redirect" deleteFn={removeRedirect} removeFromStore={remove} />
         </>
       )}
     </>

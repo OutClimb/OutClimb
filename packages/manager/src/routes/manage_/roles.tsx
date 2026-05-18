@@ -4,10 +4,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { CreateRoleDialog } from '@/components/roles/create-role-dialog'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { DeleteRoleDialog } from '@/components/roles/delete-role-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { EditRoleDialog } from '@/components/roles/edit-role-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchRoles } from '@/api/role'
+import { fetchRoles, removeRole } from '@/api/role'
 import { Header } from '@/components/header'
 import permissionGuard from '@/lib/permission-guard'
 import { Plus, Users } from 'lucide-react'
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/manage_/roles')({
 function Roles() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useRoleStore()
+  const { isEmpty, list, populate, remove } = useRoleStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -152,7 +152,7 @@ function Roles() {
         <>
           <CreateRoleDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditRoleDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteRoleDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} />
+          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="role" deleteFn={removeRole} removeFromStore={remove} />
         </>
       )}
     </>

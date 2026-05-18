@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { DeleteFormDialog } from '@/components/form/delete-form-dialog'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchForms } from '@/api/form'
+import { fetchForms, removeForm } from '@/api/form'
 import { FormsTable } from '@/components/form/forms-table'
 import { Header } from '@/components/header'
 import { NotebookPen, Plus } from 'lucide-react'
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/manage_/form')({
 function Forms() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate } = useFormStore()
+  const { isEmpty, list, populate, remove } = useFormStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -126,13 +126,16 @@ function Forms() {
       </Content>
 
       {hasPermission('form', WRITE_PERMISSION) && (
-        <DeleteFormDialog
+        <DeleteDialog
           id={selectedId}
           open={isDeleteDialogOpen}
-          onOpenChange={(isOpen) => {
+          onOpenChange={(isOpen: boolean) => {
             if (!isOpen) setSelectedId(null)
             setIsDeleteDialogOpen(isOpen)
           }}
+          label="form"
+          deleteFn={removeForm}
+          removeFromStore={remove}
         />
       )}
     </>
