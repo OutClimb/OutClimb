@@ -2,10 +2,9 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
-import { CreateRoleDialog } from '@/components/roles/create-role-dialog'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
-import { EditRoleDialog } from '@/components/roles/edit-role-dialog'
+import { RoleEditorDialog } from '@/components/roles/role-editor-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchRoles, removeRole } from '@/api/role'
 import { Header } from '@/components/header'
@@ -35,19 +34,17 @@ export const Route = createFileRoute('/manage_/roles')({
 function Roles() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate, remove } = useRoleStore()
+  const { data, isEmpty, list, populate, remove } = useRoleStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {
     selectedId,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
+    isEditorOpen,
+    handleEditorOpenChange,
     isDeleteDialogOpen,
     handleCreate,
     handleEdit,
-    handleEditDialogOpenChange,
     handleDelete,
     handleDeleteDialogOpenChange,
   } = useCrudDialogs()
@@ -129,8 +126,11 @@ function Roles() {
 
       {hasPermission('role', WRITE_PERMISSION) && (
         <>
-          <CreateRoleDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-          <EditRoleDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <RoleEditorDialog
+            open={isEditorOpen}
+            onOpenChange={handleEditorOpenChange}
+            initialRole={selectedId != null ? data[selectedId] : undefined}
+          />
           <DeleteDialog
             id={selectedId}
             open={isDeleteDialogOpen}

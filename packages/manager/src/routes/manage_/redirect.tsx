@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Content } from '@/components/content'
-import { CreateRedirectDialog } from '@/components/redirect/create-redirect-dialog'
 import { DeleteDialog } from '@/components/delete-dialog'
-import { EditRedirectDialog } from '@/components/redirect/edit-redirect-dialog'
+import { RedirectEditorDialog } from '@/components/redirect/redirect-editor-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchRedirects, removeRedirect } from '@/api/redirect'
 import { Header } from '@/components/header'
@@ -37,19 +36,17 @@ export const Route = createFileRoute('/manage_/redirect')({
 function Redirects() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate, remove } = useRedirectStore()
+  const { data, isEmpty, list, populate, remove } = useRedirectStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {
     selectedId,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
+    isEditorOpen,
+    handleEditorOpenChange,
     isDeleteDialogOpen,
     handleCreate,
     handleEdit,
-    handleEditDialogOpenChange,
     handleDelete,
     handleDeleteDialogOpenChange,
   } = useCrudDialogs()
@@ -131,8 +128,11 @@ function Redirects() {
 
       {hasPermission('redirect', WRITE_PERMISSION) && (
         <>
-          <CreateRedirectDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-          <EditRedirectDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <RedirectEditorDialog
+            open={isEditorOpen}
+            onOpenChange={handleEditorOpenChange}
+            initialRedirect={selectedId != null ? data[selectedId] : undefined}
+          />
           <DeleteDialog
             id={selectedId}
             open={isDeleteDialogOpen}

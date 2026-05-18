@@ -7,14 +7,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
-import { EditAssetDialog } from '@/components/asset/edit-asset-dialog'
+import { AssetEditorDialog } from '@/components/asset/asset-editor-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchAssets, removeAsset } from '@/api/asset'
 import { Header } from '@/components/header'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { Upload } from 'lucide-react'
-import { UploadAssetDialog } from '@/components/asset/upload-asset-dialog'
 import useAssetStore from '@/stores/asset'
 import { useCrudDialogs } from '@/lib/use-crud-dialogs'
 import { useEffect, useState } from 'react'
@@ -35,19 +34,17 @@ export const Route = createFileRoute('/manage_/asset')({
 function Assets() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate, remove } = useAssetStore()
+  const { data, isEmpty, list, populate, remove } = useAssetStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const {
     selectedId,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
+    isEditorOpen,
+    handleEditorOpenChange,
     isDeleteDialogOpen,
     handleCreate,
     handleEdit,
-    handleEditDialogOpenChange,
     handleDelete,
     handleDeleteDialogOpenChange,
   } = useCrudDialogs()
@@ -129,8 +126,11 @@ function Assets() {
 
       {hasPermission('asset', WRITE_PERMISSION) && (
         <>
-          <UploadAssetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-          <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <AssetEditorDialog
+            open={isEditorOpen}
+            onOpenChange={handleEditorOpenChange}
+            initialAsset={selectedId != null ? data[selectedId] : undefined}
+          />
           <DeleteDialog
             id={selectedId}
             open={isDeleteDialogOpen}

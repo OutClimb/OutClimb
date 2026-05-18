@@ -2,10 +2,9 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
-import { CreateUserDialog } from '@/components/users/create-user-dialog'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
-import { EditUserDialog } from '@/components/users/edit-user-dialog'
+import { UserEditorDialog } from '@/components/users/user-editor-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchRoles } from '@/api/role'
 import { fetchUsers, removeUser } from '@/api/user'
@@ -37,20 +36,18 @@ export const Route = createFileRoute('/manage_/users')({
 function Users() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { isEmpty, list, populate, remove } = useUserStore()
+  const { data, isEmpty, list, populate, remove } = useUserStore()
   const { populate: populateRoles } = useRoleStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {
     selectedId,
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    isEditDialogOpen,
+    isEditorOpen,
+    handleEditorOpenChange,
     isDeleteDialogOpen,
     handleCreate,
     handleEdit,
-    handleEditDialogOpenChange,
     handleDelete,
     handleDeleteDialogOpenChange,
   } = useCrudDialogs()
@@ -133,8 +130,11 @@ function Users() {
 
       {hasPermission('user', WRITE_PERMISSION) && (
         <>
-          <CreateUserDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
-          <EditUserDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
+          <UserEditorDialog
+            open={isEditorOpen}
+            onOpenChange={handleEditorOpenChange}
+            initialUser={selectedId != null ? data[selectedId] : undefined}
+          />
           <DeleteDialog
             id={selectedId}
             open={isDeleteDialogOpen}

@@ -3,7 +3,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { createRole } from '@/api/role'
+import { createRole, updateRole } from '@/api/role'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
@@ -14,8 +14,10 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useRoleStore from '@/stores/role'
 import useSelfStore, { NO_PERMISSION, READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
+import type { Role } from '@/types/role'
 
 interface FormData {
+  id: number
   name: string
   order: string
   permissions: Record<string, number>
@@ -32,26 +34,38 @@ const emptyPermissions = (): Record<string, number> =>
     return acc
   }, {})
 
-const emptyFormData: FormData = {
-  name: '',
-  order: '',
-  permissions: emptyPermissions(),
-}
+const buildPermissions = (existing: Record<string, number>): Record<string, number> =>
+  NAVIGATION_ITEMS.reduce<Record<string, number>>((acc, item) => {
+    acc[item.entity] = existing[item.entity] ?? NO_PERMISSION
+    return acc
+  }, {})
 
 const emptyFormError: FormError = {
   name: '',
   order: '',
 }
 
-interface CreateRoleDialogProps {
-  open: boolean
-  onOpenChange: (isOpen: boolean) => void
+function dataFromRole(role: Role): FormData {
+  return {
+    id: role.id,
+    name: role.name,
+    order: String(role.order),
+    permissions: buildPermissions(role.permissions),
+  }
 }
 
-export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) {
+interface RoleEditorDialogProps {
+  open: boolean
+  onOpenChange: (isOpen: boolean) => void
+  initialRole?: Role
+}
+
+export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditorDialogProps) {
   const navigate = useNavigate()
   const { token, user: getUser } = useSelfStore()
   const { list: listRoles, populateSingle } = useRoleStore()
+
+  const isEditing = initialRole !== undefined
 
   const selfUser = getUser()
   const actorRole = listRoles().find((role) => role.name === selfUser?.role)
@@ -59,37 +73,37 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [formError, setFormError] = useState<FormError>(emptyFormError)
-  const [formData, setFormData] = useState<FormData>(() => ({
-    ...emptyFormData,
+  const [formData, setFormData] = useState<FormData>({
+    id: 0,
+    name: '',
     order: (minOrder + 1).toString(),
     permissions: emptyPermissions(),
-  }))
+  })
 
   if (
     !open &&
-    (formData.name !== '' ||
+    (formData.id !== 0 ||
+      formData.name !== '' ||
       formData.order !== (minOrder + 1).toString() ||
       Object.values(formData.permissions).some((value) => value !== NO_PERMISSION))
   ) {
-    setFormData({ ...emptyFormData, order: (minOrder + 1).toString(), permissions: emptyPermissions() })
+    setFormData({ id: 0, name: '', order: (minOrder + 1).toString(), permissions: emptyPermissions() })
     setFormError(emptyFormError)
+  }
+
+  if (open && formData.id === 0 && initialRole != null) {
+    setFormData(dataFromRole(initialRole))
   }
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }, [])
 
   const handlePermissionChange = useCallback((entity: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      permissions: {
-        ...prev.permissions,
-        [entity]: Number(value),
-      },
+      permissions: { ...prev.permissions, [entity]: Number(value) },
     }))
   }, [])
 
@@ -122,34 +136,33 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
       if (!hasError) {
         setIsLoading(true)
         try {
-          const role = await createRole(token || '', {
-            id: 0,
+          const payload = {
+            id: formData.id,
             name: formData.name.trim(),
             order: orderNumber,
             permissions: formData.permissions,
-          })
+          }
+          const role = isEditing
+            ? await updateRole(token || '', payload)
+            : await createRole(token || '', payload)
           populateSingle(role)
           onOpenChange(false)
         } catch (error) {
           if (error instanceof UnauthorizedError) {
-            navigate({
-              to: '/manage/login',
-            })
-          } else {
-            // Handle error
+            navigate({ to: '/manage/login' })
           }
         }
         setIsLoading(false)
       }
     },
-    [formData, minOrder, populateSingle, onOpenChange, token, navigate],
+    [formData, isEditing, minOrder, populateSingle, onOpenChange, token, navigate],
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Role</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Role' : 'Create Role'}</DialogTitle>
         </DialogHeader>
 
         <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
@@ -226,7 +239,7 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
             Cancel
           </Button>
           <Button disabled={isLoading} variant="default" type="button" onClick={handleSubmit}>
-            Create
+            {isEditing ? 'Save' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>

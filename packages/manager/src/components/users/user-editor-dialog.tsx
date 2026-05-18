@@ -3,18 +3,19 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createUser, updateUser } from '@/api/user'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { UnauthorizedError } from '@/errors/unauthorized'
-import { updateUser } from '@/api/user'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import useRoleStore from '@/stores/role'
-import useSelfStore from '@/stores/self'
 import useUserStore from '@/stores/user'
+import useSelfStore from '@/stores/self'
 import { validatePassword } from '@/lib/validate-password'
+import type { User } from '@/types/user'
 
 interface FormData {
   id: number
@@ -41,7 +42,7 @@ const emptyFormData: FormData = {
   email: '',
   password: '',
   role: '',
-  requirePasswordReset: false,
+  requirePasswordReset: true,
 }
 
 const emptyFormError: FormError = {
@@ -52,17 +53,31 @@ const emptyFormError: FormError = {
   role: '',
 }
 
-interface EditUserDialogProps {
-  id: number | null
-  open: boolean
-  onOpenChange: (isOpen: boolean) => void
+function dataFromUser(user: User): FormData {
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    email: user.email,
+    password: '',
+    role: user.role,
+    requirePasswordReset: user.requiresPasswordReset ?? false,
+  }
 }
 
-export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) {
+interface UserEditorDialogProps {
+  open: boolean
+  onOpenChange: (isOpen: boolean) => void
+  initialUser?: User
+}
+
+export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditorDialogProps) {
   const navigate = useNavigate()
   const { token, user: getUser } = useSelfStore()
-  const { data, populateSingle } = useUserStore()
+  const { populateSingle } = useUserStore()
   const { list: listRoles } = useRoleStore()
+
+  const isEditing = initialUser !== undefined
 
   const allRoles = listRoles()
   const selfUser = getUser()
@@ -78,46 +93,34 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
   const [formError, setFormError] = useState<FormError>(emptyFormError)
   const [formData, setFormData] = useState<FormData>(emptyFormData)
 
-  if (!open && formData.id !== 0) {
+  if (
+    !open &&
+    (formData.id !== 0 ||
+      formData.username !== '' ||
+      formData.name !== '' ||
+      formData.email !== '' ||
+      formData.password !== '' ||
+      formData.role !== '')
+  ) {
     setFormData(emptyFormData)
     setFormError(emptyFormError)
   }
 
-  if (open && formData.id === 0 && id != null) {
-    const currentUser = data[id]
-    if (currentUser) {
-      setFormData({
-        id: currentUser.id,
-        username: currentUser.username,
-        name: currentUser.name,
-        email: currentUser.email,
-        password: '',
-        role: currentUser.role,
-        requirePasswordReset: currentUser.requiresPasswordReset ?? false,
-      })
-    }
+  if (open && formData.id === 0 && initialUser != null) {
+    setFormData(dataFromUser(initialUser))
   }
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }, [])
 
   const handleRoleChange = useCallback((value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      role: value,
-    }))
+    setFormData((prev) => ({ ...prev, role: value }))
   }, [])
 
   const handleRequirePasswordResetChange = useCallback((value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      requirePasswordReset: value === 'yes',
-    }))
+    setFormData((prev) => ({ ...prev, requirePasswordReset: value === 'yes' }))
   }, [])
 
   const handleCancel = useCallback(() => {
@@ -145,7 +148,15 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
         nextError.email = 'Please fill in this field'
       }
 
-      if (formData.password.trim()) {
+      if (isEditing) {
+        if (formData.password.trim()) {
+          const passwordError = validatePassword(formData.password, formData.username.trim())
+          if (passwordError) {
+            hasError = true
+            nextError.password = passwordError
+          }
+        }
+      } else {
         const passwordError = validatePassword(formData.password, formData.username.trim())
         if (passwordError) {
           hasError = true
@@ -163,7 +174,7 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
       if (!hasError) {
         setIsLoading(true)
         try {
-          const user = await updateUser(token || '', formData.id, {
+          const payload = {
             disabled: false,
             email: formData.email.trim(),
             name: formData.name.trim(),
@@ -171,29 +182,28 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
             requirePasswordReset: formData.requirePasswordReset,
             username: formData.username.trim(),
             role: formData.role,
-          })
+          }
+          const user = isEditing
+            ? await updateUser(token || '', formData.id, payload)
+            : await createUser(token || '', payload)
           populateSingle(user)
           onOpenChange(false)
         } catch (error) {
           if (error instanceof UnauthorizedError) {
-            navigate({
-              to: '/manage/login',
-            })
-          } else {
-            // Handle error
+            navigate({ to: '/manage/login' })
           }
         }
         setIsLoading(false)
       }
     },
-    [formData, populateSingle, onOpenChange, token, navigate],
+    [formData, isEditing, populateSingle, onOpenChange, token, navigate],
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit User' : 'Create User'}</DialogTitle>
         </DialogHeader>
 
         <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
@@ -269,8 +279,9 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
               <Field>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
                 <FieldDescription>
-                  Enter a new password for this user. Must be 16-72 characters and include an uppercase letter,
-                  lowercase letter, number, and symbol. Must not contain the username or match the current password.
+                  {isEditing
+                    ? 'Enter a new password for this user. Must be 16-72 characters and include an uppercase letter, lowercase letter, number, and symbol. Must not contain the username or match the current password.'
+                    : 'Must be 16-72 characters and include an uppercase letter, lowercase letter, number, and symbol. Must not contain the username.'}
                 </FieldDescription>
                 <Input
                   id="password"
@@ -281,6 +292,7 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isLoading}
+                  required={!isEditing}
                 />
                 {formError.password && (
                   <Alert variant="destructive">
@@ -338,7 +350,7 @@ export function EditUserDialog({ id, open, onOpenChange }: EditUserDialogProps) 
             Cancel
           </Button>
           <Button disabled={isLoading} variant="default" type="button" onClick={handleSubmit}>
-            Save
+            {isEditing ? 'Save' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>
