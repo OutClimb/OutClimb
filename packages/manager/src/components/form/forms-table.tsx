@@ -46,7 +46,7 @@ export function FormsTable({
                 <TableCell>
                   <div className="flex justify-end gap-2">
                     <Button asChild variant="secondary">
-                      <Link to="/manage/form/$id/edit" params={{ id: item.id.toString() }}>
+                      <Link to="/manage/form/$id/edit" params={{ id: item.slug }}>
                           Edit
                       </Link>
                     </Button>
