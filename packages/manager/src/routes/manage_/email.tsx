@@ -20,7 +20,7 @@ import useEmailStore from '@/stores/email'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
 
 export const Route = createFileRoute('/manage_/email')({
-  component: Forms,
+  component: Emails,
   head: () => ({
     meta: [
       {
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/manage_/email')({
     Promise.all([authGuard(context, location), permissionGuard(context, 'email', READ_PERMISSION)]),
 })
 
-function Forms() {
+function Emails() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
   const { isEmpty, list, populate, remove } = useEmailStore()
