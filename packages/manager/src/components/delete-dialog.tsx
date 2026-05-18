@@ -30,12 +30,12 @@ export function DeleteDialog({ id, open, onOpenChange, label, deleteFn, removeFr
       setIsLoading(true)
       try {
         await deleteFn(token || '', id)
+        removeFromStore(id)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           navigate({ to: '/manage/login' })
         }
       }
-      removeFromStore(id)
     }
     onOpenChange(false)
     setIsLoading(false)
