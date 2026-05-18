@@ -39,7 +39,18 @@ function Roles() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
+  const {
+    selectedId,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    isEditDialogOpen,
+    isDeleteDialogOpen,
+    handleCreate,
+    handleEdit,
+    handleEditDialogOpenChange,
+    handleDelete,
+    handleDeleteDialogOpenChange,
+  } = useCrudDialogs()
 
   useEffect(() => {
     const fetchFromApi = async () => {
@@ -120,7 +131,14 @@ function Roles() {
         <>
           <CreateRoleDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditRoleDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="role" deleteFn={removeRole} removeFromStore={remove} />
+          <DeleteDialog
+            id={selectedId}
+            open={isDeleteDialogOpen}
+            onOpenChange={handleDeleteDialogOpenChange}
+            label="role"
+            deleteFn={removeRole}
+            removeFromStore={remove}
+          />
         </>
       )}
     </>

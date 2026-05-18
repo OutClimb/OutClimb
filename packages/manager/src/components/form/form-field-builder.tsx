@@ -222,8 +222,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       order: editingIndex !== null ? fields[editingIndex].order : fields.length,
     }
 
-    const next =
-      editingIndex !== null ? fields.map((f, i) => (i === editingIndex ? field : f)) : [...fields, field]
+    const next = editingIndex !== null ? fields.map((f, i) => (i === editingIndex ? field : f)) : [...fields, field]
 
     onChange(next.map((f, i) => ({ ...f, order: i })))
     setDialogOpen(false)

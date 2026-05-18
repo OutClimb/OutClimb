@@ -38,7 +38,7 @@ export function ResetForm() {
     const passwordError = validatePassword(formData.password, user()?.username || '')
     if (passwordError) {
       setError(passwordError)
-      return;
+      return
     }
 
     setIsLoading(true)

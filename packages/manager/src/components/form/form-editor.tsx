@@ -147,9 +147,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
   const { list: emailList, populate: populateEmails } = useEmailStore()
 
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState<EditorData>(() =>
-    initialForm ? dataFromForm(initialForm) : emptyData,
-  )
+  const [formData, setFormData] = useState<EditorData>(() => (initialForm ? dataFromForm(initialForm) : emptyData))
   const [formErrors, setFormErrors] = useState<EditorErrors>(emptyErrors)
   const [fields, setFields] = useState<Array<FormField>>(() => initialForm?.fields ?? [])
 
@@ -157,11 +155,13 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
   useEffect(() => {
     if (emailsFetched.current) return
     emailsFetched.current = true
-    fetchEmails(token ?? '').then(populateEmails).catch((error) => {
-      if (error instanceof UnauthorizedError) {
-        navigate({ to: '/manage/login' })
-      }
-    })
+    fetchEmails(token ?? '')
+      .then(populateEmails)
+      .catch((error) => {
+        if (error instanceof UnauthorizedError) {
+          navigate({ to: '/manage/login' })
+        }
+      })
   }, [token, populateEmails, navigate])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

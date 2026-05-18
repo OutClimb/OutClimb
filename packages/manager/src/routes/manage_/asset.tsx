@@ -39,7 +39,18 @@ function Assets() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
+  const {
+    selectedId,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    isEditDialogOpen,
+    isDeleteDialogOpen,
+    handleCreate,
+    handleEdit,
+    handleEditDialogOpenChange,
+    handleDelete,
+    handleDeleteDialogOpenChange,
+  } = useCrudDialogs()
 
   useEffect(() => {
     const fetchAssetsFromApi = async () => {
@@ -120,7 +131,14 @@ function Assets() {
         <>
           <UploadAssetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditAssetDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="asset" deleteFn={removeAsset} removeFromStore={remove} />
+          <DeleteDialog
+            id={selectedId}
+            open={isDeleteDialogOpen}
+            onOpenChange={handleDeleteDialogOpenChange}
+            label="asset"
+            deleteFn={removeAsset}
+            removeFromStore={remove}
+          />
         </>
       )}
     </>

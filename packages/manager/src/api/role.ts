@@ -1,10 +1,4 @@
-import type {
-  CreateRoleResponse,
-  GetRoleResponse,
-  GetRolesResponse,
-  Role,
-  UpdateRoleResponse,
-} from '@/types/role'
+import type { CreateRoleResponse, GetRoleResponse, GetRolesResponse, Role, UpdateRoleResponse } from '@/types/role'
 import { UnauthorizedError } from '@/errors/unauthorized'
 
 export async function createRole(token: string, role: Role): Promise<CreateRoleResponse> {

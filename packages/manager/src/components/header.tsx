@@ -10,7 +10,13 @@ interface HeaderProps {
   backTo?: string
 }
 
-export function Header({ actions, backTo, children, className, ...props }: React.ComponentProps<'header'> & HeaderProps) {
+export function Header({
+  actions,
+  backTo,
+  children,
+  className,
+  ...props
+}: React.ComponentProps<'header'> & HeaderProps) {
   const [hovering, setHovering] = useState(false)
 
   useEffect(() => {

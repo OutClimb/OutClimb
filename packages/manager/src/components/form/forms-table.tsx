@@ -37,7 +37,11 @@ export function FormsTable({
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
-              <TableCell><Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>{item.name}</Link></TableCell>
+              <TableCell>
+                <Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>
+                  {item.name}
+                </Link>
+              </TableCell>
               <TableCell>{item.slug}</TableCell>
               <TableCell>{!item.opensOn ? '-' : format(item.opensOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
               <TableCell>{!item.closesOn ? '-' : format(item.closesOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
@@ -47,7 +51,7 @@ export function FormsTable({
                   <div className="flex justify-end gap-2">
                     <Button asChild variant="secondary">
                       <Link to="/manage/form/$id/edit" params={{ id: item.slug }}>
-                          Edit
+                        Edit
                       </Link>
                     </Button>
                     <Button variant="destructive" onClick={handleDelete(item.id)}>

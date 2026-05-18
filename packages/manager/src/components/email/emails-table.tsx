@@ -34,7 +34,11 @@ export function EmailsTable({
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
-              <TableCell><Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>{item.name}</Link></TableCell>
+              <TableCell>
+                <Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>
+                  {item.name}
+                </Link>
+              </TableCell>
               <TableCell>{item.slug}</TableCell>
               <TableCell>{item.subject}</TableCell>
               {canEdit && (
@@ -42,7 +46,7 @@ export function EmailsTable({
                   <div className="flex justify-end gap-2">
                     <Button asChild variant="secondary">
                       <Link to="/manage/email/$id/edit" params={{ id: item.id.toString() }}>
-                          Edit
+                        Edit
                       </Link>
                     </Button>
                     <Button variant="destructive" onClick={handleDelete(item.id)}>

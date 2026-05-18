@@ -94,12 +94,7 @@ function EditForm() {
         )}
 
         {form && (
-          <FormEditor
-            initialForm={form}
-            onSave={handleSave}
-            submitLabel="Save"
-            submitLoadingLabel="Saving..."
-          />
+          <FormEditor initialForm={form} onSave={handleSave} submitLabel="Save" submitLoadingLabel="Saving..." />
         )}
       </Content>
     </>

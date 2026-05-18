@@ -107,11 +107,7 @@ function Forms() {
             )}
 
             {!isLoading && !isEmpty() && (
-              <EmailsTable
-                data={list()}
-                canEdit={hasPermission('email', WRITE_PERMISSION)}
-                onDelete={handleDelete}
-              />
+              <EmailsTable data={list()} canEdit={hasPermission('email', WRITE_PERMISSION)} onDelete={handleDelete} />
             )}
           </CardContent>
         </Card>

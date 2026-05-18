@@ -42,7 +42,18 @@ function Users() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
+  const {
+    selectedId,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    isEditDialogOpen,
+    isDeleteDialogOpen,
+    handleCreate,
+    handleEdit,
+    handleEditDialogOpenChange,
+    handleDelete,
+    handleDeleteDialogOpenChange,
+  } = useCrudDialogs()
 
   useEffect(() => {
     const fetchFromApi = async () => {
@@ -124,7 +135,14 @@ function Users() {
         <>
           <CreateUserDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditUserDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="user" deleteFn={removeUser} removeFromStore={remove} />
+          <DeleteDialog
+            id={selectedId}
+            open={isDeleteDialogOpen}
+            onOpenChange={handleDeleteDialogOpenChange}
+            label="user"
+            deleteFn={removeUser}
+            removeFromStore={remove}
+          />
         </>
       )}
     </>

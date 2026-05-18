@@ -62,8 +62,12 @@ export function RedirectsTable({
                   {item.toUrl} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>{item.startsOn === 0 ? '-' : format(item.startsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
-              <TableCell>{item.stopsOn === 0 ? '-' : format(item.stopsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
+              <TableCell>
+                {item.startsOn === 0 ? '-' : format(item.startsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}
+              </TableCell>
+              <TableCell>
+                {item.stopsOn === 0 ? '-' : format(item.stopsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}
+              </TableCell>
               {canEdit && (
                 <TableCell>
                   <div className="flex justify-end gap-2">

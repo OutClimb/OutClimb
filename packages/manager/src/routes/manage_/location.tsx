@@ -41,7 +41,18 @@ function Locations() {
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const { selectedId, isCreateDialogOpen, setIsCreateDialogOpen, isEditDialogOpen, isDeleteDialogOpen, handleCreate, handleEdit, handleEditDialogOpenChange, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
+  const {
+    selectedId,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    isEditDialogOpen,
+    isDeleteDialogOpen,
+    handleCreate,
+    handleEdit,
+    handleEditDialogOpenChange,
+    handleDelete,
+    handleDeleteDialogOpenChange,
+  } = useCrudDialogs()
 
   useEffect(() => {
     const fetchLocationsFromApi = async () => {
@@ -122,7 +133,14 @@ function Locations() {
         <>
           <CreateLocationDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
           <EditLocationDialog id={selectedId} open={isEditDialogOpen} onOpenChange={handleEditDialogOpenChange} />
-          <DeleteDialog id={selectedId} open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange} label="location" deleteFn={removeLocation} removeFromStore={remove} />
+          <DeleteDialog
+            id={selectedId}
+            open={isDeleteDialogOpen}
+            onOpenChange={handleDeleteDialogOpenChange}
+            label="location"
+            deleteFn={removeLocation}
+            removeFromStore={remove}
+          />
         </>
       )}
     </>

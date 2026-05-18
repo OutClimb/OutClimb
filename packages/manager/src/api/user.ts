@@ -1,10 +1,4 @@
-import type {
-  CreateUserResponse,
-  GetUsersResponse,
-  TokenResponse,
-  UpdateUserResponse,
-  UserRequest,
-} from '@/types/user'
+import type { CreateUserResponse, GetUsersResponse, TokenResponse, UpdateUserResponse, UserRequest } from '@/types/user'
 import { UnauthorizedError } from '@/errors/unauthorized'
 
 export async function createUser(token: string, user: UserRequest): Promise<CreateUserResponse> {

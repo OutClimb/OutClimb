@@ -1,9 +1,4 @@
-import type {
-  CreateEmailResponse,
-  Email,
-  GetEmailsResponse,
-  UpdateEmailResponse,
-} from '@/types/email'
+import type { CreateEmailResponse, Email, GetEmailsResponse, UpdateEmailResponse } from '@/types/email'
 import { UnauthorizedError } from '@/errors/unauthorized'
 
 export async function createEmail(token: string, email: Email): Promise<CreateEmailResponse> {

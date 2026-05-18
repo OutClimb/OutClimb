@@ -59,7 +59,11 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [formError, setFormError] = useState<FormError>(emptyFormError)
-  const [formData, setFormData] = useState<FormData>(() => ({ ...emptyFormData, order: (minOrder + 1).toString(), permissions: emptyPermissions() }))
+  const [formData, setFormData] = useState<FormData>(() => ({
+    ...emptyFormData,
+    order: (minOrder + 1).toString(),
+    permissions: emptyPermissions(),
+  }))
 
   if (
     !open &&
