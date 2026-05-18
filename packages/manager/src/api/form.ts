@@ -5,187 +5,34 @@ import type {
   GetSubmissionsResponse,
   UpdateFormResponse,
 } from '@/types/form'
-import { UnauthorizedError } from '@/errors/unauthorized'
+import { apiFetch } from './client'
 
 export async function createForm(token: string, form: Form): Promise<CreateFormResponse> {
-  let response
-  try {
-    response = await fetch(`/api/v1/form`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(form),
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  try {
-    return await response.json()
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
+  return apiFetch<CreateFormResponse>(token, 'POST', '/api/v1/form', form)
 }
 
 export async function fetchForm(token: string, slug: string): Promise<Form> {
-  let response
-  try {
-    response = await fetch(`/api/v1/form/${slug}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  try {
-    return await response.json()
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
+  return apiFetch<Form>(token, 'GET', `/api/v1/form/${slug}`)
 }
 
 export async function fetchForms(token: string): Promise<GetFormsResponse> {
-  let response
-  try {
-    response = await fetch(`/api/v1/form`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  try {
-    return await response.json()
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
+  return apiFetch<GetFormsResponse>(token, 'GET', '/api/v1/form')
 }
 
 export async function removeForm(token: string, id: number): Promise<boolean> {
-  let response
-  try {
-    response = await fetch(`/api/v1/form/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
+  await apiFetch(token, 'DELETE', `/api/v1/form/${id}`)
   return true
 }
 
 export async function updateForm(token: string, form: Form): Promise<UpdateFormResponse> {
-  let response
-  try {
-    response = await fetch(`/api/v1/form/${form.id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(form),
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  try {
-    return await response.json()
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
+  return apiFetch<UpdateFormResponse>(token, 'PUT', `/api/v1/form/${form.id}`, form)
 }
 
 export async function fetchSubmissions(token: string, formId: number): Promise<GetSubmissionsResponse> {
-  let response
-  try {
-    response = await fetch(`/api/v1/submission?formId=${formId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  try {
-    return await response.json()
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
+  return apiFetch<GetSubmissionsResponse>(token, 'GET', `/api/v1/submission?formId=${formId}`)
 }
 
 export async function removeSubmission(token: string, id: number): Promise<boolean> {
-  let response
-  try {
-    response = await fetch(`/api/v1/submission/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch {
-    throw new Error('An error occurred. Please try again.')
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError()
-  } else if (response.status >= 300) {
-    throw new Error('An error occurred. Please try again.')
-  }
-
+  await apiFetch(token, 'DELETE', `/api/v1/submission/${id}`)
   return true
 }
