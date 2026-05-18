@@ -10,12 +10,3 @@ export interface Email {
   htmlBody: string
   textBody: string
 }
-
-export interface EmailState {
-  data: Record<number, Email>
-  isEmpty: () => boolean
-  list: () => Array<Email>
-  populate: (forms: Array<Email>) => void
-  populateSingle: (form: Email) => void
-  remove: (id: number) => void
-}

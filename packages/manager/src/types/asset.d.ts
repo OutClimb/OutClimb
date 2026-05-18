@@ -14,12 +14,3 @@ export interface AssetRequest {
   contentType: string
   data: string
 }
-
-export interface AssetState {
-  data: Record<number, Asset>
-  isEmpty: () => boolean
-  list: () => Array<Asset>
-  populate: (redirects: Array<Asset>) => void
-  populateSingle: (redirect: Asset) => void
-  remove: (id: number) => void
-}

@@ -9,12 +9,3 @@ export interface Role {
   order: number
   permissions: Record<string, number>
 }
-
-export interface RoleStore {
-  data: Record<number, Role>
-  isEmpty: () => boolean
-  list: () => Array<Role>
-  populate: (roles: Array<Role>) => void
-  populateSingle: (role: Role) => void
-  remove: (id: number) => void
-}

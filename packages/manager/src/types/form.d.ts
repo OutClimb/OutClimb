@@ -45,12 +45,3 @@ export interface Submission {
 }
 
 export type GetSubmissionsResponse = Array<Submission>
-
-export interface FormState {
-  data: Record<number, Form>
-  isEmpty: () => boolean
-  list: () => Array<Form>
-  populate: (forms: Array<Form>) => void
-  populateSingle: (form: Form) => void
-  remove: (id: number) => void
-}

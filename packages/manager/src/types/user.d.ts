@@ -43,15 +43,6 @@ export interface User {
   permissions: Record<string, number>
 }
 
-export interface UserStore {
-  data: Record<number, User>
-  isEmpty: () => boolean
-  list: () => Array<User>
-  populate: (redirects: Array<User>) => void
-  populateSingle: (redirect: User) => void
-  remove: (id: number) => void
-}
-
 export interface SelfState {
   token: string | null
   claims: JwtClaims | null
