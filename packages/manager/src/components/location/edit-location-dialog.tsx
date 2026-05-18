@@ -309,8 +309,8 @@ export function EditLocationDialog({ id, open, onOpenChange }: EditLocationDialo
               <Field>
                 <FieldLabel>Name on the Main Image</FieldLabel>
                 <Input
-                  id="name"
-                  name="name"
+                  id="mainImageName"
+                  name="mainImageName"
                   type="text"
                   value={formData.mainImageName}
                   onChange={handleChange}
