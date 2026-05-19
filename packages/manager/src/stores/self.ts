@@ -13,29 +13,8 @@ const useSelfStore = create<SelfState>()(
       token: null,
       claims: null,
       user: () => {
-        const { claims, token } = get()
-
-        if (!token) {
-          return null
-        }
-
-        if (!claims) {
-          const decodedClaims = jwtDecode<JwtClaims>(token)
-          set({
-            claims: decodedClaims,
-          })
-
-          return {
-            id: decodedClaims.usr.id,
-            username: decodedClaims.usr.un,
-            name: decodedClaims.usr.n,
-            email: decodedClaims.usr.e,
-            requiresPasswordReset: decodedClaims.usr.pr,
-            role: decodedClaims.usr.r,
-            permissions: decodedClaims.usr.p,
-          }
-        }
-
+        const { claims } = get()
+        if (!claims) return null
         return {
           id: claims.usr.id,
           username: claims.usr.un,
@@ -47,46 +26,18 @@ const useSelfStore = create<SelfState>()(
         }
       },
       hasPermission: (entity: string, level: number) => {
-        const { claims, token } = get()
-
-        if (!token) {
-          return false
-        }
-
-        if (!claims) {
-          const decodedClaims = jwtDecode<JwtClaims>(token)
-          set({
-            claims: decodedClaims,
-          })
-
-          if (decodedClaims.usr.r && decodedClaims.usr.r === 'Owner') {
-            return true
-          }
-
-          if (!decodedClaims.usr.p) {
-            return false
-          }
-
-          return decodedClaims.usr.p[entity] >= level
-        }
-
-        if (claims.usr.r && claims.usr.r === 'Owner') {
-          return true
-        }
-
-        if (!claims.usr.p) {
-          return false
-        }
-
+        const { claims } = get()
+        if (!claims) return false
+        if (claims.usr.r === 'Owner') return true
+        if (!claims.usr.p) return false
         return claims.usr.p[entity] >= level
       },
       isLoggedIn: () => {
         return get().token !== null
       },
       login: (token: string) => {
-        return set({
-          token,
-        })
+        const claims = jwtDecode<JwtClaims>(token)
+        return set({ token, claims })
       },
       logout: () =>
         set({
