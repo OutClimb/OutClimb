@@ -1,11 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createUser, updateUser } from '@/api/user'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldDescription, FieldLabel } from '../ui/field'
+import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -222,12 +220,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                   disabled={isLoading}
                   required
                 />
-                {formError.username && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.username}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.username}</FieldError>
               </Field>
             </div>
 
@@ -243,12 +236,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                   disabled={isLoading}
                   required
                 />
-                {formError.name && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.name}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.name}</FieldError>
               </Field>
             </div>
 
@@ -266,12 +254,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                   disabled={isLoading}
                   required
                 />
-                {formError.email && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.email}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.email}</FieldError>
               </Field>
             </div>
 
@@ -294,12 +277,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                   disabled={isLoading}
                   required={!isEditing}
                 />
-                {formError.password && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.password}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.password}</FieldError>
               </Field>
             </div>
 
@@ -318,12 +296,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                     ))}
                   </SelectContent>
                 </Select>
-                {formError.role && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.role}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.role}</FieldError>
               </Field>
             </div>
 

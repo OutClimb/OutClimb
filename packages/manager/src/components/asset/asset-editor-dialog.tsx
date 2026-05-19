@@ -1,11 +1,10 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createAsset, updateAsset } from '@/api/asset'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { readFileToBase64 } from '@/lib/file'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -149,13 +148,8 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
                     disabled={isLoading}
                     required
                   />
+                  <FieldError>{formError.fileName}</FieldError>
                 </Field>
-                {formError.fileName && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.fileName}</AlertDescription>
-                  </Alert>
-                )}
               </div>
             )}
 
@@ -175,12 +169,7 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
                   <X /> Clear file
                 </Button>
               )}
-              {formError.file && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formError.file}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formError.file}</FieldError>
             </Field>
           </form>
         </div>

@@ -1,11 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchEmails } from '@/api/email'
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormFieldBuilder } from '@/components/form/form-field-builder'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -264,12 +262,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
                 onChange={handleNameChange}
                 disabled={isLoading}
               />
-              {formErrors.name && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formErrors.name}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formErrors.name}</FieldError>
             </Field>
 
             <Field>
@@ -282,12 +275,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
                 onChange={handleSlugChange}
                 disabled={isLoading}
               />
-              {formErrors.slug && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formErrors.slug}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formErrors.slug}</FieldError>
             </Field>
           </FieldGroup>
         </CardContent>
@@ -310,12 +298,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              {formErrors.opensOn && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formErrors.opensOn}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formErrors.opensOn}</FieldError>
             </Field>
 
             <Field>
@@ -329,12 +312,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              {formErrors.closesOn && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formErrors.closesOn}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formErrors.closesOn}</FieldError>
             </Field>
 
             <Field>
@@ -349,12 +327,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              {formErrors.maxSubmissions && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formErrors.maxSubmissions}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formErrors.maxSubmissions}</FieldError>
             </Field>
           </FieldGroup>
         </CardContent>

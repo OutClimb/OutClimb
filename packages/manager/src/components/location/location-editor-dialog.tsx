@@ -1,11 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createLocation, updateLocation } from '@/api/location'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldDescription, FieldLabel } from '../ui/field'
+import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -231,12 +229,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.name && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.name}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.name}</FieldError>
               </Field>
             </div>
 
@@ -252,12 +245,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.mainImageName && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.mainImageName}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.mainImageName}</FieldError>
               </Field>
             </div>
 
@@ -274,12 +262,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   onChange={handleTextareaChange}
                   required
                 />
-                {formError.individualImageName && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.individualImageName}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.individualImageName}</FieldError>
               </Field>
             </div>
 
@@ -295,12 +278,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.backgroundImagePath && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.backgroundImagePath}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.backgroundImagePath}</FieldError>
               </Field>
             </div>
 
@@ -316,12 +294,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.color && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.color}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.color}</FieldError>
               </Field>
             </div>
 
@@ -338,12 +311,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   onChange={handleTextareaChange}
                   required
                 />
-                {formError.address && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.address}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.address}</FieldError>
               </Field>
             </div>
 
@@ -359,12 +327,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.startTime && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.startTime}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.startTime}</FieldError>
               </Field>
             </div>
 
@@ -380,12 +343,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   disabled={isLoading}
                   required
                 />
-                {formError.endTime && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.endTime}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.endTime}</FieldError>
               </Field>
             </div>
 
@@ -400,12 +358,7 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                 onChange={handleTextareaChange}
                 required
               />
-              {formError.description && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{formError.description}</AlertDescription>
-                </Alert>
-              )}
+              <FieldError>{formError.description}</FieldError>
             </Field>
           </form>
         </div>

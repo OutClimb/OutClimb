@@ -1,11 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createRole, updateRole } from '@/api/role'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -180,12 +178,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
                   disabled={isLoading}
                   required
                 />
-                {formError.order && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.order}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.order}</FieldError>
               </Field>
             </div>
 
@@ -201,12 +194,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
                   disabled={isLoading}
                   required
                 />
-                {formError.name && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.name}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.name}</FieldError>
               </Field>
             </div>
 

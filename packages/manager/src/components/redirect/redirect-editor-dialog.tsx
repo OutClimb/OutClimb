@@ -1,11 +1,9 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createRedirect, updateRedirect } from '@/api/redirect'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldLabel } from '../ui/field'
 import { format, getTime } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -152,12 +150,7 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
                   disabled={isLoading}
                   required
                 />
-                {formError.fromPath && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.fromPath}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.fromPath}</FieldError>
               </Field>
             </div>
 
@@ -173,12 +166,7 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
                   disabled={isLoading}
                   required
                 />
-                {formError.toUrl && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError.toUrl}</AlertDescription>
-                  </Alert>
-                )}
+                <FieldError>{formError.toUrl}</FieldError>
               </Field>
             </div>
 
