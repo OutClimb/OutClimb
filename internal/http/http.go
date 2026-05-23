@@ -112,7 +112,7 @@ func (h *httpLayer) setupFrontendRoutes() {
 	form := h.engine.Group("/form")
 	{
 		form.Use(middleware.Domain(h.config.RegisterDomain))
-		form.Static("/", "./assets/form")
+		form.Static("/", "./web/form")
 	}
 }
 
