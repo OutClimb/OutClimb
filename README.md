@@ -4,13 +4,13 @@ This is a general web service for everything OutClimb. (Not including our market
 
 ## Structure
 
-This backend of this project user N-Layer architecture that uses three consecutive layers:
+The backend of this project uses N-Layer architecture that uses three consecutive layers:
 
 - HTTP Layer for handling requests and responses
 - App Layer for handling business logic
 - Store Layer for handling database transactions
 
-This allows for a seperation of concerns throughout the web application making sure only the necessary data is passed through to each layer.
+This allows for a separation of concerns throughout the web application making sure only the necessary data is passed through to each layer.
 
 The frontends can be found in the `packages` folder:
 
@@ -19,32 +19,38 @@ The frontends can be found in the `packages` folder:
 
 ## Running locally
 
-Make sure you have Node v24 or newer installed, then run the following from the root of the project directory to install frontend dependencies:
+Make sure you have Docker installed. Copy the `configs/local.env.sample` to `configs/local.env` and adjust any values as needed.
+
+Add the following entries to your hosts file (`/etc/hosts` on macOS/Linux, `C:\Windows\System32\drivers\etc\hosts` on Windows) so the local domains resolve correctly:
 
 ```
-npm ci
+127.0.0.1 outclimb.local
+127.0.0.1 assets.outclimb.local
+127.0.0.1 register.outclimb.local
 ```
 
-To have the frontend automatically build on changes, run the following command:
+Then from the root of the project directory run:
 
 ```
-npm run build:watch
+docker compose up -d
 ```
 
-The frontend will be hosted through the backend, so moving on to the backend. Make sure you have Go v1.25 or newer installed, then run the following from the root of the project directory to install backend dependencies:
+This will start the backend, frontend, and PostgreSQL database. The backend and frontend will automatically rebuild on changes. Once running, the url shortner is available at `http://outclimb.local`, registration at `http://register.outclimb.local`, and assets at `http://assets.outclimb.local`. The management portal can be accessed via `/manage` on any domain.
+
+To follow logs:
 
 ```
-go mod download
+docker compose logs -f
 ```
 
-You will also need PostgreSQL running and configured as well. Copy the `configs/local.env.sample` to `configs/local.env` and fill out the proper information for your local database. With the environment variables all configured on your system you should then be able to run the following to start the service:
+To stop everything:
 
 ```
-go run ./main.go service
+docker compose down
 ```
 
 However you will need an account, which can be created with the following command:
 
 ```
-go run ./main.go create-user -u test-user -p p@s$w0rd -n Test -r admin -e foo@example.com
+docker compose exec be-builder go run ./main.go create-user -u test-user -p password -n Test -r Admin -e foo@example.com
 ```
