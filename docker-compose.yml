@@ -1,0 +1,29 @@
+services:
+  be-builder:
+    build:
+      context: .
+      target: outclimb-local-be-builder
+    container_name: be-builder
+    env_file: configs/local.env
+    ports:
+      - 80:8080
+    volumes:
+      - ./:/app
+
+  fe-builder:
+    build:
+      context: .
+      target: outclimb-local-fe-builder
+    container_name: fe-builder
+    env_file: configs/local.env
+    volumes:
+      - ./:/app
+
+  db:
+    image: postgres:latest
+    container_name: db
+    entrypoint: /db-entrypoint.sh
+    env_file: configs/local.env
+    hostname: db
+    volumes:
+      - ./db-entrypoint.sh:/db-entrypoint.sh
