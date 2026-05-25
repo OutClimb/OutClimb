@@ -27,7 +27,7 @@
   "dependencies": {
     "@fontsource/poppins": "^5.2.7",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-router": "^1.169.1",
+    "@tanstack/react-router": "^1.170.8",
     "clsx": "^2.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.5",
