@@ -19,21 +19,25 @@ package store
 
 import (
 	"context"
-	"errors"
+	"embed"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role"}
+
+//go:embed migrations/*.sql
+var migrations embed.FS
 
 type StoreLayer interface {
 	CountSubmissionsForForm(formId uint) (int64, error)
@@ -152,9 +156,9 @@ func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfi
 	// S3
 	creds := credentials.NewStaticCredentialsProvider(storageConfig.AccessKey, storageConfig.SecretKey, "")
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(storageConfig.Region),
-		config.WithCredentialsProvider(creds))
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(),
+		awsconfig.WithRegion(storageConfig.Region),
+		awsconfig.WithCredentialsProvider(creds))
 	if err != nil {
 		slog.Error(
 			"Unable to connect to storage",
@@ -180,231 +184,36 @@ func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfi
 }
 
 func (s *storeLayer) Migrate() {
-	err := s.db.AutoMigrate(&Asset{})
+	sqlDB, err := s.db.DB()
 	if err != nil {
 		slog.Error(
-			"Unable to migrate table",
+			"Unable to get database connection for migrations",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "assets",
 			"error", err,
 		)
 		os.Exit(1)
 	}
 
-	err = s.db.AutoMigrate(&Location{})
-	if err != nil {
+	goose.SetBaseFS(migrations)
+	if err := goose.SetDialect("postgres"); err != nil {
 		slog.Error(
-			"Unable to migrate table",
+			"Unable to run database migrations",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "locations",
 			"error", err,
 		)
 		os.Exit(1)
 	}
 
-	err = s.db.AutoMigrate(&Permission{})
-	if err != nil {
+	if err := goose.Up(sqlDB, "migrations"); err != nil {
 		slog.Error(
-			"Unable to migrate table",
+			"Unable to run database migrations",
 			"layer", "store",
 			"entity", "store",
-			"databaseTable", "permissions",
 			"error", err,
 		)
 		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&Redirect{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "redirects",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&Role{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "roles",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&User{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "users",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&Form{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "forms",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&FormField{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "form_fields",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&Submission{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "submissions",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&SubmissionValue{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "submission_values",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = s.db.AutoMigrate(&Email{})
-	if err != nil {
-		slog.Error(
-			"Unable to migrate table",
-			"layer", "store",
-			"entity", "store",
-			"databaseTable", "emails",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	// Create owner role
-	if result := s.db.First(&Role{}, "name = 'Owner'"); result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			_, err := s.CreateRole("system", "Owner", 0)
-			if err != nil {
-				slog.Error(
-					"Unable to create owner role",
-					"layer", "store",
-					"entity", "store",
-					"error", err,
-				)
-				os.Exit(1)
-			}
-		} else {
-			slog.Error(
-				"Unable to query on role table",
-				"layer", "store",
-				"entity", "store",
-				"error", result.Error,
-			)
-			os.Exit(1)
-		}
-	}
-
-	// Create admin role
-	adminRole := Role{}
-	if result := s.db.First(&adminRole, "name = 'Admin'"); result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			role, err := s.CreateRole("system", "Admin", 1)
-			if err != nil {
-				slog.Error(
-					"Unable to create admin role",
-					"layer", "store",
-					"entity", "store",
-					"error", err,
-				)
-				os.Exit(1)
-			}
-			adminRole = *role
-		} else {
-			slog.Error(
-				"Unable to query on role table",
-				"layer", "store",
-				"entity", "store",
-				"error", result.Error,
-			)
-			os.Exit(1)
-		}
-	}
-
-	// Create the user permission on the admin role if the admin role already existed
-	for _, entity := range Entities {
-		if result := s.db.First(&Permission{}, "role_id = ? AND entity = ?", adminRole.ID, entity); result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				_, err = s.CreatePermission(adminRole.ID, LevelWrite, entity)
-				if err != nil {
-					slog.Error(
-						"Unable to create permission",
-						"layer", "store",
-						"entity", "store",
-						"roleID", adminRole.ID,
-						"entity", entity,
-					)
-					os.Exit(1)
-				}
-			} else {
-				slog.Error(
-					"Unable to query on permission table",
-					"layer", "store",
-					"entity", "store",
-					"error", result.Error,
-				)
-				os.Exit(1)
-			}
-		}
-	}
-
-	// Apply admin roles to users who don't have roles
-	var unknownRoleCount int64
-	result := s.db.Model(&User{}).Where("role_id = 0").Count(&unknownRoleCount)
-	if result.Error == nil && unknownRoleCount > 0 {
-		role, err := s.GetRoleWithName("Admin")
-		if err != nil {
-			slog.Error(
-				"Unable to find admin role",
-				"layer", "store",
-				"entity", "store",
-				"error", err,
-			)
-			os.Exit(1)
-		}
-
-		s.db.Model(&User{}).Where("role_id = 0").UpdateColumn("role_id", gorm.Expr("?", role.ID))
 	}
 }
 

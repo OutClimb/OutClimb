@@ -1,6 +1,6 @@
 module github.com/OutClimb/OutClimb
 
-go 1.25.2
+go 1.25.7
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.7
@@ -17,6 +17,13 @@ require (
 	golang.org/x/crypto v0.51.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
+)
+
+require (
+	github.com/mfridman/interpolate v0.0.2 // indirect
+	github.com/pressly/goose/v3 v3.27.1 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 )
 
 require (
