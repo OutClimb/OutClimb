@@ -19,58 +19,21 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
-	"os"
+	"reflect"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
-var EnvironmentVariables = []string{
-	"OC_ASSETS_DOMAIN",
-	"OC_EMAIL_FROM_ADDRESS",
-	"OC_PASSWORD_COST",
-	"OC_RECAPTCHA_SECRET_KEY",
-	"OC_RECAPTCHA_SECRET_KEY_FILE",
-	"OC_RESEND_API_KEY",
-	"OC_RESEND_API_KEY_FILE",
-	"OC_DATABASE_HOST",
-	"OC_DATABASE_NAME",
-	"OC_DATABASE_PASSWORD",
-	"OC_DATABASE_PASSWORD_FILE",
-	"OC_DATABASE_PORT",
-	"OC_DATABASE_PARAMS",
-	"OC_DATABASE_USERNAME",
-	"OC_DEFAULT_REDIRECT_URL",
-	"OC_LISTENING_ADDRESS",
-	"OC_LOGIN_RATE_LIMIT",
-	"OC_LOGIN_RATE_LIMIT_WINDOW",
-	"OC_MAX_UPLOAD_SIZE",
-	"OC_REDIRECT_DOMAIN",
-	"OC_REGISTER_DOMAIN",
-	"OC_TRUSTED_PROXIES",
-	"OC_JWT_ISSUER",
-	"OC_JWT_LIFESPAN",
-	"OC_JWT_SECRET",
-	"OC_JWT_SECRET_FILE",
-	"OC_STORAGE_ACCESS_KEY",
-	"OC_STORAGE_BUCKET",
-	"OC_STORAGE_ENDPOINT",
-	"OC_STORAGE_PREFIX",
-	"OC_STORAGE_REGION",
-	"OC_STORAGE_SECRET_KEY",
-	"OC_STORAGE_SECRET_KEY_FILE",
-	"OC_SUBMISSION_RATE_LIMIT",
-	"OC_SUBMISSION_RATE_LIMIT_WINDOW",
-}
-
 type AppConfig struct {
-	EmailFromAddress string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
-	PasswordCost     int    `mapstructure:"OC_PASSWORD_COST"`
+	EmailFromAddress       string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	PasswordCost           int    `mapstructure:"OC_PASSWORD_COST"`
 	RecaptchaSecretKey     string `mapstructure:"OC_RECAPTCHA_SECRET_KEY"`
 	RecaptchaSecretKeyFile string `mapstructure:"OC_RECAPTCHA_SECRET_KEY_FILE"`
-	ResendApiKey     string `mapstructure:"OC_RESEND_API_KEY"`
-	ResendApiKeyFile string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	ResendApiKey           string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile       string `mapstructure:"OC_RESEND_API_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
@@ -84,18 +47,20 @@ type DatabaseConfig struct {
 }
 
 type HttpConfig struct {
-	AssetsDomain              string `mapstructure:"OC_ASSETS_DOMAIN"`
-	DefaultRedirectURL        string `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
-	Jwt                       JwtConfig
-	ListeningAddress          string   `mapstructure:"OC_LISTENING_ADDRESS"`
-	LoginRateLimit            int      `mapstructure:"OC_LOGIN_RATE_LIMIT"`
-	LoginRateLimitWindow      string   `mapstructure:"OC_LOGIN_RATE_LIMIT_WINDOW"`
-	MaxUploadSize             int64    `mapstructure:"OC_MAX_UPLOAD_SIZE"`
-	RedirectDomain            string   `mapstructure:"OC_REDIRECT_DOMAIN"`
-	RegisterDomain            string   `mapstructure:"OC_REGISTER_DOMAIN"`
-	SubmissionRateLimit       int      `mapstructure:"OC_SUBMISSION_RATE_LIMIT"`
-	SubmissionRateLimitWindow string   `mapstructure:"OC_SUBMISSION_RATE_LIMIT_WINDOW"`
-	TrustedProxies            []string `mapstructure:"OC_TRUSTED_PROXIES"`
+	AssetsDomain              string    `mapstructure:"OC_ASSETS_DOMAIN"`
+	DefaultRedirectURL        string    `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
+	FormRateLimit             int       `mapstructure:"OC_FORM_RATE_LIMIT"`
+	FormRateLimitWindow       string    `mapstructure:"OC_FORM_RATE_LIMIT_WINDOW"`
+	Jwt                       JwtConfig `mapstructure:",squash"`
+	ListeningAddress          string    `mapstructure:"OC_LISTENING_ADDRESS"`
+	LoginRateLimit            int       `mapstructure:"OC_LOGIN_RATE_LIMIT"`
+	LoginRateLimitWindow      string    `mapstructure:"OC_LOGIN_RATE_LIMIT_WINDOW"`
+	MaxUploadSize             int64     `mapstructure:"OC_MAX_UPLOAD_SIZE"`
+	RedirectDomain            string    `mapstructure:"OC_REDIRECT_DOMAIN"`
+	RegisterDomain            string    `mapstructure:"OC_REGISTER_DOMAIN"`
+	SubmissionRateLimit       int       `mapstructure:"OC_SUBMISSION_RATE_LIMIT"`
+	SubmissionRateLimitWindow string    `mapstructure:"OC_SUBMISSION_RATE_LIMIT_WINDOW"`
+	TrustedProxies            []string  `mapstructure:"OC_TRUSTED_PROXIES"`
 }
 
 type JwtConfig struct {
@@ -116,187 +81,89 @@ type StorageConfig struct {
 }
 
 type Config struct {
-	App      AppConfig
-	Database DatabaseConfig
-	Http     HttpConfig
-	Storage  StorageConfig
+	App      AppConfig      `mapstructure:",squash"`
+	Database DatabaseConfig `mapstructure:",squash"`
+	Http     HttpConfig     `mapstructure:",squash"`
+	Storage  StorageConfig  `mapstructure:",squash"`
 }
 
-func LoadConfig(env string) (config Config) {
+func LoadConfig(env string) (Config, error) {
 	slog.Info("Loading config")
 
-	// Read config
-	viper.AddConfigPath("./configs/")
-	viper.SetConfigName(env)
-	viper.SetConfigType("env")
+	v := viper.New()
+	v.AddConfigPath("./configs/")
+	v.SetConfigName(env)
+	v.SetConfigType("env")
 
-	for _, env := range EnvironmentVariables {
-		if err := viper.BindEnv(env); err != nil {
-			slog.Error(
-				"Issue when binding environment variable",
-				"layer", "utils",
-				"entity", "config",
-				"env", env,
-				"error", err,
-			)
+	var config Config
+	if err := bindEnvVars(v, reflect.TypeOf(config)); err != nil {
+		return config, fmt.Errorf("bind env vars: %w", err)
+	}
+
+	v.AutomaticEnv()
+
+	if err := v.ReadInConfig(); err != nil {
+		return config, fmt.Errorf("read config: %w", err)
+	}
+
+	if err := v.Unmarshal(&config); err != nil {
+		return config, fmt.Errorf("unmarshal config: %w", err)
+	}
+
+	loadSecretFromFile(&config.App.RecaptchaSecretKey, config.App.RecaptchaSecretKeyFile, "Recaptcha Secret Key", env)
+	loadSecretFromFile(&config.Database.Password, config.Database.PasswordFile, "Database Password", env)
+	loadSecretFromFile(&config.Http.Jwt.Secret, config.Http.Jwt.SecretFile, "JWT Secret", env)
+	loadSecretFromFile(&config.Storage.SecretKey, config.Storage.SecretKeyFile, "Storage Secret Key", env)
+	loadSecretFromFile(&config.App.ResendApiKey, config.App.ResendApiKeyFile, "Resend API Key", env)
+
+	return config, nil
+}
+
+func bindEnvVars(v *viper.Viper, t reflect.Type) error {
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if f.Type.Kind() == reflect.Struct {
+			if err := bindEnvVars(v, f.Type); err != nil {
+				return err
+			}
+			continue
+		}
+		tag := f.Tag.Get("mapstructure")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.Split(tag, ",")[0]
+		if name == "" {
+			continue
+		}
+		if err := v.BindEnv(name); err != nil {
+			return err
 		}
 	}
+	return nil
+}
 
-	viper.AutomaticEnv()
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		slog.Error(
-			"Unable to load config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = viper.Unmarshal(&config.App)
-	if err != nil {
-		slog.Error(
-			"Unable to parse app config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = viper.Unmarshal(&config.Database)
-	if err != nil {
-		slog.Error(
-			"Unable to parse database config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = viper.Unmarshal(&config.Http)
-	if err != nil {
-		slog.Error(
-			"Unable to parse http config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = viper.Unmarshal(&config.Http.Jwt)
-	if err != nil {
-		slog.Error(
-			"Unable to parse http jwt config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	err = viper.Unmarshal(&config.Storage)
-	if err != nil {
-		slog.Error(
-			"Unable to parse storage config",
-			"layer", "utils",
-			"entity", "config",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	// Load secret files, if provided
-	if len(config.App.RecaptchaSecretKey) == 0 && len(config.App.RecaptchaSecretKeyFile) != 0 {
-		content, err := ReadFile(&config.App.RecaptchaSecretKeyFile)
-		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for Recaptcha Secret Key")
-			config.App.RecaptchaSecretKey = content
-		} else if err != nil {
+func loadSecretFromFile(value *string, file, name, env string) {
+	if len(file) != 0 && len(*value) == 0 {
+		content, err := ReadFile(&file)
+		if err != nil {
 			slog.Error(
-				"Unable to load Recaptcha Secret Key from file",
+				"Unable to load "+name+" from file",
 				"layer", "utils",
 				"entity", "config",
 				"error", err,
 			)
+			return
 		}
-	} else if env == "prod" {
-		slog.Warn("Loading the Recaptcha Secret Key through environment variables is not recommended in production")
-	}
-
-	if len(config.Database.Password) == 0 && len(config.Database.PasswordFile) != 0 {
-		content, err := ReadFile(&config.Database.PasswordFile)
-		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for Database Password")
-			config.Database.Password = content
-		} else if err != nil {
-			slog.Error(
-				"Unable to load Database Password from file",
-				"layer", "utils",
-				"entity", "config",
-				"error", err,
-			)
+		if len(content) > 0 {
+			slog.Info("Loaded secret file for " + name)
+			*value = strings.TrimSpace(content)
 		}
-	} else if env == "prod" {
-		slog.Warn("Loading the Database Password through environment variables is not recommended in production")
+		return
 	}
-
-	if len(config.Http.Jwt.Secret) == 0 && len(config.Http.Jwt.SecretFile) != 0 {
-		content, err := ReadFile(&config.Http.Jwt.SecretFile)
-		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for JWT Secret")
-			config.Http.Jwt.Secret = content
-		} else if err != nil {
-			slog.Error(
-				"Unable to load JWT Secret from file",
-				"layer", "utils",
-				"entity", "config",
-				"error", err,
-			)
-		}
-	} else if env == "prod" {
-		slog.Warn("Loading the JWT Secret through environment variables is not recommended in production")
+	if env == "prod" && len(*value) != 0 {
+		slog.Warn("Loading the " + name + " through environment variables is not recommended in production")
 	}
-
-	if len(config.Storage.SecretKey) == 0 && len(config.Storage.SecretKeyFile) != 0 {
-		content, err := ReadFile(&config.Storage.SecretKeyFile)
-		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for Storage Secret Key")
-			config.Storage.SecretKey = strings.TrimSpace(content)
-		} else if err != nil {
-			slog.Error(
-				"Unable to load Storeage Secret Key from file",
-				"layer", "utils",
-				"entity", "config",
-				"error", err,
-			)
-		}
-	} else if env == "prod" {
-		slog.Warn("Loading the Storage Secret Key through environment variables is not recommended in production")
-	}
-
-	if len(config.App.ResendApiKey) == 0 && len(config.App.ResendApiKeyFile) != 0 {
-		content, err := ReadFile(&config.App.ResendApiKeyFile)
-		if len(content) > 0 && err == nil {
-			slog.Info("Loaded secret file for Resend API Key")
-			config.App.ResendApiKey = strings.TrimSpace(content)
-		} else if err != nil {
-			slog.Error(
-				"Unable to load Resend API Key from file",
-				"layer", "utils",
-				"entity", "config",
-				"error", err,
-			)
-		}
-	} else if env == "prod" && len(config.App.ResendApiKey) != 0 {
-		slog.Warn("Loading the Resend API Key through environment variables is not recommended in production")
-	}
-
-	return
 }
 
 func (c *Config) Validate() error {
