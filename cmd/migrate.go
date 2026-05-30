@@ -53,6 +53,6 @@ func runMigrate(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	storeLayer := store.New(&config.Database, &config.Storage)
+	storeLayer := store.New(&config.Database, &config.Store, &config.Storage)
 	storeLayer.Migrate()
 }

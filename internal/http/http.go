@@ -95,6 +95,7 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./web/manager")
+	h.engine.GET("/events/:month", middleware.Domain(h.config.AssetsDomain), h.getEventsForMonth)
 
 	assets := h.engine.Group("/q/")
 	{
