@@ -1,3 +1,33 @@
+FROM golang:alpine AS outclimb-local-be-builder
+
+WORKDIR /app
+
+ENV OUTCLIMB_ENV="local"
+
+# Ensure all packages are up to date
+RUN apk -U upgrade
+
+# Install tzdata to set timezone
+RUN apk --no-cache add tzdata
+
+# Install wgo to allow for watching changes
+RUN go install github.com/bokwoon95/wgo@latest
+
+# Set the timezone to be Central Time
+RUN ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
+RUN echo "America/Chicago" > /etc/timezone
+
+ENTRYPOINT ["/app/be-entrypoint.sh"]
+
+FROM node:lts-alpine AS outclimb-local-fe-builder
+
+WORKDIR /app
+
+# Ensure all packages are up to date
+RUN apk -U upgrade
+
+ENTRYPOINT ["/app/fe-entrypoint.sh"]
+
 FROM golang:alpine AS outclimb-builder
 
 COPY . /app
