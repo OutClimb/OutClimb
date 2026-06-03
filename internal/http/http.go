@@ -121,7 +121,16 @@ func (h *httpLayer) setupV1ApiRoutes() {
 	{
 		api.GET("/ping", h.getPing)
 
-		api.GET("/form/:slug", middleware.OptionalAuth(h.config), h.getForm)
+		formRateLimitWindow, err := time.ParseDuration(h.config.FormRateLimitWindow)
+		if err != nil {
+			slog.Error(
+				"Failed to parse form rate limit window, defaulting to 1 min",
+				"input", h.config.FormRateLimitWindow,
+				"error", err,
+			)
+			formRateLimitWindow = time.Minute
+		}
+		api.GET("/form/:slug", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow), middleware.OptionalAuth(h.config), h.getForm)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {
