@@ -13,23 +13,22 @@
     "url": "https://github.com/OutClimb/OutClimb/issues"
   },
   "homepage": "https://github.com/OutClimb/OutClimb#readme",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "build:form": "npm run build --workspace=@outclimb/form",
-    "build:manager": "npm run build --workspace=@outclimb/manager",
-    "build:watch": "concurrently -n 'FORM,MANAGER' 'npm run build:watch --workspace=@outclimb/form' 'npm run build:watch --workspace=@outclimb/manager'",
-    "dev": "concurrently -n 'FORM,MANAGER' 'npm run dev --workspace=@outclimb/form' 'npm run dev --workspace=@outclimb/manager'",
-    "dev:form": "npm run dev --workspace=@outclimb/form",
-    "dev:manager": "npm run dev --workspace=@outclimb/manager",
-    "format": "npm run format --workspaces",
-    "format:fix": "npm run format:fix --workspaces",
-    "lint": "npm run lint --workspaces",
-    "lint:fix": "npm run lint:fix --workspaces",
-    "preview": "npm run preview --workspaces",
-    "preview:manager": "npm run preview --workspace=@outclimb/manager"
+    "build": "pnpm run -r -F !@outclimb/root build",
+    "build:form": "pnpm run -r -F @outclimb/form build",
+    "build:manager": "pnpm run -r -F @outclimb/manager build",
+    "build:watch": "pnpm run -r -F !@outclimb/root build:watch",
+    "dev": "pnpm run -r -F !@outclimb/root dev",
+    "dev:form": "pnpm run -r -F @outclimb/form dev",
+    "dev:manager": "pnpm run -r -F @outclimb/manager dev",
+    "format": "pnpm run -r -F !@outclimb/root format",
+    "format:fix": "pnpm run -r -F !@outclimb/root format:fix",
+    "lint": "pnpm run -r -F !@outclimb/root lint",
+    "lint:fix": "pnpm run -r -F !@outclimb/root lint:fix",
+    "preinstall": "npx only-allow pnpm",
+    "preview": "pnpm run -r -F !@outclimb/root preview",
+    "preview:form": "pnpm run -r -F @outclimb/form preview",
+    "preview:manager": "pnpm run -r -F @outclimb/manager preview"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -42,7 +41,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "concurrently": "^9.2.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.6.0",
     "oxfmt": "^0.48.0",
@@ -60,5 +58,10 @@
     "*.go": [
       "gofmt -w"
     ]
-  }
+  },
+  "engines": {
+    "node": "24.16.0",
+    "pnpm": "11.5.1"
+  },
+  "packageManager": "pnpm@11.5.1"
 }

@@ -49,6 +49,6 @@ export interface SelfState {
   user: () => User | null
   hasPermission: (entity: string, level: number) => boolean
   isLoggedIn: () => boolean
-  login: (token: string) => boolean
+  login: (token: string) => void
   logout: () => void
 }

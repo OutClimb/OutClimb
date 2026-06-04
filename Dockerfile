@@ -24,7 +24,11 @@ FROM node:lts-alpine AS outclimb-local-fe-builder
 WORKDIR /app
 
 # Ensure all packages are up to date
-RUN apk -U upgrade
+RUN apk -U upgrade && apk add --no-cache libc6-compat
+
+# Install PNPM
+RUN corepack enable
+RUN corepack prepare pnpm@11.5.1 --activate
 
 ENTRYPOINT ["/app/fe-entrypoint.sh"]
 
@@ -46,11 +50,15 @@ COPY . /app
 WORKDIR /app
 
 # Ensure all packages are up to date
-RUN apk -U upgrade
+RUN apk -U upgrade && apk add --no-cache libc6-compat
+
+# Install PNPM
+RUN corepack enable
+RUN corepack prepare pnpm@11.5.1 --activate
 
 # Build the frontend
-RUN npm ci
-RUN npm run build
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
 
 FROM alpine:latest AS outclimb
 

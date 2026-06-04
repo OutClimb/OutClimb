@@ -174,3 +174,6 @@ jspm_packages/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+## PNPM
+.pnpm-store
