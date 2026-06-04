@@ -18,6 +18,8 @@
 package app
 
 import (
+	"time"
+
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
 	"github.com/OutClimb/OutClimb/internal/utils"
@@ -45,6 +47,7 @@ type AppLayer interface {
 	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
 	GetAllAssets() (*[]models.AssetInternal, error)
+	GetEventsForMonth(year int, month time.Month) (*models.EventFeedInternal, error)
 	GetAllEmails() (*[]models.EmailInternal, error)
 	GetAllForms() (*[]models.FormInternal, error)
 	GetAllLocations() (*[]models.LocationInternal, error)

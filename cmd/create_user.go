@@ -96,7 +96,7 @@ func runCreateUser(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	storeLayer := store.New(&config.Database, &config.Storage)
+	storeLayer := store.New(&config.Database, &config.Store, &config.Storage)
 
 	role, err := storeLayer.GetRoleWithName(createUserContext.role)
 	if err != nil {

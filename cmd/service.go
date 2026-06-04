@@ -73,7 +73,7 @@ func runService(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	storeLayer := store.New(&config.Database, &config.Storage)
+	storeLayer := store.New(&config.Database, &config.Store, &config.Storage)
 
 	storeLayer.Migrate()
 

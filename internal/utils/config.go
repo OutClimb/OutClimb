@@ -70,6 +70,10 @@ type JwtConfig struct {
 	SecretFile string `mapstructure:"OC_JWT_SECRET_FILE"`
 }
 
+type StoreConfig struct {
+	EventsRSSURL string `mapstructure:"OC_EVENTS_RSS_URL"`
+}
+
 type StorageConfig struct {
 	AccessKey     string `mapstructure:"OC_STORAGE_ACCESS_KEY"`
 	Bucket        string `mapstructure:"OC_STORAGE_BUCKET"`
@@ -84,6 +88,7 @@ type Config struct {
 	App      AppConfig      `mapstructure:",squash"`
 	Database DatabaseConfig `mapstructure:",squash"`
 	Http     HttpConfig     `mapstructure:",squash"`
+	Store    StoreConfig    `mapstructure:",squash"`
 	Storage  StorageConfig  `mapstructure:",squash"`
 }
 
