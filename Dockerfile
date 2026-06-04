@@ -57,7 +57,7 @@ RUN corepack enable
 RUN corepack prepare pnpm@11.5.1 --activate
 
 # Build the frontend
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
 FROM alpine:latest AS outclimb
