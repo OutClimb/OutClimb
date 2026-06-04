@@ -37,7 +37,7 @@ const useSelfStore = create<SelfState>()(
       },
       login: (token: string) => {
         const claims = jwtDecode<JwtClaims>(token)
-        return set({ token, claims })
+        set({ token, claims })
       },
       logout: () =>
         set({
