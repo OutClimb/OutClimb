@@ -168,7 +168,6 @@ func New(databaseConfig *utils.DatabaseConfig, storeConfig *utils.StoreConfig, s
 			"entity", "store",
 			"storageEndpoint", storageConfig.Endpoint,
 			"storageRegion", storageConfig.Region,
-			"storageAccessKey", storageConfig.AccessKey,
 		)
 		os.Exit(1)
 		return nil

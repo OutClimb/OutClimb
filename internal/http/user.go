@@ -71,7 +71,6 @@ func (h *httpLayer) createToken(c *gin.Context) {
 			"Unable to authenticate user",
 			"layer", "http",
 			"entity", "user",
-			"username", jsonMap["username"],
 			"error", err,
 		)
 		c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
