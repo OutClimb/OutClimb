@@ -34,13 +34,15 @@ func Permission(entity string) gin.HandlerFunc {
 			return
 		}
 
-		permission, ok := userClaim.Permissions[entity]
-		if c.Request.Method == "GET" && ok && permission == 0 {
+		permission := userClaim.Permissions[entity]
+		if c.Request.Method == "GET" && permission < 1 {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
-		} else if c.Request.Method != "GET" && ok && permission <= 1 {
+			return
+		} else if c.Request.Method != "GET" && permission < 2 {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
+			return
 		}
 
 		c.Next()
