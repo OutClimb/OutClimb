@@ -77,20 +77,20 @@ func (l *ipRateLimiter) get(ip string) *rate.Limiter {
 	return lim
 }
 
-func realIP(r *http.Request) string {
+func realIP(r *http.Request, behindProxy bool) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		host = r.RemoteAddr
 	}
 
-	if ip := r.Header.Get("X-Real-IP"); ip != "" {
-		return ip
-	}
-	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
-		if i := strings.IndexByte(fwd, ','); i >= 0 {
-			return strings.TrimSpace(fwd[:i])
+	if behindProxy {
+		if ip := r.Header.Get("X-Real-IP"); ip != "" {
+			return ip
 		}
-		return strings.TrimSpace(fwd)
+		if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+			first, _, _ := strings.Cut(fwd, ",")
+			return strings.TrimSpace(first)
+		}
 	}
 
 	return host
@@ -98,11 +98,13 @@ func realIP(r *http.Request) string {
 
 // RateLimit returns a middleware that allows at most count requests per window per IP.
 // Per-IP limiters are kept in an LRU capped at rateLimitMaxEntries to bound memory.
-func RateLimit(count int, window time.Duration) gin.HandlerFunc {
+// When trustedProxies is non-empty, X-Real-IP and X-Forwarded-For headers are trusted.
+func RateLimit(count int, window time.Duration, trustedProxies []string) gin.HandlerFunc {
 	limiter := newIPRateLimiter(count, window)
+	behindProxy := len(trustedProxies) > 0
 
 	return func(c *gin.Context) {
-		ip := realIP(c.Request)
+		ip := realIP(c.Request, behindProxy)
 		if !limiter.get(ip).Allow() {
 			log.Printf("Error: Rate limit exceeded for IP %s\n", ip)
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Too many requests"})

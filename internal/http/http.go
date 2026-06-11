@@ -131,7 +131,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			formRateLimitWindow = time.Minute
 		}
-		api.GET("/form/:slug", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow), middleware.OptionalAuth(h.config), h.getForm)
+		api.GET("/form/:slug", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.config.TrustedProxies), middleware.OptionalAuth(h.config), h.getForm)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {
@@ -142,7 +142,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			submissionRateLimitWindow = time.Minute
 		}
-		api.POST("/submission/:slug", middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow), h.createSubmission)
+		api.POST("/submission/:slug", middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createSubmission)
 
 		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
 		if err != nil {
@@ -153,7 +153,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			loginRateLimitWindow = time.Minute
 		}
-		api.POST("/token", middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow), h.createToken)
+		api.POST("/token", middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow, h.config.TrustedProxies), h.createToken)
 
 		api.PUT("/password", middleware.Auth(h.config, true), h.updatePassword)
 
