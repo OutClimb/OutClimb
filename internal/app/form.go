@@ -22,10 +22,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/mail"
-	"regexp"
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/dlclark/regexp2"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
@@ -135,7 +136,12 @@ func validateFieldValue(field store.FormField, val string) error {
 	}
 
 	if field.Validation != nil && len(val) > 0 {
-		matched, err := regexp.MatchString(*field.Validation, val)
+		re, err := regexp2.Compile(*field.Validation, 0)
+		if err != nil {
+			return ErrInvalidField
+		}
+		re.MatchTimeout = 100 * time.Millisecond
+		matched, err := re.MatchString(val)
 		if err != nil || !matched {
 			return ErrInvalidField
 		}
