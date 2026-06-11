@@ -50,6 +50,8 @@ func (a *appLayer) AuthenticateUser(username string, password string) (*models.U
 		return &models.UserInternal{}, err
 	} else if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return &models.UserInternal{}, errors.New("invalid password")
+	} else if user.Disabled {
+		return &models.UserInternal{}, errors.New("user disabled")
 	} else if role, err := a.store.GetRole(user.RoleId); err != nil {
 		return &models.UserInternal{}, err
 	} else if permissions, err := a.store.GetPermissionsWithRole(user.RoleId); err != nil {
