@@ -19,6 +19,7 @@ package http
 
 import (
 	"encoding/xml"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -29,12 +30,14 @@ import (
 func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 	month, err := time.Parse("2006-01", c.Param("month"))
 	if err != nil {
+		slog.Error("invalid month format", "param", c.Param("month"), "err", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid month format, expected YYYY-MM"})
 		return
 	}
 
 	feed, err := h.app.GetEventsForMonth(month.Year(), month.Month())
 	if err != nil {
+		slog.Error("Unable to fetch events", "err", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to fetch events"})
 		return
 	}
@@ -44,6 +47,7 @@ func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 
 	output, err := xml.MarshalIndent(resp, "", "  ")
 	if err != nil {
+		slog.Error("Failed to generate response", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate response"})
 		return
 	}
