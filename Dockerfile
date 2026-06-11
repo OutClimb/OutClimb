@@ -62,6 +62,8 @@ RUN pnpm run build
 
 FROM alpine:latest AS outclimb
 
+ENV OUTCLIMB_ENV="prod"
+
 WORKDIR /app
 
 # Ensure all packages are up to date
