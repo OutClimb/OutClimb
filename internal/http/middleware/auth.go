@@ -27,7 +27,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const JwtVersion = "2"
+const JwtVersion = "3"
 
 type JwtUserClaim struct {
 	ID                   uint            `json:"id"`
@@ -41,8 +41,7 @@ type JwtUserClaim struct {
 
 type JwtClaims struct {
 	jwt.RegisteredClaims
-	Audience string       `json:"aud"`
-	User     JwtUserClaim `json:"usr"`
+	User JwtUserClaim `json:"usr"`
 }
 
 func OptionalAuth(config *utils.HttpConfig) gin.HandlerFunc {
@@ -58,7 +57,7 @@ func OptionalAuth(config *utils.HttpConfig) gin.HandlerFunc {
 		})
 
 		if err == nil && token.Valid {
-			if claims, ok := token.Claims.(*JwtClaims); ok && claims.Audience == c.ClientIP() && claims.Issuer == config.Jwt.Issuer+"-"+JwtVersion && !claims.User.RequirePasswordReset {
+			if claims, ok := token.Claims.(*JwtClaims); ok && claims.Issuer == config.Jwt.Issuer+"-"+JwtVersion && !claims.User.RequirePasswordReset {
 				c.Set("user", claims.User)
 			}
 		}
@@ -92,7 +91,7 @@ func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 		} else if claims, ok := token.Claims.(*JwtClaims); !ok {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
-		} else if claims.Audience != c.ClientIP() || claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion || (claims.User.RequirePasswordReset && !resetAllowed) {
+		} else if claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion || (claims.User.RequirePasswordReset && !resetAllowed) {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else {

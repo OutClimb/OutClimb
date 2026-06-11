@@ -28,6 +28,7 @@ import (
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func (h *httpLayer) createToken(c *gin.Context) {
@@ -80,7 +81,7 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	userPublic := responses.UserPublic{}
 	userPublic.Publicize(user)
 
-	if token := CreateToken(user.ID, &userPublic, h.config.Jwt.Lifespan, c.ClientIP(), h.config.Jwt.Issuer, h.config.Jwt.Secret); token == "" {
+	if token := CreateToken(user.ID, &userPublic, h.config.Jwt.Lifespan, h.config.Jwt.Issuer, h.config.Jwt.Secret); token == "" {
 		c.JSON(http.StatusInternalServerError, responses.Error("Unable to create token"))
 		return
 	} else {
@@ -88,12 +89,12 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	}
 }
 
-func CreateToken(userId uint, user *responses.UserPublic, lifespan int, clientIp, issuer, secret string) string {
+func CreateToken(userId uint, user *responses.UserPublic, lifespan int, issuer, secret string) string {
 	// Create the Claims
 	claims := middleware.JwtClaims{}
+	claims.ID = uuid.New().String()
 	claims.Issuer = issuer + "-" + middleware.JwtVersion
 	claims.Subject = strconv.FormatUint(uint64(userId), 10)
-	claims.Audience = clientIp
 	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(lifespan)))
 	claims.NotBefore = jwt.NewNumericDate(time.Now())
 	claims.IssuedAt = jwt.NewNumericDate(time.Now())
