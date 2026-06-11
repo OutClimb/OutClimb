@@ -150,7 +150,13 @@ func validateFieldValue(field store.FormField, val string) error {
 	}
 
 	if field.Type == "checkboxes" && val != "" {
-		options := (*metadata).(map[string]interface{})
+		if metadata == nil || *metadata == nil {
+			return ErrInvalidField
+		}
+		options, ok := (*metadata).(map[string]interface{})
+		if !ok {
+			return ErrInvalidField
+		}
 		selectedOptions := strings.Split(val, ", ")
 		for _, selectedOption := range selectedOptions {
 			if _, ok := options[selectedOption]; !ok {
@@ -160,7 +166,13 @@ func validateFieldValue(field store.FormField, val string) error {
 	}
 
 	if (field.Type == "radios" || field.Type == "select") && val != "" {
-		options := (*metadata).(map[string]interface{})
+		if metadata == nil || *metadata == nil {
+			return ErrInvalidField
+		}
+		options, ok := (*metadata).(map[string]interface{})
+		if !ok {
+			return ErrInvalidField
+		}
 		if _, ok := options[val]; !ok {
 			return ErrInvalidField
 		}

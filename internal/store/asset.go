@@ -113,7 +113,7 @@ func (s *storeLayer) FindAsset(fileName string) (string, error) {
 			"endpoint", s.storageConfig.Endpoint,
 			"error", err,
 		)
-		panic(err)
+		return "", err
 	}
 	assetUrl.Host = s.storageConfig.Bucket + "." + assetUrl.Host
 	assetUrl.Path = path.Join(assetUrl.Path, s.storageConfig.Prefix, asset.Key)

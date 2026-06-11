@@ -50,6 +50,7 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 		engine: gin.New(),
 	}
 
+	h.engine.Use(gin.Recovery())
 	h.engine.Use(ginSlog.SetLogger())
 
 	if len(config.TrustedProxies) > 0 {
@@ -78,7 +79,8 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 					"entity", "http",
 					"error", err,
 				)
-				panic(err)
+				c.Status(http.StatusInternalServerError)
+				return
 			}
 
 			c.Data(http.StatusOK, "text/html", indexData)
