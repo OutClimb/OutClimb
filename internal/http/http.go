@@ -52,6 +52,7 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 
 	h.engine.Use(gin.Recovery())
 	h.engine.Use(ginSlog.SetLogger())
+	h.engine.Use(middleware.SecurityHeaders(config.BehindTLS))
 
 	if len(config.TrustedProxies) > 0 {
 		err := h.engine.SetTrustedProxies(config.TrustedProxies)

@@ -48,6 +48,7 @@ type DatabaseConfig struct {
 
 type HttpConfig struct {
 	AssetsDomain              string    `mapstructure:"OC_ASSETS_DOMAIN"`
+	BehindTLS                 bool      `mapstructure:"OC_BEHIND_TLS"`
 	DefaultRedirectURL        string    `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	FormRateLimit             int       `mapstructure:"OC_FORM_RATE_LIMIT"`
 	FormRateLimitWindow       string    `mapstructure:"OC_FORM_RATE_LIMIT_WINDOW"`
