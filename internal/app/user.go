@@ -90,6 +90,14 @@ func (a *appLayer) CreateUser(user *models.UserInternal, disabled bool, email, n
 		return &models.UserInternal{}, errors.New("internal server error")
 	}
 
+	permMap := make(map[string]uint, len(*permissions))
+	for _, p := range *permissions {
+		permMap[p.Entity] = uint(p.Level)
+	}
+	if err := assertActorCanGrantPermissions(user, permMap); err != nil {
+		return &models.UserInternal{}, err
+	}
+
 	if err := a.ValidatePassword(username, "", password); err != nil {
 		return &models.UserInternal{}, err
 	}
@@ -283,6 +291,14 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 			"error", err,
 		)
 		return &models.UserInternal{}, errors.New("internal server error")
+	}
+
+	permMap := make(map[string]uint, len(*permissions))
+	for _, p := range *permissions {
+		permMap[p.Entity] = uint(p.Level)
+	}
+	if err := assertActorCanGrantPermissions(user, permMap); err != nil {
+		return &models.UserInternal{}, err
 	}
 
 	currentUser, err := a.store.GetUser(id)
