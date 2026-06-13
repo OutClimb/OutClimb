@@ -55,17 +55,20 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
     setFormData({ id: initialAsset.id, fileName: initialAsset.fileName, contentType: '', data: '' })
   }
 
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return
-    const file = e.target.files[0]
-    const data = await readFileToBase64(file)
-    setFormData((prev) => ({
-      ...prev,
-      fileName: isEditing ? prev.fileName : file.name,
-      contentType: file.type,
-      data,
-    }))
-  }, [isEditing])
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files || e.target.files.length === 0) return
+      const file = e.target.files[0]
+      const data = await readFileToBase64(file)
+      setFormData((prev) => ({
+        ...prev,
+        fileName: isEditing ? prev.fileName : file.name,
+        contentType: file.type,
+        data,
+      }))
+    },
+    [isEditing],
+  )
 
   const handleFileNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, fileName: e.target.value }))
@@ -110,9 +113,7 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
             contentType: formData.contentType.trim(),
             data: formData.data.trim(),
           }
-          const asset = isEditing
-            ? await updateAsset(token || '', payload)
-            : await createAsset(token || '', payload)
+          const asset = isEditing ? await updateAsset(token || '', payload) : await createAsset(token || '', payload)
           populateSingle(asset)
           onOpenChange(false)
         } catch (error) {

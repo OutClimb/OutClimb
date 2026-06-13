@@ -63,7 +63,11 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
 
   if (
     !open &&
-    (formData.id !== 0 || formData.fromPath !== '' || formData.toUrl !== '' || formData.startsOn !== '' || formData.stopsOn !== '')
+    (formData.id !== 0 ||
+      formData.fromPath !== '' ||
+      formData.toUrl !== '' ||
+      formData.startsOn !== '' ||
+      formData.stopsOn !== '')
   ) {
     setFormData(emptyFormData)
     setFormError(emptyFormError)

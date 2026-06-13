@@ -140,9 +140,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
             order: orderNumber,
             permissions: formData.permissions,
           }
-          const role = isEditing
-            ? await updateRole(token || '', payload)
-            : await createRole(token || '', payload)
+          const role = isEditing ? await updateRole(token || '', payload) : await createRole(token || '', payload)
           populateSingle(role)
           onOpenChange(false)
         } catch (error) {
