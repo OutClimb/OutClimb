@@ -49,7 +49,6 @@ func (h *httpLayer) createAsset(c *gin.Context) {
 	}
 
 	// Get the body data
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, h.config.MaxUploadSize)
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
@@ -138,7 +137,6 @@ func (h *httpLayer) updateAsset(c *gin.Context) {
 	}
 
 	// Get the body data
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, h.config.MaxUploadSize)
 	bodyAsByteArray, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})

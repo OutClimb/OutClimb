@@ -144,7 +144,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			submissionRateLimitWindow = time.Minute
 		}
-		api.POST("/submission/:slug", middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createSubmission)
+		api.POST("/submission/:slug", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createSubmission)
 
 		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
 		if err != nil {
@@ -155,20 +155,20 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			loginRateLimitWindow = time.Minute
 		}
-		api.POST("/token", middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow, h.config.TrustedProxies), h.createToken)
+		api.POST("/token", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow, h.config.TrustedProxies), h.createToken)
 
-		api.PUT("/password", middleware.Auth(h.config, true), h.updatePassword)
+		api.PUT("/password", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.Auth(h.config, true), h.updatePassword)
 
 		assetApi := api.Group("/asset").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("asset"))
 		{
 			assetApi.GET("", h.getAssets)
 			assetApi.GET("/:id", h.getAsset)
-			assetApi.POST("", h.createAsset)
-			assetApi.PUT("/:id", h.updateAsset)
+			assetApi.POST("", middleware.RequestBodyLimit(h.config.MaxUploadSize), h.createAsset)
+			assetApi.PUT("/:id", middleware.RequestBodyLimit(h.config.MaxUploadSize), h.updateAsset)
 			assetApi.DELETE("/:id", h.deleteAsset)
 		}
 
-		redirectApi := api.Group("/redirect").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("redirect"))
+		redirectApi := api.Group("/redirect").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("redirect"))
 		{
 			redirectApi.GET("", h.getRedirects)
 			redirectApi.GET("/:id", h.getRedirect)
@@ -177,7 +177,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			redirectApi.DELETE("/:id", h.deleteRedirect)
 		}
 
-		locationApi := api.Group("/location").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("location"))
+		locationApi := api.Group("/location").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("location"))
 		{
 			locationApi.GET("", h.getLocations)
 			locationApi.GET("/:id", h.getLocation)
@@ -186,7 +186,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			locationApi.DELETE("/:id", h.deleteLocation)
 		}
 
-		userApi := api.Group("/user").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("user"))
+		userApi := api.Group("/user").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("user"))
 		{
 			userApi.GET("", h.getUsers)
 			userApi.GET("/:id", h.getUser)
@@ -195,7 +195,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			userApi.DELETE("/:id", h.deleteUser)
 		}
 
-		roleApi := api.Group("/role").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("role"))
+		roleApi := api.Group("/role").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("role"))
 		{
 			roleApi.GET("", h.getRoles)
 			roleApi.GET("/:id", h.getRole)
@@ -204,7 +204,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			roleApi.DELETE("/:id", h.deleteRole)
 		}
 
-		authFormApi := api.Group("/").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("form"))
+		authFormApi := api.Group("/").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("form"))
 		{
 			authFormApi.GET("/form", h.getForms)
 			authFormApi.POST("/form", h.createForm)
@@ -214,7 +214,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			authFormApi.DELETE("/submission/:id", h.deleteSubmission)
 		}
 
-		emailApi := api.Group("/email").Use(middleware.Auth(h.config, false)).Use(middleware.Permission("email"))
+		emailApi := api.Group("/email").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false)).Use(middleware.Permission("email"))
 		{
 			emailApi.GET("", h.getEmails)
 			emailApi.GET("/:id", h.getEmail)

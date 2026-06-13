@@ -55,6 +55,7 @@ type HttpConfig struct {
 	ListeningAddress          string    `mapstructure:"OC_LISTENING_ADDRESS"`
 	LoginRateLimit            int       `mapstructure:"OC_LOGIN_RATE_LIMIT"`
 	LoginRateLimitWindow      string    `mapstructure:"OC_LOGIN_RATE_LIMIT_WINDOW"`
+	MaxJsonBodySize           int64     `mapstructure:"OC_MAX_JSON_BODY_SIZE"`
 	MaxUploadSize             int64     `mapstructure:"OC_MAX_UPLOAD_SIZE"`
 	RedirectDomain            string    `mapstructure:"OC_REDIRECT_DOMAIN"`
 	RegisterDomain            string    `mapstructure:"OC_REGISTER_DOMAIN"`
