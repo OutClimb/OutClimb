@@ -30,7 +30,6 @@ type EventInternal struct {
 	ContentEncoded string
 	MediaURL       string
 	MediaType      string
-	PubDate        string
 	EventDate      time.Time
 	GUID           string
 }
@@ -42,7 +41,6 @@ func (e *EventInternal) Internalize(event *store.Event) {
 	e.ContentEncoded = event.ContentEncoded
 	e.MediaURL = event.MediaURL
 	e.MediaType = event.MediaType
-	e.PubDate = event.PubDate
 	e.EventDate = event.EventDate
 	e.GUID = event.GUID
 }

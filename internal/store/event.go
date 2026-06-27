@@ -34,7 +34,6 @@ type Event struct {
 	ContentEncoded string
 	MediaURL       string
 	MediaType      string
-	PubDate        string
 	EventDate      time.Time
 	GUID           string
 }
@@ -67,7 +66,6 @@ type rssItem struct {
 	Title          string          `xml:"title"`
 	Link           string          `xml:"link"`
 	Description    string          `xml:"description"`
-	PubDate        string          `xml:"pubDate"`
 	GUID           string          `xml:"guid"`
 	ContentEncoded string          `xml:"http://purl.org/rss/1.0/modules/content/ encoded"`
 	MediaContent   rssMediaContent `xml:"http://www.rssboard.org/media-rss content"`
@@ -118,7 +116,6 @@ func (s *storeLayer) GetAllEvents() (*EventFeed, error) {
 			ContentEncoded: item.ContentEncoded,
 			MediaURL:       item.MediaContent.URL,
 			MediaType:      item.MediaContent.Type,
-			PubDate:        item.PubDate,
 			EventDate:      eventDate,
 			GUID:           item.GUID,
 		})

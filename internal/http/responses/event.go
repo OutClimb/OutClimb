@@ -19,6 +19,7 @@ package responses
 
 import (
 	"encoding/xml"
+	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
 )
@@ -67,7 +68,7 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 			Title:       event.Title,
 			Link:        event.Link,
 			Description: event.Description,
-			PubDate:     event.PubDate,
+			PubDate:     event.EventDate.Format(time.RFC1123Z),
 			GUID:        event.GUID,
 		}
 		if event.ContentEncoded != "" {
