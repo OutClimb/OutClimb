@@ -10,67 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ManageIndexRouteImport } from './routes/manage_/index'
-import { Route as ManageUsersRouteImport } from './routes/manage_/users'
-import { Route as ManageRolesRouteImport } from './routes/manage_/roles'
-import { Route as ManageResetRouteImport } from './routes/manage_/reset'
-import { Route as ManageRedirectRouteImport } from './routes/manage_/redirect'
-import { Route as ManageLoginRouteImport } from './routes/manage_/login'
-import { Route as ManageLocationRouteImport } from './routes/manage_/location'
-import { Route as ManageFormRouteImport } from './routes/manage_/form'
-import { Route as ManageEmailRouteImport } from './routes/manage_/email'
 import { Route as ManageAssetRouteImport } from './routes/manage_/asset'
-import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/social-images/index'
-import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
-import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
-import { Route as ManageFormCreateRouteImport } from './routes/manage_/form_/create'
+import { Route as ManageEmailRouteImport } from './routes/manage_/email'
+import { Route as ManageFormRouteImport } from './routes/manage_/form'
+import { Route as ManageLocationRouteImport } from './routes/manage_/location'
+import { Route as ManageLoginRouteImport } from './routes/manage_/login'
+import { Route as ManageRedirectRouteImport } from './routes/manage_/redirect'
+import { Route as ManageResetRouteImport } from './routes/manage_/reset'
+import { Route as ManageRolesRouteImport } from './routes/manage_/roles'
+import { Route as ManageUsersRouteImport } from './routes/manage_/users'
 import { Route as ManageEmailCreateRouteImport } from './routes/manage_/email_/create'
-import { Route as ManageFormIdSubmissionsRouteImport } from './routes/manage_/form_/$id/submissions'
-import { Route as ManageFormIdEditRouteImport } from './routes/manage_/form_/$id/edit'
+import { Route as ManageFormCreateRouteImport } from './routes/manage_/form_/create'
+import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/social-images/index'
+import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
+import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
 import { Route as ManageEmailIdEditRouteImport } from './routes/manage_/email_/$id/edit'
+import { Route as ManageFormIdEditRouteImport } from './routes/manage_/form_/$id/edit'
+import { Route as ManageFormIdSubmissionsRouteImport } from './routes/manage_/form_/$id/submissions'
 
 const ManageIndexRoute = ManageIndexRouteImport.update({
   id: '/manage_/',
   path: '/manage/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageUsersRoute = ManageUsersRouteImport.update({
-  id: '/manage_/users',
-  path: '/manage/users',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageRolesRoute = ManageRolesRouteImport.update({
-  id: '/manage_/roles',
-  path: '/manage/roles',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageResetRoute = ManageResetRouteImport.update({
-  id: '/manage_/reset',
-  path: '/manage/reset',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageRedirectRoute = ManageRedirectRouteImport.update({
-  id: '/manage_/redirect',
-  path: '/manage/redirect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageLoginRoute = ManageLoginRouteImport.update({
-  id: '/manage_/login',
-  path: '/manage/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageLocationRoute = ManageLocationRouteImport.update({
-  id: '/manage_/location',
-  path: '/manage/location',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageFormRoute = ManageFormRouteImport.update({
-  id: '/manage_/form',
-  path: '/manage/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageEmailRoute = ManageEmailRouteImport.update({
-  id: '/manage_/email',
-  path: '/manage/email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageAssetRoute = ManageAssetRouteImport.update({
@@ -78,26 +38,44 @@ const ManageAssetRoute = ManageAssetRouteImport.update({
   path: '/manage/asset',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageSocialImagesIndexRoute = ManageSocialImagesIndexRouteImport.update({
-  id: '/manage_/social-images/',
-  path: '/manage/social-images/',
+const ManageEmailRoute = ManageEmailRouteImport.update({
+  id: '/manage_/email',
+  path: '/manage/email',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageSocialImagesQtbipocRoute =
-  ManageSocialImagesQtbipocRouteImport.update({
-    id: '/manage_/social-images/qtbipoc',
-    path: '/manage/social-images/qtbipoc',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ManageSocialImagesMonthlyRoute =
-  ManageSocialImagesMonthlyRouteImport.update({
-    id: '/manage_/social-images/monthly',
-    path: '/manage/social-images/monthly',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ManageFormCreateRoute = ManageFormCreateRouteImport.update({
-  id: '/manage_/form_/create',
-  path: '/manage/form/create',
+const ManageFormRoute = ManageFormRouteImport.update({
+  id: '/manage_/form',
+  path: '/manage/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageLocationRoute = ManageLocationRouteImport.update({
+  id: '/manage_/location',
+  path: '/manage/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageLoginRoute = ManageLoginRouteImport.update({
+  id: '/manage_/login',
+  path: '/manage/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageRedirectRoute = ManageRedirectRouteImport.update({
+  id: '/manage_/redirect',
+  path: '/manage/redirect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageResetRoute = ManageResetRouteImport.update({
+  id: '/manage_/reset',
+  path: '/manage/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageRolesRoute = ManageRolesRouteImport.update({
+  id: '/manage_/roles',
+  path: '/manage/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageUsersRoute = ManageUsersRouteImport.update({
+  id: '/manage_/users',
+  path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageEmailCreateRoute = ManageEmailCreateRouteImport.update({
@@ -105,9 +83,31 @@ const ManageEmailCreateRoute = ManageEmailCreateRouteImport.update({
   path: '/manage/email/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageFormIdSubmissionsRoute = ManageFormIdSubmissionsRouteImport.update({
-  id: '/manage_/form_/$id/submissions',
-  path: '/manage/form/$id/submissions',
+const ManageFormCreateRoute = ManageFormCreateRouteImport.update({
+  id: '/manage_/form_/create',
+  path: '/manage/form/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageSocialImagesIndexRoute = ManageSocialImagesIndexRouteImport.update({
+  id: '/manage_/social-images/',
+  path: '/manage/social-images/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageSocialImagesMonthlyRoute =
+  ManageSocialImagesMonthlyRouteImport.update({
+    id: '/manage_/social-images/monthly',
+    path: '/manage/social-images/monthly',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ManageSocialImagesQtbipocRoute =
+  ManageSocialImagesQtbipocRouteImport.update({
+    id: '/manage_/social-images/qtbipoc',
+    path: '/manage/social-images/qtbipoc',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ManageEmailIdEditRoute = ManageEmailIdEditRouteImport.update({
+  id: '/manage_/email_/$id/edit',
+  path: '/manage/email/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
@@ -115,9 +115,9 @@ const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
   path: '/manage/form/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ManageEmailIdEditRoute = ManageEmailIdEditRouteImport.update({
-  id: '/manage_/email_/$id/edit',
-  path: '/manage/email/$id/edit',
+const ManageFormIdSubmissionsRoute = ManageFormIdSubmissionsRouteImport.update({
+  id: '/manage_/form_/$id/submissions',
+  path: '/manage/form/$id/submissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -275,53 +275,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/users': {
-      id: '/manage_/users'
-      path: '/manage/users'
-      fullPath: '/manage/users'
-      preLoaderRoute: typeof ManageUsersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/roles': {
-      id: '/manage_/roles'
-      path: '/manage/roles'
-      fullPath: '/manage/roles'
-      preLoaderRoute: typeof ManageRolesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/reset': {
-      id: '/manage_/reset'
-      path: '/manage/reset'
-      fullPath: '/manage/reset'
-      preLoaderRoute: typeof ManageResetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/redirect': {
-      id: '/manage_/redirect'
-      path: '/manage/redirect'
-      fullPath: '/manage/redirect'
-      preLoaderRoute: typeof ManageRedirectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/login': {
-      id: '/manage_/login'
-      path: '/manage/login'
-      fullPath: '/manage/login'
-      preLoaderRoute: typeof ManageLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/location': {
-      id: '/manage_/location'
-      path: '/manage/location'
-      fullPath: '/manage/location'
-      preLoaderRoute: typeof ManageLocationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/form': {
-      id: '/manage_/form'
-      path: '/manage/form'
-      fullPath: '/manage/form'
-      preLoaderRoute: typeof ManageFormRouteImport
+    '/manage_/asset': {
+      id: '/manage_/asset'
+      path: '/manage/asset'
+      fullPath: '/manage/asset'
+      preLoaderRoute: typeof ManageAssetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage_/email': {
@@ -331,39 +289,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/asset': {
-      id: '/manage_/asset'
-      path: '/manage/asset'
-      fullPath: '/manage/asset'
-      preLoaderRoute: typeof ManageAssetRouteImport
+    '/manage_/form': {
+      id: '/manage_/form'
+      path: '/manage/form'
+      fullPath: '/manage/form'
+      preLoaderRoute: typeof ManageFormRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/social-images/': {
-      id: '/manage_/social-images/'
-      path: '/manage/social-images'
-      fullPath: '/manage/social-images/'
-      preLoaderRoute: typeof ManageSocialImagesIndexRouteImport
+    '/manage_/location': {
+      id: '/manage_/location'
+      path: '/manage/location'
+      fullPath: '/manage/location'
+      preLoaderRoute: typeof ManageLocationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/social-images/qtbipoc': {
-      id: '/manage_/social-images/qtbipoc'
-      path: '/manage/social-images/qtbipoc'
-      fullPath: '/manage/social-images/qtbipoc'
-      preLoaderRoute: typeof ManageSocialImagesQtbipocRouteImport
+    '/manage_/login': {
+      id: '/manage_/login'
+      path: '/manage/login'
+      fullPath: '/manage/login'
+      preLoaderRoute: typeof ManageLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/social-images/monthly': {
-      id: '/manage_/social-images/monthly'
-      path: '/manage/social-images/monthly'
-      fullPath: '/manage/social-images/monthly'
-      preLoaderRoute: typeof ManageSocialImagesMonthlyRouteImport
+    '/manage_/redirect': {
+      id: '/manage_/redirect'
+      path: '/manage/redirect'
+      fullPath: '/manage/redirect'
+      preLoaderRoute: typeof ManageRedirectRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/form_/create': {
-      id: '/manage_/form_/create'
-      path: '/manage/form/create'
-      fullPath: '/manage/form/create'
-      preLoaderRoute: typeof ManageFormCreateRouteImport
+    '/manage_/reset': {
+      id: '/manage_/reset'
+      path: '/manage/reset'
+      fullPath: '/manage/reset'
+      preLoaderRoute: typeof ManageResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/roles': {
+      id: '/manage_/roles'
+      path: '/manage/roles'
+      fullPath: '/manage/roles'
+      preLoaderRoute: typeof ManageRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/users': {
+      id: '/manage_/users'
+      path: '/manage/users'
+      fullPath: '/manage/users'
+      preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage_/email_/create': {
@@ -373,11 +345,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageEmailCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/form_/$id/submissions': {
-      id: '/manage_/form_/$id/submissions'
-      path: '/manage/form/$id/submissions'
-      fullPath: '/manage/form/$id/submissions'
-      preLoaderRoute: typeof ManageFormIdSubmissionsRouteImport
+    '/manage_/form_/create': {
+      id: '/manage_/form_/create'
+      path: '/manage/form/create'
+      fullPath: '/manage/form/create'
+      preLoaderRoute: typeof ManageFormCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/social-images/': {
+      id: '/manage_/social-images/'
+      path: '/manage/social-images'
+      fullPath: '/manage/social-images/'
+      preLoaderRoute: typeof ManageSocialImagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/social-images/monthly': {
+      id: '/manage_/social-images/monthly'
+      path: '/manage/social-images/monthly'
+      fullPath: '/manage/social-images/monthly'
+      preLoaderRoute: typeof ManageSocialImagesMonthlyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/social-images/qtbipoc': {
+      id: '/manage_/social-images/qtbipoc'
+      path: '/manage/social-images/qtbipoc'
+      fullPath: '/manage/social-images/qtbipoc'
+      preLoaderRoute: typeof ManageSocialImagesQtbipocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/email_/$id/edit': {
+      id: '/manage_/email_/$id/edit'
+      path: '/manage/email/$id/edit'
+      fullPath: '/manage/email/$id/edit'
+      preLoaderRoute: typeof ManageEmailIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage_/form_/$id/edit': {
@@ -387,11 +387,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageFormIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manage_/email_/$id/edit': {
-      id: '/manage_/email_/$id/edit'
-      path: '/manage/email/$id/edit'
-      fullPath: '/manage/email/$id/edit'
-      preLoaderRoute: typeof ManageEmailIdEditRouteImport
+    '/manage_/form_/$id/submissions': {
+      id: '/manage_/form_/$id/submissions'
+      path: '/manage/form/$id/submissions'
+      fullPath: '/manage/form/$id/submissions'
+      preLoaderRoute: typeof ManageFormIdSubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
