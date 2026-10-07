@@ -1,22 +1,20 @@
-'use client'
-
-import * as React from 'react'
-import { buttonVariants } from './buttonVariants'
-import { cn } from '@/lib/utils'
-import { Slot } from 'radix-ui'
-import { type VariantProps } from 'class-variance-authority'
+import * as React from "react"
+import { buttonVariants } from "./buttonVariants"
+import { type VariantProps } from "class-variance-authority"
+import { cn } from "cn"
+import { Slot } from "radix-ui"
 
 function Button({
   className,
-  variant = 'default',
-  size = 'default',
+  variant = "default",
+  size = "default",
   asChild = false,
   ...props
-}: React.ComponentProps<'button'> &
+}: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? Slot.Root : 'button'
+  const Comp = asChild ? Slot.Root : "button"
 
   return (
     <Comp
