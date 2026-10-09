@@ -25,6 +25,7 @@ const FIELD_TYPES = [
 ] as const
 
 const TYPES_WITH_OPTIONS = new Set(['checkboxes', 'radios', 'select'])
+const TYPES_WITH_PLACEHOLDER = new Set(['text-input', 'text-area', 'select'])
 
 function slugify(name: string): string {
   return name
@@ -39,24 +40,32 @@ function fieldTypeLabel(type: string): string {
   return FIELD_TYPES.find((t) => t.value === type)?.label ?? type
 }
 
-function getOptions(metadata: string | null): string[] {
-  if (!metadata) return []
+function parseMetadata(metadata: string | null): { options: string[]; placeholder: string } {
+  if (!metadata) return { options: [], placeholder: '' }
   try {
     const meta = JSON.parse(metadata)
-    return Array.isArray(meta.options) ? (meta.options as string[]) : []
+    return {
+      options: Array.isArray(meta?.options) ? (meta.options as string[]) : [],
+      placeholder: typeof meta?.placeholder === 'string' ? meta.placeholder : '',
+    }
   } catch {
-    return []
+    return { options: [], placeholder: '' }
   }
 }
 
-function buildMetadata(type: string, options: string): string | null {
-  if (!TYPES_WITH_OPTIONS.has(type)) return null
-  const optionList = options
-    .split('\n')
-    .map((o) => o.trim())
-    .filter(Boolean)
-  if (!optionList.length) return null
-  return JSON.stringify({ options: optionList })
+function buildMetadata(type: string, options: string, placeholder: string): string | null {
+  const meta: { options?: string[]; placeholder?: string } = {}
+  if (TYPES_WITH_OPTIONS.has(type)) {
+    const optionList = options
+      .split('\n')
+      .map((o) => o.trim())
+      .filter(Boolean)
+    if (optionList.length) meta.options = optionList
+  }
+  if (TYPES_WITH_PLACEHOLDER.has(type) && placeholder.trim()) {
+    meta.placeholder = placeholder.trim()
+  }
+  return Object.keys(meta).length ? JSON.stringify(meta) : null
 }
 
 interface DialogState {
@@ -67,6 +76,7 @@ interface DialogState {
   required: boolean
   validation: string
   options: string
+  placeholder: string
 }
 
 interface DialogErrors {
@@ -83,6 +93,7 @@ const emptyDialog: DialogState = {
   required: false,
   validation: '',
   options: '',
+  placeholder: '',
 }
 
 const emptyErrors: DialogErrors = { name: '', slug: '', options: '' }
@@ -135,6 +146,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   const openEdit = useCallback(
     (index: number) => {
       const f = fields[index]
+      const meta = parseMetadata(f.metadata)
       setEditingIndex(index)
       setDialog({
         name: f.name,
@@ -143,7 +155,8 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
         type: f.type,
         required: f.required,
         validation: f.validation ?? '',
-        options: getOptions(f.metadata).join('\n'),
+        options: meta.options.join('\n'),
+        placeholder: meta.placeholder,
       })
       setErrors(emptyErrors)
       setDialogOpen(true)
@@ -175,6 +188,10 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
   const handleOptionsChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDialog((prev) => ({ ...prev, options: e.target.value }))
+  }, [])
+
+  const handlePlaceholderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDialog((prev) => ({ ...prev, placeholder: e.target.value }))
   }, [])
 
   const handleSave = useCallback(() => {
@@ -218,7 +235,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       type: dialog.type,
       required: dialog.required,
       validation: dialog.validation.trim() || null,
-      metadata: buildMetadata(dialog.type, dialog.options),
+      metadata: buildMetadata(dialog.type, dialog.options, dialog.placeholder),
       order: editingIndex !== null ? fields[editingIndex].order : fields.length,
     }
 
@@ -357,6 +374,19 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                     aria-invalid={!!errors.options}
                   />
                   {errors.options && <FieldError>{errors.options}</FieldError>}
+                </Field>
+              )}
+
+              {TYPES_WITH_PLACEHOLDER.has(dialog.type) && (
+                <Field>
+                  <FieldLabel htmlFor="field-placeholder">Placeholder</FieldLabel>
+                  <FieldDescription>Leave blank for no placeholder</FieldDescription>
+                  <Input
+                    id="field-placeholder"
+                    value={dialog.placeholder}
+                    onChange={handlePlaceholderChange}
+                    placeholder={dialog.type === 'select' ? 'Select an option' : 'e.g. Emily Oak'}
+                  />
                 </Field>
               )}
 
