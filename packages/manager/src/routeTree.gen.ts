@@ -25,6 +25,7 @@ import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/so
 import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
 import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
 import { Route as ManageEmailIdEditRouteImport } from './routes/manage_/email_/$id/edit'
+import { Route as ManageFormIdDuplicateRouteImport } from './routes/manage_/form_/$id/duplicate'
 import { Route as ManageFormIdEditRouteImport } from './routes/manage_/form_/$id/edit'
 import { Route as ManageFormIdSubmissionsRouteImport } from './routes/manage_/form_/$id/submissions'
 
@@ -110,6 +111,11 @@ const ManageEmailIdEditRoute = ManageEmailIdEditRouteImport.update({
   path: '/manage/email/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageFormIdDuplicateRoute = ManageFormIdDuplicateRouteImport.update({
+  id: '/manage_/form_/$id/duplicate',
+  path: '/manage/form/$id/duplicate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
   id: '/manage_/form_/$id/edit',
   path: '/manage/form/$id/edit',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/manage/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage/social-images/': typeof ManageSocialImagesIndexRoute
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
+  '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
   '/manage/form/$id/submissions': typeof ManageFormIdSubmissionsRoute
 }
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/manage/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage/social-images': typeof ManageSocialImagesIndexRoute
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
+  '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
   '/manage/form/$id/submissions': typeof ManageFormIdSubmissionsRoute
 }
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/manage_/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage_/social-images/': typeof ManageSocialImagesIndexRoute
   '/manage_/email_/$id/edit': typeof ManageEmailIdEditRoute
+  '/manage_/form_/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage_/form_/$id/edit': typeof ManageFormIdEditRoute
   '/manage_/form_/$id/submissions': typeof ManageFormIdSubmissionsRoute
 }
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/manage/social-images/qtbipoc'
     | '/manage/social-images/'
     | '/manage/email/$id/edit'
+    | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
     | '/manage/form/$id/submissions'
   fileRoutesByTo: FileRoutesByTo
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/manage/social-images/qtbipoc'
     | '/manage/social-images'
     | '/manage/email/$id/edit'
+    | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
     | '/manage/form/$id/submissions'
   id:
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/manage_/social-images/qtbipoc'
     | '/manage_/social-images/'
     | '/manage_/email_/$id/edit'
+    | '/manage_/form_/$id/duplicate'
     | '/manage_/form_/$id/edit'
     | '/manage_/form_/$id/submissions'
   fileRoutesById: FileRoutesById
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   ManageSocialImagesQtbipocRoute: typeof ManageSocialImagesQtbipocRoute
   ManageSocialImagesIndexRoute: typeof ManageSocialImagesIndexRoute
   ManageEmailIdEditRoute: typeof ManageEmailIdEditRoute
+  ManageFormIdDuplicateRoute: typeof ManageFormIdDuplicateRoute
   ManageFormIdEditRoute: typeof ManageFormIdEditRoute
   ManageFormIdSubmissionsRoute: typeof ManageFormIdSubmissionsRoute
 }
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageEmailIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage_/form_/$id/duplicate': {
+      id: '/manage_/form_/$id/duplicate'
+      path: '/manage/form/$id/duplicate'
+      fullPath: '/manage/form/$id/duplicate'
+      preLoaderRoute: typeof ManageFormIdDuplicateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage_/form_/$id/edit': {
       id: '/manage_/form_/$id/edit'
       path: '/manage/form/$id/edit'
@@ -414,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageSocialImagesQtbipocRoute: ManageSocialImagesQtbipocRoute,
   ManageSocialImagesIndexRoute: ManageSocialImagesIndexRoute,
   ManageEmailIdEditRoute: ManageEmailIdEditRoute,
+  ManageFormIdDuplicateRoute: ManageFormIdDuplicateRoute,
   ManageFormIdEditRoute: ManageFormIdEditRoute,
   ManageFormIdSubmissionsRoute: ManageFormIdSubmissionsRoute,
 }

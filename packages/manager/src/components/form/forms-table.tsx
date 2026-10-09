@@ -54,6 +54,11 @@ export function FormsTable({
                         Edit
                       </Link>
                     </Button>
+                    <Button asChild variant="secondary">
+                      <Link to="/manage/form/$id/duplicate" params={{ id: item.slug }}>
+                        Duplicate
+                      </Link>
+                    </Button>
                     <Button variant="destructive" onClick={handleDelete(item.id)}>
                       Delete
                     </Button>
