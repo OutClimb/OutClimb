@@ -9,27 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as FormSlugRouteImport } from './routes/form_/$slug'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const FormSlugRoute = FormSlugRouteImport.update({
+  id: '/form_/$slug',
+  path: '/form/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+export interface FileRoutesByFullPath {
+  '/form/$slug': typeof FormSlugRoute
+}
+export interface FileRoutesByTo {
+  '/form/$slug': typeof FormSlugRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/form_/$slug': typeof FormSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '/form/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/form/$slug'
+  id: '__root__' | '/form_/$slug'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  FormSlugRoute: typeof FormSlugRoute
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/form_/$slug': {
+      id: '/form_/$slug'
+      path: '/form/$slug'
+      fullPath: '/form/$slug'
+      preLoaderRoute: typeof FormSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
+}
+
+const rootRouteChildren: RootRouteChildren = {
+  FormSlugRoute: FormSlugRoute,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()

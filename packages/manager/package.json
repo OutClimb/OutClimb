@@ -22,7 +22,8 @@
     "format:fix": "oxfmt ./src",
     "lint": "oxlint ./src",
     "lint:fix": "oxlint --fix ./src",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.2.7",

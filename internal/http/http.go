@@ -88,6 +88,23 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 			return
 		}
 
+		if strings.HasPrefix(c.Request.URL.Path, "/form/") && c.Request.Host == config.RegisterDomain {
+			indexData, err := os.ReadFile("./web/form/index.html")
+			if err != nil {
+				slog.Error(
+					"Unable to read form index file",
+					"layer", "http",
+					"entity", "http",
+					"error", err,
+				)
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+
+			c.Data(http.StatusOK, "text/html", indexData)
+			return
+		}
+
 		c.Redirect(http.StatusTemporaryRedirect, config.DefaultRedirectURL)
 	})
 
