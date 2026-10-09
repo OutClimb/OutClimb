@@ -68,7 +68,9 @@ function EditForm() {
 
   return (
     <>
-      <Header backTo="/manage/form">Edit Form</Header>
+      <Header isLoading={isLoading} backTo="/manage/form">
+        Edit Form
+      </Header>
 
       <Content>
         {isLoading && (

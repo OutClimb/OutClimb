@@ -1,6 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
+import { Pencil, Trash2 } from 'lucide-react'
 import type { Location } from '@/types/location'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -36,7 +38,11 @@ export function LocationsTable({
             <TableHead>Address</TableHead>
             <TableHead>Normal Start Time</TableHead>
             <TableHead>Normal End Time</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,14 +54,17 @@ export function LocationsTable({
               <TableCell>{item.endTime}</TableCell>
               {canEdit && (
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={handleEdit(item.id)}>
+                  <RowActions label={item.name}>
+                    <DropdownMenuItem onSelect={handleEdit(item.id)}>
+                      <Pencil />
                       Edit
-                    </Button>
-                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
+                      <Trash2 />
                       Delete
-                    </Button>
-                  </div>
+                    </DropdownMenuItem>
+                  </RowActions>
                 </TableCell>
               )}
             </TableRow>

@@ -78,6 +78,7 @@ function Redirects() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('redirect', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>

@@ -3,13 +3,14 @@
 import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { CalendarIcon, MapPin } from 'lucide-react'
-import { Card, CardFooter } from '@/components/ui/card'
+import { CalendarIcon, Download, MapPin } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Content } from '@/components/content'
+import { FormActions } from '@/components/form-actions'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchLocations } from '@/api/location'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { format } from 'date-fns'
 import { Header } from '@/components/header'
 import { Input } from '@/components/ui/input'
@@ -142,94 +143,98 @@ function QTBIPOC() {
 
   return (
     <>
-      <Header backTo="/manage/social-images">QTBIPOC Event Image</Header>
+      <Header isLoading={isLoading || isGenerating} backTo="/manage/social-images">
+        QTBIPOC Event Image
+      </Header>
 
       <Content>
-        <Card>
-          {isLoading && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Spinner />
-                </EmptyMedia>
-                <EmptyTitle>Loading locations...</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+        {(isLoading || isEmpty()) && (
+          <Card className="p-0">
+            {isLoading && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Spinner />
+                  </EmptyMedia>
+                  <EmptyTitle>Loading locations...</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
 
-          {!isLoading && isEmpty() && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <MapPin />
-                </EmptyMedia>
-                <EmptyTitle>No event locations added yet, please add some before generating social images.</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
+            {!isLoading && isEmpty() && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <MapPin />
+                  </EmptyMedia>
+                  <EmptyTitle>No event locations added yet</EmptyTitle>
+                  <EmptyDescription>Add some event locations before generating social images.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </Card>
+        )}
 
-          {!isLoading && !isEmpty() && (
-            <>
-              <div className="px-4">
-                <h3 className="border-b font-bold text-lg mb-3">When</h3>
-
-                <div className="mb-4">
+        {!isLoading && !isEmpty() && (
+          <div className="flex flex-col gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>When</CardTitle>
+                <CardDescription>The date and time of the event</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
+                  <div className="grid gap-5 sm:grid-cols-3">
+                    <Field>
+                      <FieldLabel>Date</FieldLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            data-empty={!formData.day}
+                            disabled={isGenerating}
+                            className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground">
+                            <CalendarIcon />
+                            {formData.day ? format(formData.day, 'PPP') : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            timeZone="America/Chicago"
+                            selected={formData.day}
+                            onSelect={handleDayChange}
+                            defaultMonth={formData.day}
+                            required
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </Field>
+                    <Field>
+                      <FieldLabel>Start Time</FieldLabel>
+                      <Input
+                        name="startTime"
+                        type="text"
+                        value={formData.startTime}
+                        disabled={isGenerating}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>End Time</FieldLabel>
+                      <Input
+                        name="endTime"
+                        type="text"
+                        value={formData.endTime}
+                        disabled={isGenerating}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </Field>
+                  </div>
                   <Field>
-                    <FieldLabel>Date</FieldLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          data-empty={!formData.day}
-                          disabled={isGenerating}
-                          className="data-[empty=true]:text-muted-foreground w-70 justify-start text-left font-normal">
-                          <CalendarIcon />
-                          {formData.day ? format(formData.day, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          timeZone="America/Chicago"
-                          selected={formData.day}
-                          onSelect={handleDayChange}
-                          defaultMonth={formData.day}
-                          required
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </Field>
-                </div>
-
-                <div className="flex mb-4 gap-4">
-                  <Field>
-                    <FieldLabel>Start Time</FieldLabel>
-                    <Input
-                      name="startTime"
-                      type="text"
-                      value={formData.startTime}
-                      disabled={isGenerating}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>End Time</FieldLabel>
-                    <Input
-                      name="endTime"
-                      type="text"
-                      value={formData.endTime}
-                      disabled={isGenerating}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </Field>
-                </div>
-
-                <div className="mb-4">
-                  <Field>
-                    <FieldLabel>Additional When Information</FieldLabel>
+                    <FieldLabel>Additional Details</FieldLabel>
                     <Input
                       name="whenDescription"
                       type="text"
@@ -239,11 +244,16 @@ function QTBIPOC() {
                       required
                     />
                   </Field>
-                </div>
-
-                <h3 className="border-b font-bold text-lg mb-3">Where</h3>
-
-                <div className="mb-4">
+                </FieldGroup>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Where</CardTitle>
+                <CardDescription>Where the event takes place</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
                   <Field>
                     <FieldLabel>Location</FieldLabel>
                     <Select
@@ -251,7 +261,7 @@ function QTBIPOC() {
                       disabled={isGenerating}
                       onValueChange={handleLocationChange}
                       required>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select the location for the event" />
                       </SelectTrigger>
                       <SelectContent>
@@ -263,11 +273,16 @@ function QTBIPOC() {
                       </SelectContent>
                     </Select>
                   </Field>
-                </div>
-
-                <h3 className="border-b font-bold text-lg mb-3">Cost</h3>
-
-                <div className="mb-4">
+                </FieldGroup>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Cost</CardTitle>
+                <CardDescription>How much it costs to attend</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
                   <Field>
                     <FieldLabel>Cost</FieldLabel>
                     <Textarea
@@ -279,23 +294,24 @@ function QTBIPOC() {
                       required
                     />
                   </Field>
-                </div>
-              </div>
-
-              <CardFooter>
-                <Button className="px-6" type="button" disabled={isGenerating} onClick={handleGenerate}>
-                  {isGenerating && (
-                    <>
-                      <Spinner /> Generating...
-                    </>
-                  )}
-
-                  {!isGenerating && <>Generate</>}
-                </Button>
-              </CardFooter>
-            </>
-          )}
-        </Card>
+                </FieldGroup>
+              </CardContent>
+            </Card>
+            <FormActions>
+              <Button type="button" disabled={isGenerating} onClick={handleGenerate}>
+                {isGenerating ? (
+                  <>
+                    <Spinner /> Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download /> Generate
+                  </>
+                )}
+              </Button>
+            </FormActions>
+          </div>
+        )}
       </Content>
     </>
   )

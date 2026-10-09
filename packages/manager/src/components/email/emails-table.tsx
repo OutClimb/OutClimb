@@ -1,6 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
+import { Pencil, Trash2 } from 'lucide-react'
 import type { Email } from '@/types/email'
 import { Link } from '@tanstack/react-router'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -28,31 +30,34 @@ export function EmailsTable({
             <TableHead>Name</TableHead>
             <TableHead>Slug</TableHead>
             <TableHead>Subject</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
-              <TableCell>
-                <Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>
-                  {item.name}
-                </Link>
-              </TableCell>
+              <TableCell>{item.name}</TableCell>
               <TableCell>{item.slug}</TableCell>
               <TableCell>{item.subject}</TableCell>
               {canEdit && (
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button asChild variant="secondary">
+                  <RowActions label={item.name}>
+                    <DropdownMenuItem asChild>
                       <Link to="/manage/email/$id/edit" params={{ id: item.id.toString() }}>
+                        <Pencil />
                         Edit
                       </Link>
-                    </Button>
-                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
+                      <Trash2 />
                       Delete
-                    </Button>
-                  </div>
+                    </DropdownMenuItem>
+                  </RowActions>
                 </TableCell>
               )}
             </TableRow>

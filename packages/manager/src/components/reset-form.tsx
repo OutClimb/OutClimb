@@ -61,9 +61,9 @@ export function ResetForm() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>Password Reset</CardTitle>
+        <CardTitle className="text-lg font-semibold">Password Reset</CardTitle>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
@@ -74,7 +74,7 @@ export function ResetForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <p className="text-xs text-gray-600 mb-4">
+          <div className="mb-4 rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
             Your new password must:
             <ul className="list-disc list-inside mt-2 ml-2">
               <li>be 16 characters long</li>
@@ -86,7 +86,7 @@ export function ResetForm() {
               <li>not contain your username</li>
               <li>not be the same as your last password</li>
             </ul>
-          </p>
+          </div>
           <div className="mb-4">
             <Label htmlFor="password">Password</Label>
             <Input

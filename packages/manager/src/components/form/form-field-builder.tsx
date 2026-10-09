@@ -308,13 +308,15 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No fields yet. Add one below.</p>
+        <div className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+          No fields yet. Add one below.
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {fields.map((field, index) => (
             <div
               key={`${field.slug}-${index}`}
-              className="border-border flex items-center gap-3 rounded-lg border px-4 py-3">
+              className="flex items-center gap-3 rounded-lg border bg-card py-2 pr-2 pl-2 transition-colors hover:bg-muted/30">
               <div className="flex flex-col gap-0.5">
                 <Button
                   variant="ghost"
@@ -336,27 +338,35 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 </Button>
               </div>
 
-              <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
-                <span className="text-sm font-medium">{field.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {fieldTypeLabel(field.type)} · {field.slug}
-                  {field.required && ' · Required'}
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <span className="truncate">{field.name}</span>
+                  {field.required && (
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary">
+                      Required
+                    </span>
+                  )}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {fieldTypeLabel(field.type)} · <span className="font-mono">{field.slug}</span>
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-0.5">
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   type="button"
+                  className="text-muted-foreground"
                   onClick={() => openEdit(index)}
                   aria-label="Edit field">
                   <Pencil />
                 </Button>
                 <Button
-                  variant="destructive"
+                  variant="ghost"
                   size="icon-sm"
                   type="button"
+                  className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => deleteField(index)}
                   aria-label="Delete field">
                   <Trash2 />
@@ -367,43 +377,50 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
         </div>
       )}
 
-      <Button variant="secondary" size="default" type="button" onClick={openAdd}>
+      <Button
+        variant="outline"
+        size="lg"
+        type="button"
+        className="border-dashed text-muted-foreground"
+        onClick={openAdd}>
         <Plus />
         Add Field
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingIndex !== null ? 'Edit Field' : 'Add Field'}</DialogTitle>
           </DialogHeader>
 
-          <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+          <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="field-name">Name</FieldLabel>
-                <Input
-                  id="field-name"
-                  value={dialog.name}
-                  onChange={handleNameChange}
-                  placeholder="Full Name"
-                  aria-invalid={!!errors.name}
-                />
-                {errors.name && <FieldError>{errors.name}</FieldError>}
-              </Field>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="field-name">Name</FieldLabel>
+                  <Input
+                    id="field-name"
+                    value={dialog.name}
+                    onChange={handleNameChange}
+                    placeholder="Full Name"
+                    aria-invalid={!!errors.name}
+                  />
+                  {errors.name && <FieldError>{errors.name}</FieldError>}
+                </Field>
 
-              <Field>
-                <FieldLabel htmlFor="field-slug">Slug</FieldLabel>
-                <FieldDescription>Unique identifier used in submissions</FieldDescription>
-                <Input
-                  id="field-slug"
-                  value={dialog.slug}
-                  onChange={handleSlugChange}
-                  placeholder="full-name"
-                  aria-invalid={!!errors.slug}
-                />
-                {errors.slug && <FieldError>{errors.slug}</FieldError>}
-              </Field>
+                <Field>
+                  <FieldLabel htmlFor="field-slug">Slug</FieldLabel>
+                  <Input
+                    id="field-slug"
+                    value={dialog.slug}
+                    onChange={handleSlugChange}
+                    placeholder="full-name"
+                    aria-invalid={!!errors.slug}
+                  />
+                  <FieldDescription>Unique identifier used in submissions</FieldDescription>
+                  {errors.slug && <FieldError>{errors.slug}</FieldError>}
+                </Field>
+              </div>
 
               <Field>
                 <FieldLabel htmlFor="field-type">Type</FieldLabel>

@@ -1,6 +1,7 @@
 'use client'
 
-import { createFileRoute, HeadContent } from '@tanstack/react-router'
+import { AuthLayout } from '@/components/auth-layout'
+import { createFileRoute } from '@tanstack/react-router'
 import { LoginForm } from '@/components/login-form'
 
 export const Route = createFileRoute('/manage_/login')({
@@ -16,16 +17,8 @@ export const Route = createFileRoute('/manage_/login')({
 
 function Login() {
   return (
-    <>
-      <HeadContent />
-      <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <img src="/manage/images/logo.svg" alt="OutClimb Queer Climbing" className="h-24 w-auto mx-auto" />
-          </div>
-          <LoginForm />
-        </div>
-      </main>
-    </>
+    <AuthLayout>
+      <LoginForm />
+    </AuthLayout>
   )
 }

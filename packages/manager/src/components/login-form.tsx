@@ -70,13 +70,13 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>Login</CardTitle>
+        <CardTitle className="text-lg font-semibold">Login</CardTitle>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4 py-4">
+        <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />

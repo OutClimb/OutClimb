@@ -1,21 +1,16 @@
 'use client'
 
 import authGuard from '@/lib/auth-guard'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
+import { EmailEditor } from '@/components/email/email-editor'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchEmails, updateEmail } from '@/api/email'
-import { Field, FieldLabel } from '@/components/ui/field'
 import { Header } from '@/components/header'
-import { Input } from '@/components/ui/input'
 import { Mail } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
-import { Textarea } from '@/components/ui/textarea'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useState } from 'react'
 import useEmailStore from '@/stores/email'
@@ -175,149 +170,52 @@ function EditEmail() {
 
   return (
     <>
-      <Header backTo="/manage/email">Edit Email</Header>
+      <Header isLoading={isLoading} backTo="/manage/email">
+        Edit Email
+      </Header>
 
       <Content>
-        <Card>
-          {isLoading && !email && (
-            <CardContent className="p-0">
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Spinner />
-                  </EmptyMedia>
-                  <EmptyTitle>Loading...</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
-            </CardContent>
-          )}
-
-          {!isLoading && !email && (
-            <CardContent className="p-0">
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Mail />
-                  </EmptyMedia>
-                  <EmptyTitle>Email not found</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
-            </CardContent>
-          )}
-
-          {email && (
-            <form onSubmit={handleSubmit}>
-              <CardContent className="flex flex-col gap-4 pb-4">
-                <Field>
-                  <FieldLabel htmlFor="name">Name</FieldLabel>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  {formErrors.name && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{formErrors.name}</AlertDescription>
-                    </Alert>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="slug">Slug</FieldLabel>
-                  <Input
-                    id="slug"
-                    name="slug"
-                    type="text"
-                    value={formData.slug}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  {formErrors.slug && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{formErrors.slug}</AlertDescription>
-                    </Alert>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="subject">Subject</FieldLabel>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  {formErrors.subject && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{formErrors.subject}</AlertDescription>
-                    </Alert>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="htmlBody">HTML Body</FieldLabel>
-                  <Textarea
-                    id="htmlBody"
-                    name="htmlBody"
-                    className="min-h-64 font-mono text-sm"
-                    value={formData.htmlBody}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  {formErrors.htmlBody && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{formErrors.htmlBody}</AlertDescription>
-                    </Alert>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="textBody">Text Body</FieldLabel>
-                  <Textarea
-                    id="textBody"
-                    name="textBody"
-                    className="min-h-32 font-mono text-sm"
-                    value={formData.textBody}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  {formErrors.textBody && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{formErrors.textBody}</AlertDescription>
-                    </Alert>
-                  )}
-                </Field>
+        {!email && (
+          <Card className="p-0">
+            {isLoading && !email && (
+              <CardContent className="p-0">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Spinner />
+                    </EmptyMedia>
+                    <EmptyTitle>Loading...</EmptyTitle>
+                  </EmptyHeader>
+                </Empty>
               </CardContent>
+            )}
 
-              <CardFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Spinner /> Saving...
-                    </>
-                  ) : (
-                    'Save'
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          )}
-        </Card>
+            {!isLoading && !email && (
+              <CardContent className="p-0">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Mail />
+                    </EmptyMedia>
+                    <EmptyTitle>Email not found</EmptyTitle>
+                  </EmptyHeader>
+                </Empty>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {email && (
+          <EmailEditor
+            data={formData}
+            errors={formErrors}
+            isLoading={isLoading}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            submitLabel="Save"
+            submitLoadingLabel="Saving..."
+          />
+        )}
       </Content>
     </>
   )

@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/spinner'
+import { Trash2 } from 'lucide-react'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -43,16 +45,22 @@ export function DeleteDialog({ id, open, onOpenChange, label, deleteFn, removeFr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you sure you want to delete this {label}?</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+        <div className="flex items-start gap-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <Trash2 className="size-5" />
+          </div>
+          <DialogHeader className="pt-2 pr-0">
+            <DialogTitle>Delete this {label}?</DialogTitle>
+          </DialogHeader>
+        </div>
         <DialogFooter>
           <Button disabled={isLoading} variant="secondary" onClick={handleCancel}>
-            No
+            Cancel
           </Button>
           <Button disabled={isLoading} variant="destructive" onClick={handleDelete}>
-            Yes
+            {isLoading ? <Spinner /> : <Trash2 />}
+            Delete
           </Button>
         </DialogFooter>
       </DialogContent>

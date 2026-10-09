@@ -1,6 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
+import { Copy, Pencil, Trash2 } from 'lucide-react'
 import type { Form } from '@/types/form'
 import { formatDateTime } from '@/lib/timezone'
 import { Link } from '@tanstack/react-router'
@@ -31,14 +33,21 @@ export function FormsTable({
             <TableHead>Opens On</TableHead>
             <TableHead>Closes On</TableHead>
             <TableHead>Max Submissions</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
               <TableCell>
-                <Link to="/manage/form/$id/submissions" params={{ id: item.id.toString() }}>
+                <Link
+                  to="/manage/form/$id/submissions"
+                  params={{ id: item.id.toString() }}
+                  className="font-medium hover:text-primary hover:underline underline-offset-4">
                   {item.name}
                 </Link>
               </TableCell>
@@ -48,21 +57,25 @@ export function FormsTable({
               <TableCell>{!item.maxSubmissions ? 'Unlimited' : item.maxSubmissions}</TableCell>
               {canEdit && (
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button asChild variant="secondary">
+                  <RowActions label={item.name}>
+                    <DropdownMenuItem asChild>
                       <Link to="/manage/form/$id/edit" params={{ id: item.slug }}>
+                        <Pencil />
                         Edit
                       </Link>
-                    </Button>
-                    <Button asChild variant="secondary">
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/manage/form/$id/duplicate" params={{ id: item.slug }}>
+                        <Copy />
                         Duplicate
                       </Link>
-                    </Button>
-                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
+                      <Trash2 />
                       Delete
-                    </Button>
-                  </div>
+                    </DropdownMenuItem>
+                  </RowActions>
                 </TableCell>
               )}
             </TableRow>

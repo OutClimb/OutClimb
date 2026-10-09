@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { createUser, updateUser } from '@/api/user'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field'
+import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -117,8 +118,8 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
     setFormData((prev) => ({ ...prev, role: value }))
   }, [])
 
-  const handleRequirePasswordResetChange = useCallback((value: string) => {
-    setFormData((prev) => ({ ...prev, requirePasswordReset: value === 'yes' }))
+  const handleRequirePasswordResetChange = useCallback((checked: boolean) => {
+    setFormData((prev) => ({ ...prev, requirePasswordReset: checked }))
   }, [])
 
   const handleCancel = useCallback(() => {
@@ -204,9 +205,9 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
           <DialogTitle>{isEditing ? 'Edit User' : 'Create User'}</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
           <form onSubmit={() => false}>
-            <div className="mb-4">
+            <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="username">Username</FieldLabel>
                 <Input
@@ -222,9 +223,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                 />
                 <FieldError>{formError.username}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="name">Name</FieldLabel>
                 <Input
@@ -238,9 +237,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                 />
                 <FieldError>{formError.name}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -256,9 +253,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                 />
                 <FieldError>{formError.email}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
                 <FieldDescription>
@@ -279,9 +274,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                 />
                 <FieldError>{formError.password}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="role">Role</FieldLabel>
                 <Select value={formData.role} disabled={isLoading} onValueChange={handleRoleChange}>
@@ -298,23 +291,20 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                 </Select>
                 <FieldError>{formError.role}</FieldError>
               </Field>
-            </div>
 
-            <Field>
-              <FieldLabel htmlFor="requirePasswordReset">Require password reset on next login</FieldLabel>
-              <Select
-                value={formData.requirePasswordReset ? 'yes' : 'no'}
-                disabled={isLoading}
-                onValueChange={handleRequirePasswordResetChange}>
-                <SelectTrigger id="requirePasswordReset">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor="requirePasswordReset">Require password reset</FieldLabel>
+                  <FieldDescription>The user must choose a new password on their next login</FieldDescription>
+                </FieldContent>
+                <Switch
+                  id="requirePasswordReset"
+                  checked={formData.requirePasswordReset}
+                  disabled={isLoading}
+                  onCheckedChange={handleRequirePasswordResetChange}
+                />
+              </Field>
+            </FieldGroup>
           </form>
         </div>
 

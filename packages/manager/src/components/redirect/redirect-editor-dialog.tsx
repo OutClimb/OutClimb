@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { createRedirect, updateRedirect } from '@/api/redirect'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -140,9 +140,9 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
           <DialogTitle>{isEditing ? 'Edit Redirect' : 'Create Redirect'}</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
           <form onSubmit={() => false}>
-            <div className="mb-4">
+            <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="fromPath">From Path</FieldLabel>
                 <Input
@@ -156,9 +156,7 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
                 />
                 <FieldError>{formError.fromPath}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="toUrl">To URL</FieldLabel>
                 <Input
@@ -172,9 +170,7 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
                 />
                 <FieldError>{formError.toUrl}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="startsOn">Starts On</FieldLabel>
                 <Input
@@ -186,19 +182,19 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
                   disabled={isLoading}
                 />
               </Field>
-            </div>
 
-            <Field>
-              <FieldLabel htmlFor="stopsOn">Stops On</FieldLabel>
-              <Input
-                id="stopsOn"
-                name="stopsOn"
-                type="text"
-                value={formData.stopsOn}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            </Field>
+              <Field>
+                <FieldLabel htmlFor="stopsOn">Stops On</FieldLabel>
+                <Input
+                  id="stopsOn"
+                  name="stopsOn"
+                  type="text"
+                  value={formData.stopsOn}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </Field>
+            </FieldGroup>
           </form>
         </div>
 

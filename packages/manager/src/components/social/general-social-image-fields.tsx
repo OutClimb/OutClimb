@@ -1,6 +1,5 @@
 'use client'
 
-import { CardContent } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import type { GeneralSocialImageFormData } from '@/types/social-image'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -35,52 +34,48 @@ export function GeneralSocialImageFields({ month, year, disabled, onChange }: Ge
   )
 
   return (
-    <CardContent>
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Month</FieldLabel>
-          <Select value={month.toString()} disabled={disabled} onValueChange={handleMonthChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select the month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">January</SelectItem>
-              <SelectItem value="1">February</SelectItem>
-              <SelectItem value="2">March</SelectItem>
-              <SelectItem value="3">April</SelectItem>
-              <SelectItem value="4">May</SelectItem>
-              <SelectItem value="5">June</SelectItem>
-              <SelectItem value="6">July</SelectItem>
-              <SelectItem value="7">August</SelectItem>
-              <SelectItem value="8">September</SelectItem>
-              <SelectItem value="9">October</SelectItem>
-              <SelectItem value="10">November</SelectItem>
-              <SelectItem value="11">December</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
+    <div className="grid gap-5 sm:grid-cols-2">
+      <Field>
+        <FieldLabel htmlFor="month">Month</FieldLabel>
+        <Select value={month.toString()} disabled={disabled} onValueChange={handleMonthChange}>
+          <SelectTrigger id="month" className="w-full">
+            <SelectValue placeholder="Select the month" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">January</SelectItem>
+            <SelectItem value="1">February</SelectItem>
+            <SelectItem value="2">March</SelectItem>
+            <SelectItem value="3">April</SelectItem>
+            <SelectItem value="4">May</SelectItem>
+            <SelectItem value="5">June</SelectItem>
+            <SelectItem value="6">July</SelectItem>
+            <SelectItem value="7">August</SelectItem>
+            <SelectItem value="8">September</SelectItem>
+            <SelectItem value="9">October</SelectItem>
+            <SelectItem value="10">November</SelectItem>
+            <SelectItem value="11">December</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
 
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Year</FieldLabel>
-          <Select value={year.toString()} disabled={disabled} onValueChange={handleYearChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select the year" />
-            </SelectTrigger>
-            <SelectContent>
-              {[...Array(3).keys()].map((index) => {
-                const year = (new Date().getFullYear() + index).toString()
-                return (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-    </CardContent>
+      <Field>
+        <FieldLabel htmlFor="year">Year</FieldLabel>
+        <Select value={year.toString()} disabled={disabled} onValueChange={handleYearChange}>
+          <SelectTrigger id="year" className="w-full">
+            <SelectValue placeholder="Select the year" />
+          </SelectTrigger>
+          <SelectContent>
+            {[...Array(3).keys()].map((index) => {
+              const year = (new Date().getFullYear() + index).toString()
+              return (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              )
+            })}
+          </SelectContent>
+        </Select>
+      </Field>
+    </div>
   )
 }

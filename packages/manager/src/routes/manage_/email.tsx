@@ -68,6 +68,7 @@ function Emails() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('email', WRITE_PERMISSION) && (
             <Button asChild disabled={isLoading}>

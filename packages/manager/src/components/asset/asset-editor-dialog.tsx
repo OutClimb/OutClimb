@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createAsset, updateAsset } from '@/api/asset'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { readFileToBase64 } from '@/lib/file'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -134,12 +134,12 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
           <DialogTitle>{isEditing ? 'Update Asset' : 'Upload Asset'}</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
           <form onSubmit={() => false}>
-            {isEditing && (
-              <div className="mb-4">
+            <FieldGroup>
+              {isEditing && (
                 <Field>
-                  <FieldLabel>File Name:</FieldLabel>
+                  <FieldLabel htmlFor="fileName">File name</FieldLabel>
                   <Input
                     id="fileName"
                     name="fileName"
@@ -151,27 +151,27 @@ export function AssetEditorDialog({ open, onOpenChange, initialAsset }: AssetEdi
                   />
                   <FieldError>{formError.fileName}</FieldError>
                 </Field>
-              </div>
-            )}
-
-            <Field>
-              <FieldLabel htmlFor="file">File:</FieldLabel>
-              <Input
-                id="file"
-                name="file"
-                type="file"
-                onChange={handleFileChange}
-                disabled={isLoading}
-                ref={fileInput}
-                required={!isEditing}
-              />
-              {formData.data && (
-                <Button variant="secondary" type="button" onClick={handleClear}>
-                  <X /> Clear file
-                </Button>
               )}
-              <FieldError>{formError.file}</FieldError>
-            </Field>
+
+              <Field>
+                <FieldLabel htmlFor="file">File</FieldLabel>
+                <Input
+                  id="file"
+                  name="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  disabled={isLoading}
+                  ref={fileInput}
+                  required={!isEditing}
+                />
+                {formData.data && (
+                  <Button variant="ghost" size="sm" type="button" className="self-start" onClick={handleClear}>
+                    <X /> Clear file
+                  </Button>
+                )}
+                <FieldError>{formError.file}</FieldError>
+              </Field>
+            </FieldGroup>
           </form>
         </div>
 

@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button'
 import { createRole, updateRole } from '@/api/role'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '../ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '../ui/field'
 import { Input } from '@/components/ui/input'
-import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
+import { NAVIGATION_GROUPS, NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
@@ -161,9 +161,9 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
           <DialogTitle>{isEditing ? 'Edit Role' : 'Create Role'}</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
           <form onSubmit={() => false}>
-            <div className="mb-4">
+            <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="order">Hierarchy</FieldLabel>
                 <Input
@@ -178,9 +178,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
                 />
                 <FieldError>{formError.order}</FieldError>
               </Field>
-            </div>
 
-            <div className="mb-4">
               <Field>
                 <FieldLabel htmlFor="name">Name</FieldLabel>
                 <Input
@@ -194,29 +192,38 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
                 />
                 <FieldError>{formError.name}</FieldError>
               </Field>
-            </div>
 
-            <FieldLabel className="mb-2">Permissions</FieldLabel>
-            {NAVIGATION_ITEMS.map((item) => (
-              <div className="mb-4 ml-2" key={item.entity}>
-                <Field>
-                  <FieldLabel htmlFor={`permission-${item.entity}`}>{item.title}</FieldLabel>
-                  <Select
-                    value={String(formData.permissions[item.entity] ?? NO_PERMISSION)}
-                    disabled={isLoading}
-                    onValueChange={(value) => handlePermissionChange(item.entity, value)}>
-                    <SelectTrigger id={`permission-${item.entity}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={String(NO_PERMISSION)}>None</SelectItem>
-                      <SelectItem value={String(READ_PERMISSION)}>Read</SelectItem>
-                      <SelectItem value={String(WRITE_PERMISSION)}>Read & Write</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            ))}
+              <FieldSet>
+                <FieldLegend variant="label">Permissions</FieldLegend>
+                <div className="divide-y rounded-lg border">
+                  {NAVIGATION_GROUPS.map((group) => (
+                    <div key={group.id} className="px-3 py-2.5">
+                      <p className="pb-1 text-xs font-medium text-muted-foreground">{group.title}</p>
+                      {NAVIGATION_ITEMS.filter((item) => item.group === group.id).map((item) => (
+                        <Field key={item.entity} orientation="horizontal" className="py-1">
+                          <FieldLabel htmlFor={`permission-${item.entity}`} className="font-normal">
+                            {item.title}
+                          </FieldLabel>
+                          <Select
+                            value={String(formData.permissions[item.entity] ?? NO_PERMISSION)}
+                            disabled={isLoading}
+                            onValueChange={(value) => handlePermissionChange(item.entity, value)}>
+                            <SelectTrigger id={`permission-${item.entity}`} className="w-36">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={String(NO_PERMISSION)}>None</SelectItem>
+                              <SelectItem value={String(READ_PERMISSION)}>Read</SelectItem>
+                              <SelectItem value={String(WRITE_PERMISSION)}>Read & Write</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </FieldSet>
+            </FieldGroup>
           </form>
         </div>
 

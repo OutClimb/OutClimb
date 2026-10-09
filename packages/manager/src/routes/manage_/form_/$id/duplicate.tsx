@@ -72,7 +72,9 @@ function DuplicateForm() {
 
   return (
     <>
-      <Header backTo="/manage/form">Duplicate Form</Header>
+      <Header isLoading={isLoading} backTo="/manage/form">
+        Duplicate Form
+      </Header>
 
       <Content>
         {isLoading && (

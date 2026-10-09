@@ -1,8 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
 import type { Asset } from '@/types/asset'
-import { SquareArrowOutUpRight } from 'lucide-react'
+import { Pencil, SquareArrowOutUpRight, Trash2 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function AssetsTable({
@@ -42,7 +43,11 @@ export function AssetsTable({
         <TableHeader>
           <TableRow>
             <TableHead>File</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -55,14 +60,17 @@ export function AssetsTable({
               </TableCell>
               {canEdit && (
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={handleEdit(item.id)}>
+                  <RowActions label={item.fileName}>
+                    <DropdownMenuItem onSelect={handleEdit(item.id)}>
+                      <Pencil />
                       Edit
-                    </Button>
-                    <Button variant="destructive" onClick={handleDelete(item.id)}>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
+                      <Trash2 />
                       Delete
-                    </Button>
-                  </div>
+                    </DropdownMenuItem>
+                  </RowActions>
                 </TableCell>
               )}
             </TableRow>

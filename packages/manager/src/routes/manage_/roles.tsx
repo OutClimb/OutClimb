@@ -76,6 +76,7 @@ function Roles() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('role', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>

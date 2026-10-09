@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import type { EventSocialImageFormData } from '@/types/social-image'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -154,40 +154,27 @@ export function EventSocialImageFields({
   )
 
   return (
-    <div className="px-4">
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Location</FieldLabel>
-          <Select value={location.toString()} disabled={disabled} onValueChange={handleLocationChange} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Select the location for the event" />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map((location) => (
-                <SelectItem key={location.id} value={location.id.toString()}>
-                  {location.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Address</FieldLabel>
-          <Textarea
-            value={address}
-            name="address"
-            rows={2}
-            disabled={disabled}
-            onChange={handleAddressChange}
-            required
-          />
-        </Field>
-      </div>
-
-      <div className="mb-4">
+    <FieldGroup>
+      <Field>
+        <FieldLabel>Location</FieldLabel>
+        <Select value={location.toString()} disabled={disabled} onValueChange={handleLocationChange} required>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select the location for the event" />
+          </SelectTrigger>
+          <SelectContent>
+            {locations.map((location) => (
+              <SelectItem key={location.id} value={location.id.toString()}>
+                {location.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field>
+        <FieldLabel>Address</FieldLabel>
+        <Textarea value={address} name="address" rows={2} disabled={disabled} onChange={handleAddressChange} required />
+      </Field>
+      <div className="grid gap-5 sm:grid-cols-3">
         <Field>
           <FieldLabel>Date</FieldLabel>
           <Popover>
@@ -196,7 +183,7 @@ export function EventSocialImageFields({
                 variant="outline"
                 data-empty={!day}
                 disabled={disabled}
-                className="data-[empty=true]:text-muted-foreground w-70 justify-start text-left font-normal">
+                className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground">
                 <CalendarIcon />
                 {day ? format(day, 'PPP') : <span>Pick a date</span>}
               </Button>
@@ -215,9 +202,6 @@ export function EventSocialImageFields({
             </PopoverContent>
           </Popover>
         </Field>
-      </div>
-
-      <div className="flex mb-4 gap-4">
         <Field>
           <FieldLabel>Start Time</FieldLabel>
           <Input
@@ -229,7 +213,6 @@ export function EventSocialImageFields({
             required
           />
         </Field>
-
         <Field>
           <FieldLabel>End Time</FieldLabel>
           <Input
@@ -242,20 +225,17 @@ export function EventSocialImageFields({
           />
         </Field>
       </div>
-
-      <div className="mb-4">
-        <Field>
-          <FieldLabel>Description</FieldLabel>
-          <Textarea
-            value={description}
-            name="description"
-            rows={12}
-            disabled={disabled}
-            onChange={handleDescriptionChange}
-            required
-          />
-        </Field>
-      </div>
-    </div>
+      <Field>
+        <FieldLabel>Description</FieldLabel>
+        <Textarea
+          value={description}
+          name="description"
+          rows={12}
+          disabled={disabled}
+          onChange={handleDescriptionChange}
+          required
+        />
+      </Field>
+    </FieldGroup>
   )
 }

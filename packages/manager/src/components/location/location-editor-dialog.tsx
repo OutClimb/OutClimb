@@ -3,7 +3,16 @@
 import { Button } from '@/components/ui/button'
 import { createLocation, updateLocation } from '@/api/location'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '../ui/textarea'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -210,156 +219,148 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Location' : 'Create Location'}</DialogTitle>
         </DialogHeader>
 
-        <div className="no-scrollbar -mx-4 max-h-[75vh] overflow-y-auto px-4">
+        <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
           <form onSubmit={() => false}>
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="name">Name</FieldLabel>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.name}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="mainImageName">Name on the Main Image</FieldLabel>
-                <Input
-                  id="mainImageName"
-                  name="mainImageName"
-                  type="text"
-                  value={formData.mainImageName}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.mainImageName}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="individualImageName">Name on the Individual Event Image</FieldLabel>
-                <FieldDescription>This needs to be three lines</FieldDescription>
-                <Textarea
-                  id="individualImageName"
-                  value={formData.individualImageName}
-                  name="individualImageName"
-                  rows={3}
-                  disabled={isLoading}
-                  onChange={handleTextareaChange}
-                  required
-                />
-                <FieldError>{formError.individualImageName}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="backgroundImagePath">Path to the background image</FieldLabel>
-                <Input
-                  id="backgroundImagePath"
-                  name="backgroundImagePath"
-                  type="text"
-                  value={formData.backgroundImagePath}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.backgroundImagePath}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="color">Color for the individual event image header</FieldLabel>
-                <Input
-                  id="color"
-                  name="color"
-                  type="text"
-                  value={formData.color}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.color}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="address">Address</FieldLabel>
-                <FieldDescription>This needs to be two lines</FieldDescription>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  name="address"
-                  rows={2}
-                  disabled={isLoading}
-                  onChange={handleTextareaChange}
-                  required
-                />
-                <FieldError>{formError.address}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="startTime">Normal start time for the events at this location</FieldLabel>
-                <Input
-                  id="startTime"
-                  name="startTime"
-                  type="text"
-                  value={formData.startTime}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.startTime}</FieldError>
-              </Field>
-            </div>
-
-            <div className="mb-4">
-              <Field>
-                <FieldLabel htmlFor="endTime">Normal end time for the events at this location</FieldLabel>
-                <Input
-                  id="endTime"
-                  name="endTime"
-                  type="text"
-                  value={formData.endTime}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-                <FieldError>{formError.endTime}</FieldError>
-              </Field>
-            </div>
-
-            <Field>
-              <FieldLabel htmlFor="description">Description</FieldLabel>
-              <Textarea
-                id="description"
-                value={formData.description}
-                name="description"
-                rows={2}
-                disabled={isLoading}
-                onChange={handleTextareaChange}
-                required
-              />
-              <FieldError>{formError.description}</FieldError>
-            </Field>
+            <FieldGroup>
+              <FieldSet>
+                <FieldLegend>Details</FieldLegend>
+                <Field>
+                  <FieldLabel htmlFor="name">Name</FieldLabel>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                  <FieldError>{formError.name}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="address">Address</FieldLabel>
+                  <FieldDescription>This needs to be two lines</FieldDescription>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    name="address"
+                    rows={2}
+                    disabled={isLoading}
+                    onChange={handleTextareaChange}
+                    required
+                  />
+                  <FieldError>{formError.address}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="description">Description</FieldLabel>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    name="description"
+                    rows={2}
+                    disabled={isLoading}
+                    onChange={handleTextareaChange}
+                    required
+                  />
+                  <FieldError>{formError.description}</FieldError>
+                </Field>
+              </FieldSet>
+              <FieldSeparator />
+              <FieldSet>
+                <FieldLegend>Default times</FieldLegend>
+                <FieldDescription>Prefilled when this location is picked for a social image</FieldDescription>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="startTime">Start time</FieldLabel>
+                    <Input
+                      id="startTime"
+                      name="startTime"
+                      type="text"
+                      value={formData.startTime}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                    <FieldError>{formError.startTime}</FieldError>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="endTime">End time</FieldLabel>
+                    <Input
+                      id="endTime"
+                      name="endTime"
+                      type="text"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                    <FieldError>{formError.endTime}</FieldError>
+                  </Field>
+                </div>
+              </FieldSet>
+              <FieldSeparator />
+              <FieldSet>
+                <FieldLegend>Social images</FieldLegend>
+                <Field>
+                  <FieldLabel htmlFor="mainImageName">Name on main image</FieldLabel>
+                  <Input
+                    id="mainImageName"
+                    name="mainImageName"
+                    type="text"
+                    value={formData.mainImageName}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                  <FieldError>{formError.mainImageName}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="individualImageName">Name on event image</FieldLabel>
+                  <FieldDescription>This needs to be three lines</FieldDescription>
+                  <Textarea
+                    id="individualImageName"
+                    value={formData.individualImageName}
+                    name="individualImageName"
+                    rows={3}
+                    disabled={isLoading}
+                    onChange={handleTextareaChange}
+                    required
+                  />
+                  <FieldError>{formError.individualImageName}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="backgroundImagePath">Background image path</FieldLabel>
+                  <Input
+                    id="backgroundImagePath"
+                    name="backgroundImagePath"
+                    type="text"
+                    value={formData.backgroundImagePath}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                  <FieldError>{formError.backgroundImagePath}</FieldError>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="color">Event image header color</FieldLabel>
+                  <Input
+                    id="color"
+                    name="color"
+                    type="text"
+                    value={formData.color}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                  <FieldError>{formError.color}</FieldError>
+                </Field>
+              </FieldSet>
+            </FieldGroup>
           </form>
         </div>
 

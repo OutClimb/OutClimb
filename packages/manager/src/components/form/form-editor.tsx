@@ -1,7 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FormActions } from '@/components/form-actions'
 import { fetchEmails } from '@/api/email'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormFieldBuilder } from '@/components/form/form-field-builder'
@@ -249,267 +250,268 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
       <Card>
         <CardHeader>
           <CardTitle>Details</CardTitle>
+          <CardDescription>The name people see and the slug used in its link</CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Name</FieldLabel>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleNameChange}
-                disabled={isLoading}
-              />
-              <FieldError>{formErrors.name}</FieldError>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="slug">Slug</FieldLabel>
-              <Input
-                id="slug"
-                name="slug"
-                type="text"
-                value={formData.slug}
-                onChange={handleSlugChange}
-                disabled={isLoading}
-              />
-              <FieldError>{formErrors.slug}</FieldError>
-            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="name">Name</FieldLabel>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleNameChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.name}</FieldError>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="slug">Slug</FieldLabel>
+                <Input
+                  id="slug"
+                  name="slug"
+                  type="text"
+                  value={formData.slug}
+                  onChange={handleSlugChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.slug}</FieldError>
+              </Field>
+            </div>
           </FieldGroup>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Availability</CardTitle>
+          <CardDescription>When the form accepts submissions</CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="opensOn">Opens On</FieldLabel>
-              <FieldDescription>Central Time. Leave blank to open immediately</FieldDescription>
-              <Input
-                id="opensOn"
-                name="opensOn"
-                type="datetime-local"
-                value={formData.opensOn}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-              <FieldError>{formErrors.opensOn}</FieldError>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="closesOn">Closes On</FieldLabel>
-              <FieldDescription>Central Time. Leave blank to never close</FieldDescription>
-              <Input
-                id="closesOn"
-                name="closesOn"
-                type="datetime-local"
-                value={formData.closesOn}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-              <FieldError>{formErrors.closesOn}</FieldError>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="maxSubmissions">Max Submissions</FieldLabel>
-              <FieldDescription>Leave blank for unlimited</FieldDescription>
-              <Input
-                id="maxSubmissions"
-                name="maxSubmissions"
-                type="number"
-                min="1"
-                value={formData.maxSubmissions}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-              <FieldError>{formErrors.maxSubmissions}</FieldError>
-            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="opensOn">Opens On</FieldLabel>
+                <FieldDescription>Leave blank to open immediately</FieldDescription>
+                <Input
+                  id="opensOn"
+                  name="opensOn"
+                  type="datetime-local"
+                  value={formData.opensOn}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.opensOn}</FieldError>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="closesOn">Closes On</FieldLabel>
+                <FieldDescription>Leave blank to never close</FieldDescription>
+                <Input
+                  id="closesOn"
+                  name="closesOn"
+                  type="datetime-local"
+                  value={formData.closesOn}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.closesOn}</FieldError>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="maxSubmissions">Max Submissions</FieldLabel>
+                <FieldDescription>Leave blank for unlimited</FieldDescription>
+                <Input
+                  id="maxSubmissions"
+                  name="maxSubmissions"
+                  type="number"
+                  min="1"
+                  value={formData.maxSubmissions}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.maxSubmissions}</FieldError>
+              </Field>
+            </div>
           </FieldGroup>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Messages</CardTitle>
+          <CardDescription>
+            What people see when the form isn't accepting submissions, or after they submit
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="notOpenMessage">Not Open Message</FieldLabel>
-              <FieldDescription>Shown when the form has not opened yet</FieldDescription>
-              <Textarea
-                id="notOpenMessage"
-                name="notOpenMessage"
-                value={formData.notOpenMessage}
-                onChange={handleChange}
-                disabled={isLoading}
-                rows={3}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="closedMessage">Closed Message</FieldLabel>
-              <FieldDescription>Shown when the form has closed</FieldDescription>
-              <Textarea
-                id="closedMessage"
-                name="closedMessage"
-                value={formData.closedMessage}
-                onChange={handleChange}
-                disabled={isLoading}
-                rows={3}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="filledMessage">Filled Message</FieldLabel>
-              <FieldDescription>Shown when max submissions has been reached</FieldDescription>
-              <Textarea
-                id="filledMessage"
-                name="filledMessage"
-                value={formData.filledMessage}
-                onChange={handleChange}
-                disabled={isLoading}
-                rows={3}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="successMessage">Success Message</FieldLabel>
-              <FieldDescription>Shown after a successful submission</FieldDescription>
-              <Textarea
-                id="successMessage"
-                name="successMessage"
-                value={formData.successMessage}
-                onChange={handleChange}
-                disabled={isLoading}
-                rows={3}
-              />
-            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="notOpenMessage">Not Open Message</FieldLabel>
+                <FieldDescription>Shown when the form has not opened yet</FieldDescription>
+                <Textarea
+                  id="notOpenMessage"
+                  name="notOpenMessage"
+                  value={formData.notOpenMessage}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  rows={3}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="closedMessage">Closed Message</FieldLabel>
+                <FieldDescription>Shown when the form has closed</FieldDescription>
+                <Textarea
+                  id="closedMessage"
+                  name="closedMessage"
+                  value={formData.closedMessage}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  rows={3}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="filledMessage">Filled Message</FieldLabel>
+                <FieldDescription>Shown when max submissions has been reached</FieldDescription>
+                <Textarea
+                  id="filledMessage"
+                  name="filledMessage"
+                  value={formData.filledMessage}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  rows={3}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="successMessage">Success Message</FieldLabel>
+                <FieldDescription>Shown after a successful submission</FieldDescription>
+                <Textarea
+                  id="successMessage"
+                  name="successMessage"
+                  value={formData.successMessage}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  rows={3}
+                />
+              </Field>
+            </div>
           </FieldGroup>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Fields</CardTitle>
+          <CardDescription>The questions people answer, in the order they appear</CardDescription>
         </CardHeader>
         <CardContent>
           <FormFieldBuilder fields={fields} onChange={setFields} />
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Email</CardTitle>
+          <CardDescription>Emails sent when someone submits the form</CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="notificationEmailTo">Notification Email To</FieldLabel>
-              <FieldDescription>Address to notify on each new submission</FieldDescription>
-              <Input
-                id="notificationEmailTo"
-                name="notificationEmailTo"
-                type="email"
-                value={formData.notificationEmailTo}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="notificationEmailSlug">Notification Email Template</FieldLabel>
-              <FieldDescription>Email template to use for notifications</FieldDescription>
-              <Select
-                value={formData.notificationEmailSlug}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, notificationEmailSlug: value === '_none' ? '' : value }))
-                }
-                disabled={isLoading}>
-                <SelectTrigger id="notificationEmailSlug" className="w-full">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">None</SelectItem>
-                  {emailList().map((email) => (
-                    <SelectItem key={email.id} value={email.slug}>
-                      {email.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="confirmationEmailFieldSlug">Confirmation Email Field</FieldLabel>
-              <FieldDescription>Form field that holds the submitter's email address</FieldDescription>
-              <Select
-                value={formData.confirmationEmailFieldSlug}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    confirmationEmailFieldSlug: value === '_none' ? '' : value,
-                  }))
-                }
-                disabled={isLoading || fields.filter((f) => f.type === 'email').length === 0}>
-                <SelectTrigger id="confirmationEmailFieldSlug" className="w-full">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">None</SelectItem>
-                  {fields
-                    .filter((f) => f.type === 'email')
-                    .map((f) => (
-                      <SelectItem key={f.slug} value={f.slug}>
-                        {f.name}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="notificationEmailTo">Notification Email To</FieldLabel>
+                <FieldDescription>Address to notify on each new submission</FieldDescription>
+                <Input
+                  id="notificationEmailTo"
+                  name="notificationEmailTo"
+                  type="email"
+                  value={formData.notificationEmailTo}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="notificationEmailSlug">Notification Email Template</FieldLabel>
+                <FieldDescription>Email template to use for notifications</FieldDescription>
+                <Select
+                  value={formData.notificationEmailSlug}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, notificationEmailSlug: value === '_none' ? '' : value }))
+                  }
+                  disabled={isLoading}>
+                  <SelectTrigger id="notificationEmailSlug" className="w-full">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">None</SelectItem>
+                    {emailList().map((email) => (
+                      <SelectItem key={email.id} value={email.slug}>
+                        {email.name}
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="confirmationEmailSlug">Confirmation Email Template</FieldLabel>
-              <FieldDescription>Email template to send to the submitter</FieldDescription>
-              <Select
-                value={formData.confirmationEmailSlug}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, confirmationEmailSlug: value === '_none' ? '' : value }))
-                }
-                disabled={isLoading}>
-                <SelectTrigger id="confirmationEmailSlug" className="w-full">
-                  <SelectValue placeholder="None" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">None</SelectItem>
-                  {emailList().map((email) => (
-                    <SelectItem key={email.id} value={email.slug}>
-                      {email.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="confirmationEmailFieldSlug">Confirmation Email Field</FieldLabel>
+                <FieldDescription>Form field that holds the submitter's email address</FieldDescription>
+                <Select
+                  value={formData.confirmationEmailFieldSlug}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      confirmationEmailFieldSlug: value === '_none' ? '' : value,
+                    }))
+                  }
+                  disabled={isLoading || fields.filter((f) => f.type === 'email').length === 0}>
+                  <SelectTrigger id="confirmationEmailFieldSlug" className="w-full">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">None</SelectItem>
+                    {fields
+                      .filter((f) => f.type === 'email')
+                      .map((f) => (
+                        <SelectItem key={f.slug} value={f.slug}>
+                          {f.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="confirmationEmailSlug">Confirmation Email Template</FieldLabel>
+                <FieldDescription>Email template to send to the submitter</FieldDescription>
+                <Select
+                  value={formData.confirmationEmailSlug}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, confirmationEmailSlug: value === '_none' ? '' : value }))
+                  }
+                  disabled={isLoading}>
+                  <SelectTrigger id="confirmationEmailSlug" className="w-full">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">None</SelectItem>
+                    {emailList().map((email) => (
+                      <SelectItem key={email.id} value={email.slug}>
+                        {email.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
           </FieldGroup>
         </CardContent>
-
-        <CardFooter>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Spinner /> {submitLoadingLabel}
-              </>
-            ) : (
-              submitLabel
-            )}
-          </Button>
-        </CardFooter>
       </Card>
+      <FormActions>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Spinner /> {submitLoadingLabel}
+            </>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+      </FormActions>
     </form>
   )
 }

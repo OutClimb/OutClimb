@@ -1,6 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
+import { Pencil, Trash2 } from 'lucide-react'
 import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { Role } from '@/types/role'
@@ -45,7 +47,11 @@ export function RolesTable({ data, canEdit, onEdit, onDelete }: RolesTableProps)
             <TableHead>Name</TableHead>
             <TableHead>Can Read...</TableHead>
             <TableHead>Can Write...</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,18 +75,19 @@ export function RolesTable({ data, canEdit, onEdit, onDelete }: RolesTableProps)
                 <TableCell>{writeEntities}</TableCell>
                 {canEdit && (
                   <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {allowAction && (
-                        <Button variant="secondary" onClick={() => onEdit(item.id)}>
+                    {allowAction && (
+                      <RowActions label={item.name}>
+                        <DropdownMenuItem onSelect={() => onEdit(item.id)}>
+                          <Pencil />
                           Edit
-                        </Button>
-                      )}
-                      {allowAction && (
-                        <Button variant="destructive" onClick={() => onDelete(item.id)}>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(item.id)}>
+                          <Trash2 />
                           Delete
-                        </Button>
-                      )}
-                    </div>
+                        </DropdownMenuItem>
+                      </RowActions>
+                    )}
                   </TableCell>
                 )}
               </TableRow>

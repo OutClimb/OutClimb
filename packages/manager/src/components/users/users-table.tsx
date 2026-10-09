@@ -1,6 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { RowActions } from '@/components/row-actions'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { User } from '@/types/user'
 import useRoleStore from '@/stores/role'
@@ -51,7 +53,11 @@ export function UsersTable({ data, canEdit, onEdit, onDelete }: UsersTableProps)
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
-            {canEdit && <TableHead className="text-right">Actions</TableHead>}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,18 +71,23 @@ export function UsersTable({ data, canEdit, onEdit, onDelete }: UsersTableProps)
                 <TableCell>{item.role}</TableCell>
                 {canEdit && (
                   <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {(allowAction || item.id === selfUser?.id) && (
-                        <Button variant="secondary" onClick={() => onEdit(item.id)}>
+                    {(allowAction || item.id === selfUser?.id) && (
+                      <RowActions label={item.username}>
+                        <DropdownMenuItem onSelect={() => onEdit(item.id)}>
+                          <Pencil />
                           Edit
-                        </Button>
-                      )}
-                      {allowAction && item.id !== selfUser?.id && (
-                        <Button variant="destructive" onClick={() => onDelete(item.id)}>
-                          Delete
-                        </Button>
-                      )}
-                    </div>
+                        </DropdownMenuItem>
+                        {allowAction && item.id !== selfUser?.id && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem variant="destructive" onSelect={() => onDelete(item.id)}>
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </RowActions>
+                    )}
                   </TableCell>
                 )}
               </TableRow>

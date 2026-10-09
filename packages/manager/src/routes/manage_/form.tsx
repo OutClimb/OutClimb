@@ -68,6 +68,7 @@ function Forms() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('form', WRITE_PERMISSION) && (
             <Button asChild disabled={isLoading}>

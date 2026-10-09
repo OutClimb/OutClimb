@@ -76,6 +76,7 @@ function Assets() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('asset', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>

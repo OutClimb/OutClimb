@@ -5,9 +5,10 @@
 @import '@fontsource/poppins/500.css';
 @import '@fontsource/poppins/700.css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 :root {
+  color-scheme: light;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -32,51 +33,55 @@
   --chart-4: oklch(0.6233 0.1634 280.96);
   --chart-5: oklch(0.5533 0.1334 281.96);
   --radius: 0.45rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar: oklch(0.985 0.002 286);
+  --sidebar-foreground: oklch(0.3 0.006 286);
   --sidebar-primary: oklch(0.6233 0.1634 280.96);
   --sidebar-primary-foreground: oklch(0.98 0.02 320);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: oklch(0.955 0.004 286);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border: oklch(0.93 0.003 286);
   --sidebar-ring: oklch(0.708 0 0);
 
   --sidebar-width: calc(var(--spacing) * 64);
+  --header-height: calc(var(--spacing) * 18);
   --body-width: calc(100% - var(--sidebar-width));
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.7033 0.1634 279.96);
-  --primary-foreground: oklch(0.98 0.02 320);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.8633 0.0334 277.96);
-  --chart-2: oklch(0.7833 0.1134 278.96);
-  --chart-3: oklch(0.7033 0.1634 279.96);
-  --chart-4: oklch(0.6233 0.1634 280.96);
-  --chart-5: oklch(0.5533 0.1334 281.96);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.7833 0.1134 278.96);
-  --sidebar-primary-foreground: oklch(0.98 0.02 320);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.7033 0.1634 279.96);
+    --primary-foreground: oklch(0.98 0.02 320);
+    --secondary: oklch(0.274 0.006 286.033);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.371 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.8633 0.0334 277.96);
+    --chart-2: oklch(0.7833 0.1134 278.96);
+    --chart-3: oklch(0.7033 0.1634 279.96);
+    --chart-4: oklch(0.6233 0.1634 280.96);
+    --chart-5: oklch(0.5533 0.1334 281.96);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.7833 0.1134 278.96);
+    --sidebar-primary-foreground: oklch(0.98 0.02 320);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
 }
 
 @theme inline {
@@ -135,4 +140,73 @@
 
 button {
   cursor: pointer;
+}
+
+/* Progress pride stripe, colors taken from the logo */
+@utility pride-stripe {
+  background-image: linear-gradient(
+    to right,
+    #3f3f3f 0% 9.09%,
+    #8a694e 9.09% 18.18%,
+    #85dfef 18.18% 27.27%,
+    #ffc3d7 27.27% 36.36%,
+    #eaeaea 36.36% 45.45%,
+    #f53641 45.45% 54.55%,
+    #ffa22a 54.55% 63.64%,
+    #f8e600 63.64% 72.73%,
+    #009c56 72.73% 81.82%,
+    #5972aa 81.82% 90.91%,
+    #9c5ea1 90.91% 100%
+  );
+}
+
+/* Pride stripe that flows sideways, used as a loading indicator */
+@utility pride-stripe-loading {
+  background-image: linear-gradient(
+    to right,
+    #3f3f3f,
+    #8a694e,
+    #85dfef,
+    #ffc3d7,
+    #eaeaea,
+    #f53641,
+    #ffa22a,
+    #f8e600,
+    #009c56,
+    #5972aa,
+    #9c5ea1,
+    #3f3f3f,
+    #8a694e,
+    #85dfef,
+    #ffc3d7,
+    #eaeaea,
+    #f53641,
+    #ffa22a,
+    #f8e600,
+    #009c56,
+    #5972aa,
+    #9c5ea1,
+    #3f3f3f
+  );
+  background-size: 200% 100%;
+  animation: pride-stripe-flow 2.5s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: pride-stripe-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pride-stripe-flow {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes pride-stripe-pulse {
+  50% {
+    opacity: 0.4;
+  }
 }

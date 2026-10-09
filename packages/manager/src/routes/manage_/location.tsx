@@ -78,6 +78,7 @@ function Locations() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('location', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>

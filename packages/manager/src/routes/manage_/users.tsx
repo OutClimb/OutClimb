@@ -80,6 +80,7 @@ function Users() {
   return (
     <>
       <Header
+        isLoading={isLoading}
         actions={
           hasPermission('user', WRITE_PERMISSION) && (
             <Button onClick={handleCreate} disabled={isLoading}>
