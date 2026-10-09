@@ -22,10 +22,12 @@ const FIELD_TYPES = [
   { value: 'radios', label: 'Radio Buttons' },
   { value: 'select', label: 'Select' },
   { value: 'bool', label: 'Yes/No' },
+  { value: 'newsletter', label: 'Newsletter' },
 ] as const
 
 const TYPES_WITH_OPTIONS = new Set(['checkboxes', 'radios', 'select'])
 const TYPES_WITH_PLACEHOLDER = new Set(['text-input', 'text-area', 'select'])
+const NO_FIELD = '__none__'
 
 function slugify(name: string): string {
   return name
@@ -40,21 +42,47 @@ function fieldTypeLabel(type: string): string {
   return FIELD_TYPES.find((t) => t.value === type)?.label ?? type
 }
 
-function parseMetadata(metadata: string | null): { options: string[]; placeholder: string } {
-  if (!metadata) return { options: [], placeholder: '' }
+interface ParsedMetadata {
+  options: string[]
+  placeholder: string
+  firstNameFieldSlug: string
+  lastNameFieldSlug: string
+  emailFieldSlug: string
+}
+
+const emptyMetadata: ParsedMetadata = {
+  options: [],
+  placeholder: '',
+  firstNameFieldSlug: '',
+  lastNameFieldSlug: '',
+  emailFieldSlug: '',
+}
+
+function parseMetadata(metadata: string | null): ParsedMetadata {
+  if (!metadata) return emptyMetadata
   try {
     const meta = JSON.parse(metadata)
     return {
       options: Array.isArray(meta?.options) ? (meta.options as string[]) : [],
       placeholder: typeof meta?.placeholder === 'string' ? meta.placeholder : '',
+      firstNameFieldSlug: typeof meta?.firstNameFieldSlug === 'string' ? meta.firstNameFieldSlug : '',
+      lastNameFieldSlug: typeof meta?.lastNameFieldSlug === 'string' ? meta.lastNameFieldSlug : '',
+      emailFieldSlug: typeof meta?.emailFieldSlug === 'string' ? meta.emailFieldSlug : '',
     }
   } catch {
-    return { options: [], placeholder: '' }
+    return emptyMetadata
   }
 }
 
-function buildMetadata(type: string, options: string, placeholder: string): string | null {
-  const meta: { options?: string[]; placeholder?: string } = {}
+function buildMetadata(dialog: DialogState): string | null {
+  const { type, options, placeholder } = dialog
+  const meta: {
+    options?: string[]
+    placeholder?: string
+    firstNameFieldSlug?: string
+    lastNameFieldSlug?: string
+    emailFieldSlug?: string
+  } = {}
   if (TYPES_WITH_OPTIONS.has(type)) {
     const optionList = options
       .split('\n')
@@ -64,6 +92,11 @@ function buildMetadata(type: string, options: string, placeholder: string): stri
   }
   if (TYPES_WITH_PLACEHOLDER.has(type) && placeholder.trim()) {
     meta.placeholder = placeholder.trim()
+  }
+  if (type === 'newsletter') {
+    if (dialog.firstNameFieldSlug) meta.firstNameFieldSlug = dialog.firstNameFieldSlug
+    if (dialog.lastNameFieldSlug) meta.lastNameFieldSlug = dialog.lastNameFieldSlug
+    if (dialog.emailFieldSlug) meta.emailFieldSlug = dialog.emailFieldSlug
   }
   return Object.keys(meta).length ? JSON.stringify(meta) : null
 }
@@ -77,12 +110,16 @@ interface DialogState {
   validation: string
   options: string
   placeholder: string
+  firstNameFieldSlug: string
+  lastNameFieldSlug: string
+  emailFieldSlug: string
 }
 
 interface DialogErrors {
   name: string
   slug: string
   options: string
+  emailFieldSlug: string
 }
 
 const emptyDialog: DialogState = {
@@ -94,9 +131,12 @@ const emptyDialog: DialogState = {
   validation: '',
   options: '',
   placeholder: '',
+  firstNameFieldSlug: '',
+  lastNameFieldSlug: '',
+  emailFieldSlug: '',
 }
 
-const emptyErrors: DialogErrors = { name: '', slug: '', options: '' }
+const emptyErrors: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '' }
 
 export interface FormFieldBuilderProps {
   fields: Array<FormField>
@@ -157,6 +197,9 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
         validation: f.validation ?? '',
         options: meta.options.join('\n'),
         placeholder: meta.placeholder,
+        firstNameFieldSlug: meta.firstNameFieldSlug,
+        lastNameFieldSlug: meta.lastNameFieldSlug,
+        emailFieldSlug: meta.emailFieldSlug,
       })
       setErrors(emptyErrors)
       setDialogOpen(true)
@@ -194,8 +237,20 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
     setDialog((prev) => ({ ...prev, placeholder: e.target.value }))
   }, [])
 
+  const handleLinkedFieldChange = useCallback(
+    (key: 'firstNameFieldSlug' | 'lastNameFieldSlug' | 'emailFieldSlug') => (value: string) => {
+      setDialog((prev) => ({ ...prev, [key]: value === NO_FIELD ? '' : value }))
+    },
+    [],
+  )
+
+  const fieldsOfType = useCallback(
+    (type: string) => fields.filter((f, i) => f.type === type && i !== editingIndex),
+    [fields, editingIndex],
+  )
+
   const handleSave = useCallback(() => {
-    const errs: DialogErrors = { name: '', slug: '', options: '' }
+    const errs: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '' }
     let hasError = false
 
     if (!dialog.name.trim()) {
@@ -225,6 +280,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       }
     }
 
+    if (dialog.type === 'newsletter' && !dialog.emailFieldSlug) {
+      errs.emailFieldSlug = 'Please select an email field'
+      hasError = true
+    }
+
     setErrors(errs)
     if (hasError) return
 
@@ -235,7 +295,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       type: dialog.type,
       required: dialog.required,
       validation: dialog.validation.trim() || null,
-      metadata: buildMetadata(dialog.type, dialog.options, dialog.placeholder),
+      metadata: buildMetadata(dialog),
       order: editingIndex !== null ? fields[editingIndex].order : fields.length,
     }
 
@@ -388,6 +448,71 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                     placeholder={dialog.type === 'select' ? 'Select an option' : 'e.g. Emily Oak'}
                   />
                 </Field>
+              )}
+
+              {dialog.type === 'newsletter' && (
+                <>
+                  <Field>
+                    <FieldLabel htmlFor="field-newsletter-first-name">First Name Field</FieldLabel>
+                    <Select
+                      value={dialog.firstNameFieldSlug || NO_FIELD}
+                      onValueChange={handleLinkedFieldChange('firstNameFieldSlug')}>
+                      <SelectTrigger id="field-newsletter-first-name" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_FIELD}>None</SelectItem>
+                        {fieldsOfType('given-name').map((f) => (
+                          <SelectItem key={f.slug} value={f.slug}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="field-newsletter-last-name">Last Name Field</FieldLabel>
+                    <Select
+                      value={dialog.lastNameFieldSlug || NO_FIELD}
+                      onValueChange={handleLinkedFieldChange('lastNameFieldSlug')}>
+                      <SelectTrigger id="field-newsletter-last-name" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_FIELD}>None</SelectItem>
+                        {fieldsOfType('family-name').map((f) => (
+                          <SelectItem key={f.slug} value={f.slug}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="field-newsletter-email">Email Field</FieldLabel>
+                    <Select
+                      value={dialog.emailFieldSlug || NO_FIELD}
+                      onValueChange={handleLinkedFieldChange('emailFieldSlug')}>
+                      <SelectTrigger
+                        id="field-newsletter-email"
+                        className="w-full"
+                        aria-invalid={!!errors.emailFieldSlug}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_FIELD}>None</SelectItem>
+                        {fieldsOfType('email').map((f) => (
+                          <SelectItem key={f.slug} value={f.slug}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.emailFieldSlug && <FieldError>{errors.emailFieldSlug}</FieldError>}
+                  </Field>
+                </>
               )}
 
               <Field orientation="horizontal">

@@ -171,7 +171,7 @@ func validateFieldValue(field store.FormField, val string) error {
 		}
 	}
 
-	if field.Type == "bool" && val != "" {
+	if (field.Type == "bool" || field.Type == "newsletter") && val != "" {
 		lowerValue := strings.ToLower(val)
 		possibleValues := map[string]bool{"true": true, "false": true, "1": true, "0": true, "yes": true, "no": true}
 		if _, ok := possibleValues[lowerValue]; !ok {
@@ -502,6 +502,8 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 			}
 		}
 	}
+
+	a.subscribeNewsletterFields(form.ID, *fields, values)
 
 	return &submissionInternal, nil
 }

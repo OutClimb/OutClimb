@@ -28,7 +28,7 @@ export function parseMetadata(metadata: string | null): FieldMetadata {
 }
 
 export function initialValue(type: string): FieldValue {
-  if (type === 'bool') return false
+  if (type === 'bool' || type === 'newsletter') return false
   if (type === 'checkboxes') return []
   return ''
 }

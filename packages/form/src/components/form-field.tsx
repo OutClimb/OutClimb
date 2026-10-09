@@ -61,6 +61,7 @@ export function FormField({ field, value, error, disabled, onChange }: FormField
 
   switch (field.type) {
     case 'bool':
+    case 'newsletter':
       return (
         <Field orientation="horizontal" data-invalid={invalid}>
           <Checkbox

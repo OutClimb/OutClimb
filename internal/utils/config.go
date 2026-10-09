@@ -28,12 +28,14 @@ import (
 )
 
 type AppConfig struct {
-	AltchaHmacKey     string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
-	AltchaHmacKeyFile string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
-	EmailFromAddress  string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
-	PasswordCost      int    `mapstructure:"OC_PASSWORD_COST"`
-	ResendApiKey      string `mapstructure:"OC_RESEND_API_KEY"`
-	ResendApiKeyFile  string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	AltchaHmacKey        string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
+	AltchaHmacKeyFile    string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
+	EmailFromAddress     string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	MailerLiteApiKey     string `mapstructure:"OC_MAILERLITE_API_KEY"`
+	MailerLiteApiKeyFile string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
+	PasswordCost         int    `mapstructure:"OC_PASSWORD_COST"`
+	ResendApiKey         string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile     string `mapstructure:"OC_RESEND_API_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
@@ -118,6 +120,7 @@ func LoadConfig(env string) (Config, error) {
 	}
 
 	loadSecretFromFile(&config.App.AltchaHmacKey, config.App.AltchaHmacKeyFile, "ALTCHA HMAC Key", env)
+	loadSecretFromFile(&config.App.MailerLiteApiKey, config.App.MailerLiteApiKeyFile, "MailerLite API Key", env)
 	loadSecretFromFile(&config.Database.Password, config.Database.PasswordFile, "Database Password", env)
 	loadSecretFromFile(&config.Http.Jwt.Secret, config.Http.Jwt.SecretFile, "JWT Secret", env)
 	loadSecretFromFile(&config.Storage.SecretKey, config.Storage.SecretKeyFile, "Storage Secret Key", env)

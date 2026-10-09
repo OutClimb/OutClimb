@@ -16,7 +16,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function validate(type: string, required: boolean, value: FieldValue): string {
   const isEmpty = value === false || (Array.isArray(value) ? value.length === 0 : String(value).trim() === '')
   if (required && isEmpty) {
-    return type === 'bool' ? 'Please check this box to continue' : 'Please fill in this field'
+    return type === 'bool' || type === 'newsletter' ? 'Please check this box to continue' : 'Please fill in this field'
   }
   if (type === 'email' && !isEmpty && !EMAIL_PATTERN.test(String(value).trim())) {
     return 'Please enter a valid email address'
