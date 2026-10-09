@@ -75,7 +75,7 @@ export function LoginForm() {
         <CardTitle className="text-lg font-semibold">Login</CardTitle>
       </CardHeader>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-(--card-spacing)">
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">

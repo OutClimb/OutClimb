@@ -66,7 +66,7 @@ export function ResetForm() {
         <CardTitle className="text-lg font-semibold">Password Reset</CardTitle>
       </CardHeader>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-(--card-spacing)">
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
