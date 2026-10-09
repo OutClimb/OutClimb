@@ -2,7 +2,7 @@
 
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { RowActions } from '@/components/row-actions'
-import { Copy, Pencil, Trash2 } from 'lucide-react'
+import { Copy, Eye, Pencil, Trash2 } from 'lucide-react'
 import type { Form } from '@/types/form'
 import { formatDateTime } from '@/lib/timezone'
 import { Link } from '@tanstack/react-router'
@@ -23,21 +23,26 @@ export function FormsTable({
     }
   }
 
+  const getLink = (slug: string) => {
+    if (import.meta.env.MODE === 'dev') {
+      return `http://register.outclimb.local/form/${slug}`
+    } else {
+      return `https://register2.outclimb.gay/form/${slug}`
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Slug</TableHead>
             <TableHead>Opens On</TableHead>
             <TableHead>Closes On</TableHead>
             <TableHead>Max Submissions</TableHead>
-            {canEdit && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
+            <TableHead className="w-12">
+              <span className="sr-only">Actions</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -51,33 +56,40 @@ export function FormsTable({
                   {item.name}
                 </Link>
               </TableCell>
-              <TableCell>{item.slug}</TableCell>
               <TableCell>{!item.opensOn ? '-' : formatDateTime(item.opensOn)}</TableCell>
               <TableCell>{!item.closesOn ? '-' : formatDateTime(item.closesOn)}</TableCell>
               <TableCell>{!item.maxSubmissions ? 'Unlimited' : item.maxSubmissions}</TableCell>
-              {canEdit && (
-                <TableCell>
-                  <RowActions label={item.name}>
-                    <DropdownMenuItem asChild>
-                      <Link to="/manage/form/$id/edit" params={{ id: item.slug }}>
-                        <Pencil />
-                        Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/manage/form/$id/duplicate" params={{ id: item.slug }}>
-                        <Copy />
-                        Duplicate
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </RowActions>
-                </TableCell>
-              )}
+              <TableCell>
+                <RowActions label={item.name}>
+                  <DropdownMenuItem asChild>
+                    <a href={getLink(item.slug)} target="_blank">
+                      <Eye />
+                      View
+                    </a>
+                  </DropdownMenuItem>
+                  {canEdit && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/manage/form/$id/edit" params={{ id: item.slug }}>
+                          <Pencil />
+                          Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/manage/form/$id/duplicate" params={{ id: item.slug }}>
+                          <Copy />
+                          Duplicate
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
+                        <Trash2 />
+                        Delete
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </RowActions>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
