@@ -20,6 +20,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -86,13 +87,29 @@ func (h *httpLayer) createSubmission(c *gin.Context) {
 		return
 	}
 
-	var values responses.SubmissionCreateRequest
-	if err := json.Unmarshal(bodyBytes, &values); err != nil {
+	var body responses.SubmissionCreateRequest
+	if err := json.Unmarshal(bodyBytes, &body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
 		return
 	}
 
-	if _, err := h.app.CreateSubmission(slug, values); err != nil {
+	// Only bots fill in the hidden honeypot field. Pretend it worked so they don't adapt.
+	if body.Honeypot != "" {
+		slog.Info("Discarding submission with honeypot filled",
+			"layer", "http",
+			"entity", "form",
+			"slug", slug,
+		)
+		c.JSON(http.StatusOK, gin.H{})
+		return
+	}
+
+	if err := h.app.VerifyCaptcha(body.Altcha); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Captcha verification failed"})
+		return
+	}
+
+	if _, err := h.app.CreateSubmission(slug, body.Values); err != nil {
 		if errors.Is(err, app.ErrFormNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Form not found"})
 		} else if errors.Is(err, app.ErrMissingField) || errors.Is(err, app.ErrInvalidField) {

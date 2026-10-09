@@ -3,6 +3,7 @@ module github.com/OutClimb/OutClimb
 go 1.27.1
 
 require (
+	github.com/altcha-org/altcha-lib-go/v2 v2.4.0
 	github.com/aws/aws-sdk-go-v2 v1.47.1
 	github.com/aws/aws-sdk-go-v2/config v1.33.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.7

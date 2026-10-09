@@ -23,11 +23,13 @@ import (
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
 	"github.com/OutClimb/OutClimb/internal/utils"
+	altcha "github.com/altcha-org/altcha-lib-go/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AppLayer interface {
 	AuthenticateUser(username string, password string) (*models.UserInternal, error)
+	CreateCaptchaChallenge() (*altcha.Challenge, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
 	CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
@@ -72,20 +74,23 @@ type AppLayer interface {
 	UpdateRole(user *models.UserInternal, id uint, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
 	UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	ValidatePassword(username, oldPasswordHash, password string) error
+	VerifyCaptcha(encodedPayload string) error
 }
 
 type appLayer struct {
-	config    *utils.AppConfig
-	store     store.StoreLayer
-	dummyHash []byte
+	config       *utils.AppConfig
+	store        store.StoreLayer
+	dummyHash    []byte
+	usedCaptchas *usedCaptchas
 }
 
 func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 	dummyHash, _ := bcrypt.GenerateFromPassword([]byte("dummy_password"), config.PasswordCost)
 
 	return &appLayer{
-		config:    config,
-		store:     storeLayer,
-		dummyHash: dummyHash,
+		config:       config,
+		store:        storeLayer,
+		dummyHash:    dummyHash,
+		usedCaptchas: newUsedCaptchas(),
 	}
 }

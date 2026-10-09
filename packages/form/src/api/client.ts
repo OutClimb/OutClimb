@@ -16,6 +16,8 @@ export async function apiFetch<T>(method: 'GET' | 'POST', url: string, body?: un
 
   if (response.status === 404) {
     throw new NotFoundError()
+  } else if (response.status === 403) {
+    throw new Error("We couldn't verify that you're not a robot. Please try again.")
   } else if (response.status === 429) {
     throw new Error('Too many requests. Please wait a moment and try again.')
   } else if (response.status === 400) {

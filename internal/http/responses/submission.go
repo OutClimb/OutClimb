@@ -45,4 +45,8 @@ func (s *SubmissionPublic) Publicize(submission *models.SubmissionInternal) {
 	}
 }
 
-type SubmissionCreateRequest map[string]string
+type SubmissionCreateRequest struct {
+	Values   map[string]string `json:"values"`
+	Altcha   string            `json:"altcha"`
+	Honeypot string            `json:"honeypot"`
+}

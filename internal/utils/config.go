@@ -28,12 +28,12 @@ import (
 )
 
 type AppConfig struct {
-	EmailFromAddress       string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
-	PasswordCost           int    `mapstructure:"OC_PASSWORD_COST"`
-	RecaptchaSecretKey     string `mapstructure:"OC_RECAPTCHA_SECRET_KEY"`
-	RecaptchaSecretKeyFile string `mapstructure:"OC_RECAPTCHA_SECRET_KEY_FILE"`
-	ResendApiKey           string `mapstructure:"OC_RESEND_API_KEY"`
-	ResendApiKeyFile       string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	AltchaHmacKey     string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
+	AltchaHmacKeyFile string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
+	EmailFromAddress  string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	PasswordCost      int    `mapstructure:"OC_PASSWORD_COST"`
+	ResendApiKey      string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile  string `mapstructure:"OC_RESEND_API_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
@@ -117,7 +117,7 @@ func LoadConfig(env string) (Config, error) {
 		return config, fmt.Errorf("unmarshal config: %w", err)
 	}
 
-	loadSecretFromFile(&config.App.RecaptchaSecretKey, config.App.RecaptchaSecretKeyFile, "Recaptcha Secret Key", env)
+	loadSecretFromFile(&config.App.AltchaHmacKey, config.App.AltchaHmacKeyFile, "ALTCHA HMAC Key", env)
 	loadSecretFromFile(&config.Database.Password, config.Database.PasswordFile, "Database Password", env)
 	loadSecretFromFile(&config.Http.Jwt.Secret, config.Http.Jwt.SecretFile, "JWT Secret", env)
 	loadSecretFromFile(&config.Storage.SecretKey, config.Storage.SecretKeyFile, "Storage Secret Key", env)
@@ -188,6 +188,10 @@ func (c *Config) Validate() error {
 
 	if len(c.Database.Username) == 0 {
 		return errors.New("no database username provided")
+	}
+
+	if len(c.App.AltchaHmacKey) == 0 {
+		return errors.New("no altcha hmac key provided")
 	}
 
 	if len(c.Http.Jwt.Issuer) == 0 {

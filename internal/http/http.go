@@ -152,6 +152,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			formRateLimitWindow = time.Minute
 		}
 		api.GET("/form/:slug", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.config.TrustedProxies), middleware.OptionalAuth(h.config), h.getForm)
+		api.GET("/captcha", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.config.TrustedProxies), h.getCaptcha)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {

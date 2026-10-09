@@ -1,6 +1,9 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import 'altcha'
+import type {} from 'altcha/types/react'
+import type { AltchaWidgetElement } from 'altcha/types/generic'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSubmission } from '@/api/form'
 import { FormField } from '@/components/form-field'
 import { initialValue, type FieldValue } from '@/lib/form-field'
@@ -40,6 +43,22 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const altchaRef = useRef<AltchaWidgetElement>(null)
+  const altchaPayload = useRef<string | null>(null)
+  const honeypotRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const widget = altchaRef.current
+    if (!widget) return
+
+    const handleStateChange = (e: Event) => {
+      const { payload, state } = (e as CustomEvent<{ payload?: string; state: string }>).detail
+      altchaPayload.current = state === 'verified' && payload ? payload : null
+    }
+
+    widget.addEventListener('statechange', handleStateChange)
+    return () => widget.removeEventListener('statechange', handleStateChange)
+  }, [])
 
   const handleChange = (slug: string, value: FieldValue) => {
     setValues((prev) => ({ ...prev, [slug]: value }))
@@ -63,13 +82,26 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
       return
     }
 
-    const body: CreateSubmissionRequest = Object.fromEntries(fields.map((f) => [f.slug, serialize(values[f.slug])]))
-
     setSubmitting(true)
     try {
+      // The widget usually finishes in the background while the form is filled out.
+      const altcha = altchaPayload.current ?? (await altchaRef.current?.verify())?.payload
+      if (!altcha) {
+        throw new Error("We couldn't verify that you're not a robot. Please try again.")
+      }
+
+      const body: CreateSubmissionRequest = {
+        values: Object.fromEntries(fields.map((f) => [f.slug, serialize(values[f.slug])])),
+        altcha,
+        honeypot: honeypotRef.current?.value ?? '',
+      }
+
       await createSubmission(form.slug, body)
       onSuccess()
     } catch (err) {
+      // Each solution can only be used once, so start a fresh challenge for the retry.
+      altchaPayload.current = null
+      altchaRef.current?.reset()
       setSubmitError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
     } finally {
       setSubmitting(false)
@@ -89,6 +121,24 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
             onChange={(value) => handleChange(field.slug, value)}
           />
         ))}
+
+        {/* Honeypot: hidden from people, but bots tend to fill in every field. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+          <label htmlFor="website">Website</label>
+          <input ref={honeypotRef} id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </div>
+
+        <altcha-widget
+          ref={altchaRef}
+          challenge="/api/v1/captcha"
+          auto="onfocus"
+          style={{
+            '--altcha-max-width': '100%',
+            '--altcha-color-base': 'var(--color-white)',
+            '--altcha-border-radius': 'var(--radius-lg)',
+            '--altcha-color-primary': 'var(--primary)',
+          }}
+        />
 
         {submitError && <FieldError className="text-center">{submitError}</FieldError>}
 

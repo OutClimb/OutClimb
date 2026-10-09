@@ -26,4 +26,8 @@ export interface Form {
 
 export type GetFormResponse = Form
 
-export type CreateSubmissionRequest = Record<string, string>
+export interface CreateSubmissionRequest {
+  values: Record<string, string>
+  altcha: string
+  honeypot: string
+}
