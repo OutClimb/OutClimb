@@ -9,11 +9,29 @@ import { FormField } from '@/components/form-field'
 import { initialValue, type FieldValue } from '@/lib/form-field'
 import { Button } from '@/components/ui/button'
 import { FieldError, FieldGroup } from '@/components/ui/field'
-import type { CreateSubmissionRequest, Form } from '@/types/form'
+import type { CreateSubmissionRequest, Form, FormField as FormFieldType } from '@/types/form'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function validate(type: string, required: boolean, value: FieldValue): string {
+function serialize(value: FieldValue): string {
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  if (Array.isArray(value)) return value.join(', ')
+  return value.trim()
+}
+
+// Mirrors the backend, which tests the field's pattern against the serialized value. Patterns the browser
+// can't compile (the backend uses .NET-style regex) are skipped and left for the backend to reject.
+function matchesValidation(validation: string | null, value: string): boolean {
+  if (!validation || value === '') return true
+  try {
+    return new RegExp(validation).test(value)
+  } catch {
+    return true
+  }
+}
+
+function validate(field: FormFieldType, value: FieldValue): string {
+  const { type, required } = field
   const isEmpty = value === false || (Array.isArray(value) ? value.length === 0 : String(value).trim() === '')
   if (required && isEmpty) {
     return type === 'bool' || type === 'newsletter' ? 'Please check this box to continue' : 'Please fill in this field'
@@ -21,13 +39,10 @@ function validate(type: string, required: boolean, value: FieldValue): string {
   if (type === 'email' && !isEmpty && !EMAIL_PATTERN.test(String(value).trim())) {
     return 'Please enter a valid email address'
   }
+  if (!matchesValidation(field.validation, serialize(value))) {
+    return 'Please enter a valid value'
+  }
   return ''
-}
-
-function serialize(value: FieldValue): string {
-  if (typeof value === 'boolean') return value ? 'true' : 'false'
-  if (Array.isArray(value)) return value.join(', ')
-  return value.trim()
 }
 
 export interface RegistrationFormProps {
@@ -71,7 +86,7 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
 
     const nextErrors: Record<string, string> = {}
     for (const field of fields) {
-      const error = validate(field.type, field.required, values[field.slug])
+      const error = validate(field, values[field.slug])
       if (error) nextErrors[field.slug] = error
     }
     setErrors(nextErrors)

@@ -6,6 +6,7 @@ export interface FormField {
   slug: string
   type: string
   metadata: string | null
+  validation: string | null
   required: boolean
   order: number
 }

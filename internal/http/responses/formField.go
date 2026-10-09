@@ -42,13 +42,14 @@ func (f *FormFieldPublic) Publicize(field *models.FormFieldInternal) {
 }
 
 type FormFieldDisplay struct {
-	Id       uint    `json:"id"`
-	Name     string  `json:"name"`
-	Slug     string  `json:"slug"`
-	Type     string  `json:"type"`
-	Metadata *string `json:"metadata"`
-	Required bool    `json:"required"`
-	Order    uint    `json:"order"`
+	Id         uint    `json:"id"`
+	Name       string  `json:"name"`
+	Slug       string  `json:"slug"`
+	Type       string  `json:"type"`
+	Metadata   *string `json:"metadata"`
+	Validation *string `json:"validation"`
+	Required   bool    `json:"required"`
+	Order      uint    `json:"order"`
 }
 
 func (f *FormFieldDisplay) Publicize(field *models.FormFieldInternal) {
@@ -57,6 +58,7 @@ func (f *FormFieldDisplay) Publicize(field *models.FormFieldInternal) {
 	f.Slug = field.Slug
 	f.Type = field.Type
 	f.Metadata = field.Metadata
+	f.Validation = field.Validation
 	f.Required = field.Required
 	f.Order = field.Order
 }
