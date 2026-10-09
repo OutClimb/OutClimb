@@ -1,6 +1,6 @@
 -- +goose Up
 ALTER TABLE roles ADD COLUMN IF NOT EXISTS require_two_factor boolean NOT NULL DEFAULT FALSE;
-UPDATE roles SET require_two_factor = TRUE WHERE name = 'Owner' AND name = 'Admin';
+UPDATE roles SET require_two_factor = TRUE WHERE name = 'Owner' OR name = 'Admin';
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled boolean NOT NULL DEFAULT FALSE;
