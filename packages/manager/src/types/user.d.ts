@@ -46,8 +46,8 @@ export interface User {
   username: string
   name: string
   email: string
-  requiresPasswordReset: boolean
-  requiresTwoFactorSetup: boolean
+  requirePasswordReset: boolean
+  requireTwoFactorSetup: boolean
   twoFactorEnabled?: boolean
   role: string
   permissions: Record<string, number>

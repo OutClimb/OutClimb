@@ -20,8 +20,8 @@ const useSelfStore = create<SelfState>()(
           username: claims.usr.un,
           name: claims.usr.n,
           email: claims.usr.e,
-          requiresPasswordReset: claims.usr.pr,
-          requiresTwoFactorSetup: claims.usr.tf,
+          requirePasswordReset: claims.usr.pr,
+          requireTwoFactorSetup: claims.usr.tf,
           role: claims.usr.r,
           permissions: claims.usr.p,
         }

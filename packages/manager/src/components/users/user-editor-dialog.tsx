@@ -62,7 +62,7 @@ function dataFromUser(user: User): FormData {
     email: user.email,
     password: '',
     role: user.role,
-    requirePasswordReset: user.requiresPasswordReset ?? false,
+    requirePasswordReset: user.requirePasswordReset ?? false,
     resetTwoFactor: false,
   }
 }

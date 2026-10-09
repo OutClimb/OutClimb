@@ -56,9 +56,9 @@ export function LoginForm() {
       const data = await fetchToken(formData.username, formData.password, isCodeRequired ? formData.code : undefined)
       login(data)
 
-      if (user()?.requiresPasswordReset) {
+      if (user()?.requirePasswordReset) {
         navigate({ to: '/manage/reset' })
-      } else if (user()?.requiresTwoFactorSetup) {
+      } else if (user()?.requireTwoFactorSetup) {
         navigate({ to: '/manage/two-factor' })
       } else {
         const firstNavItem = NAVIGATION_ITEMS.find((item) => hasPermission(item.entity, READ_PERMISSION))
