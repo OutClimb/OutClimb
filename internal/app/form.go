@@ -147,39 +147,26 @@ func validateFieldValue(field store.FormField, val string) error {
 		}
 	}
 
-	var metadata *interface{}
+	var metadata struct {
+		Options []string `json:"options"`
+	}
 	if field.Metadata != nil && len(*field.Metadata) > 0 {
-		err := json.Unmarshal([]byte(*field.Metadata), &metadata)
-		if err != nil {
-			metadata = nil
+		if err := json.Unmarshal([]byte(*field.Metadata), &metadata); err != nil {
+			metadata.Options = nil
 		}
 	}
 
 	if field.Type == "checkboxes" && val != "" {
-		if metadata == nil || *metadata == nil {
-			return ErrInvalidField
-		}
-		options, ok := (*metadata).(map[string]interface{})
-		if !ok {
-			return ErrInvalidField
-		}
 		selectedOptions := strings.Split(val, ", ")
 		for _, selectedOption := range selectedOptions {
-			if _, ok := options[selectedOption]; !ok {
+			if !slices.Contains(metadata.Options, selectedOption) {
 				return ErrInvalidField
 			}
 		}
 	}
 
 	if (field.Type == "radios" || field.Type == "select") && val != "" {
-		if metadata == nil || *metadata == nil {
-			return ErrInvalidField
-		}
-		options, ok := (*metadata).(map[string]interface{})
-		if !ok {
-			return ErrInvalidField
-		}
-		if _, ok := options[val]; !ok {
+		if !slices.Contains(metadata.Options, val) {
 			return ErrInvalidField
 		}
 	}
