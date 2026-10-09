@@ -59,7 +59,7 @@ type emailTemplateData struct {
 	Values map[string]string
 }
 
-func canViewSubmissions(user *models.UserInternal, form *models.FormInternal) bool {
+func (a *appLayer) CanViewForm(user *models.UserInternal, form *models.FormInternal) bool {
 	if user.Role == "Owner" {
 		return true
 	}
@@ -329,7 +329,16 @@ func (a *appLayer) DeleteForm(user *models.UserInternal, id uint) error {
 }
 
 func (a *appLayer) GetForm(user *models.UserInternal, id uint) (*models.FormInternal, error) {
-	return a.loadFormInternal(id)
+	form, err := a.loadFormInternal(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.CanViewForm(user, form) {
+		return nil, ErrForbidden
+	}
+
+	return form, nil
 }
 
 func (a *appLayer) GetFormBySlug(slug string) (*models.FormInternal, error) {
@@ -371,16 +380,21 @@ func (a *appLayer) computeFormStatus(form *store.Form) string {
 	return "open"
 }
 
-func (a *appLayer) GetAllForms() (*[]models.FormInternal, error) {
+func (a *appLayer) GetAllForms(user *models.UserInternal) (*[]models.FormInternal, error) {
 	forms, err := a.store.GetAllForms()
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]models.FormInternal, len(*forms))
-	for i, form := range *forms {
+	result := make([]models.FormInternal, 0, len(*forms))
+	for _, form := range *forms {
 		emptyFields := []store.FormField{}
-		result[i].Internalize(&form, &emptyFields)
+		internal := models.FormInternal{}
+		internal.Internalize(&form, &emptyFields)
+
+		if a.CanViewForm(user, &internal) {
+			result = append(result, internal)
+		}
 	}
 
 	return &result, nil
@@ -514,7 +528,7 @@ func (a *appLayer) GetSubmissionsForForm(user *models.UserInternal, formId uint)
 		return nil, err
 	}
 
-	if !canViewSubmissions(user, formInternal) {
+	if !a.CanViewForm(user, formInternal) {
 		return nil, ErrForbidden
 	}
 

@@ -33,6 +33,7 @@ import (
 type AppLayer interface {
 	AuthenticateUser(username, password, totpCode string) (*models.UserInternal, error)
 	BeginTotpSetup(user *models.UserInternal) (*models.TotpSetupInternal, error)
+	CanViewForm(user *models.UserInternal, form *models.FormInternal) bool
 	ConfirmTotpSetup(user *models.UserInternal, code string) error
 	CreateCaptchaChallenge() (*altcha.Challenge, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
@@ -56,7 +57,7 @@ type AppLayer interface {
 	GetAllAssets() (*[]models.AssetInternal, error)
 	GetEventsForMonth(year int, month time.Month) (*models.EventFeedInternal, error)
 	GetAllEmails() (*[]models.EmailInternal, error)
-	GetAllForms() (*[]models.FormInternal, error)
+	GetAllForms(user *models.UserInternal) (*[]models.FormInternal, error)
 	GetAllLocations() (*[]models.LocationInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
 	GetAllRoles() (*[]models.RoleInternal, error)

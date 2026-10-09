@@ -25,6 +25,7 @@ import (
 	"strconv"
 
 	"github.com/OutClimb/OutClimb/internal/app"
+	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
@@ -180,7 +181,7 @@ func (h *httpLayer) getForm(c *gin.Context) {
 		return
 	}
 
-	if _, authenticated := c.Get("user"); authenticated {
+	if h.canViewForm(c, form) {
 		resp := responses.FormPublic{}
 		resp.Publicize(form)
 		c.JSON(http.StatusOK, resp)
@@ -191,8 +192,34 @@ func (h *httpLayer) getForm(c *gin.Context) {
 	}
 }
 
+func (h *httpLayer) canViewForm(c *gin.Context, form *models.FormInternal) bool {
+	claim, authenticated := c.Get("user")
+	if !authenticated {
+		return false
+	}
+
+	userClaim, ok := claim.(middleware.JwtUserClaim)
+	if !ok {
+		return false
+	}
+
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		return false
+	}
+
+	return h.app.CanViewForm(user, form)
+}
+
 func (h *httpLayer) getForms(c *gin.Context) {
-	forms, err := h.app.GetAllForms()
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	forms, err := h.app.GetAllForms(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve forms"})
 		return
