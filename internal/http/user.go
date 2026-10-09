@@ -19,11 +19,13 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
@@ -66,8 +68,11 @@ func (h *httpLayer) createToken(c *gin.Context) {
 	}
 
 	// Authenticate the user
-	user, err := h.app.AuthenticateUser(jsonMap["username"], jsonMap["password"])
-	if err != nil {
+	user, err := h.app.AuthenticateUser(jsonMap["username"], jsonMap["password"], jsonMap["code"])
+	if errors.Is(err, app.ErrTotpRequired) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Two-factor code required", "twoFactorRequired": true})
+		return
+	} else if err != nil {
 		slog.Error(
 			"Unable to authenticate user",
 			"layer", "http",
@@ -99,13 +104,14 @@ func CreateToken(userId uint, user *responses.UserPublic, lifespan int, issuer, 
 	claims.NotBefore = jwt.NewNumericDate(time.Now())
 	claims.IssuedAt = jwt.NewNumericDate(time.Now())
 	claims.User = middleware.JwtUserClaim{
-		ID:                   userId,
-		Username:             user.Username,
-		Name:                 user.Name,
-		Email:                user.Email,
-		RequirePasswordReset: user.RequirePasswordReset,
-		Role:                 user.Role,
-		Permissions:          user.Permissions,
+		ID:                    userId,
+		Username:              user.Username,
+		Name:                  user.Name,
+		Email:                 user.Email,
+		RequirePasswordReset:  user.RequirePasswordReset,
+		RequireTwoFactorSetup: user.RequireTwoFactorSetup,
+		Role:                  user.Role,
+		Permissions:           user.Permissions,
 	}
 
 	// Create the token
@@ -409,7 +415,7 @@ func (h *httpLayer) updateUser(c *gin.Context) {
 		return
 	}
 
-	if user, err := h.app.UpdateUser(user, uint(id), body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.Username, body.Role); err != nil {
+	if user, err := h.app.UpdateUser(user, uint(id), body.Disabled, body.Email, body.Name, body.Password, body.RequirePasswordReset, body.ResetTwoFactor, body.Username, body.Role); err != nil {
 		slog.Error(
 			"Unable to update user",
 			"layer", "http",

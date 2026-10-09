@@ -25,18 +25,21 @@ type UserRequestPublic struct {
 	Name                 string `json:"name"`
 	Password             string `json:"password"`
 	RequirePasswordReset bool   `json:"requirePasswordReset"`
+	ResetTwoFactor       bool   `json:"resetTwoFactor"`
 	Username             string `json:"username"`
 	Role                 string `json:"role"`
 }
 
 type UserPublic struct {
-	Id                   uint            `json:"id"`
-	Username             string          `json:"username"`
-	Name                 string          `json:"name"`
-	Email                string          `json:"email"`
-	RequirePasswordReset bool            `json:"requirePasswordReset"`
-	Role                 string          `json:"role"`
-	Permissions          map[string]uint `json:"permissions"`
+	Id                    uint            `json:"id"`
+	Username              string          `json:"username"`
+	Name                  string          `json:"name"`
+	Email                 string          `json:"email"`
+	RequirePasswordReset  bool            `json:"requirePasswordReset"`
+	RequireTwoFactorSetup bool            `json:"requireTwoFactorSetup"`
+	TwoFactorEnabled      bool            `json:"twoFactorEnabled"`
+	Role                  string          `json:"role"`
+	Permissions           map[string]uint `json:"permissions"`
 }
 
 func (u *UserPublic) Publicize(user *models.UserInternal) {
@@ -45,6 +48,8 @@ func (u *UserPublic) Publicize(user *models.UserInternal) {
 	u.Name = user.Name
 	u.Email = user.Email
 	u.RequirePasswordReset = user.RequirePasswordReset
+	u.RequireTwoFactorSetup = user.RequireTwoFactorSetup
+	u.TwoFactorEnabled = user.TotpEnabled
 	u.Role = user.Role
 	u.Permissions = user.Permissions
 }

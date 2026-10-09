@@ -18,6 +18,7 @@ import { Route as ManageLoginRouteImport } from './routes/manage_/login'
 import { Route as ManageRedirectRouteImport } from './routes/manage_/redirect'
 import { Route as ManageResetRouteImport } from './routes/manage_/reset'
 import { Route as ManageRolesRouteImport } from './routes/manage_/roles'
+import { Route as ManageTwoFactorRouteImport } from './routes/manage_/two-factor'
 import { Route as ManageUsersRouteImport } from './routes/manage_/users'
 import { Route as ManageEmailCreateRouteImport } from './routes/manage_/email_/create'
 import { Route as ManageFormCreateRouteImport } from './routes/manage_/form_/create'
@@ -72,6 +73,11 @@ const ManageResetRoute = ManageResetRouteImport.update({
 const ManageRolesRoute = ManageRolesRouteImport.update({
   id: '/manage_/roles',
   path: '/manage/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageTwoFactorRoute = ManageTwoFactorRouteImport.update({
+  id: '/manage_/two-factor',
+  path: '/manage/two-factor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageUsersRoute = ManageUsersRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/roles': typeof ManageRolesRoute
+  '/manage/two-factor': typeof ManageTwoFactorRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage/': typeof ManageIndexRoute
   '/manage/email/create': typeof ManageEmailCreateRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/manage/redirect': typeof ManageRedirectRoute
   '/manage/reset': typeof ManageResetRoute
   '/manage/roles': typeof ManageRolesRoute
+  '/manage/two-factor': typeof ManageTwoFactorRoute
   '/manage/users': typeof ManageUsersRoute
   '/manage': typeof ManageIndexRoute
   '/manage/email/create': typeof ManageEmailCreateRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/manage_/redirect': typeof ManageRedirectRoute
   '/manage_/reset': typeof ManageResetRoute
   '/manage_/roles': typeof ManageRolesRoute
+  '/manage_/two-factor': typeof ManageTwoFactorRoute
   '/manage_/users': typeof ManageUsersRoute
   '/manage_/': typeof ManageIndexRoute
   '/manage_/email_/create': typeof ManageEmailCreateRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/roles'
+    | '/manage/two-factor'
     | '/manage/users'
     | '/manage/'
     | '/manage/email/create'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/manage/redirect'
     | '/manage/reset'
     | '/manage/roles'
+    | '/manage/two-factor'
     | '/manage/users'
     | '/manage'
     | '/manage/email/create'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/manage_/redirect'
     | '/manage_/reset'
     | '/manage_/roles'
+    | '/manage_/two-factor'
     | '/manage_/users'
     | '/manage_/'
     | '/manage_/email_/create'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   ManageRedirectRoute: typeof ManageRedirectRoute
   ManageResetRoute: typeof ManageResetRoute
   ManageRolesRoute: typeof ManageRolesRoute
+  ManageTwoFactorRoute: typeof ManageTwoFactorRoute
   ManageUsersRoute: typeof ManageUsersRoute
   ManageIndexRoute: typeof ManageIndexRoute
   ManageEmailCreateRoute: typeof ManageEmailCreateRoute
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/manage/roles'
       fullPath: '/manage/roles'
       preLoaderRoute: typeof ManageRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/two-factor': {
+      id: '/manage_/two-factor'
+      path: '/manage/two-factor'
+      fullPath: '/manage/two-factor'
+      preLoaderRoute: typeof ManageTwoFactorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage_/users': {
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageRedirectRoute: ManageRedirectRoute,
   ManageResetRoute: ManageResetRoute,
   ManageRolesRoute: ManageRolesRoute,
+  ManageTwoFactorRoute: ManageTwoFactorRoute,
   ManageUsersRoute: ManageUsersRoute,
   ManageIndexRoute: ManageIndexRoute,
   ManageEmailCreateRoute: ManageEmailCreateRoute,

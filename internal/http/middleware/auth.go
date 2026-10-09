@@ -27,16 +27,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const JwtVersion = "3"
+const JwtVersion = "4"
 
 type JwtUserClaim struct {
-	ID                   uint            `json:"id"`
-	Username             string          `json:"un"`
-	Name                 string          `json:"n"`
-	Email                string          `json:"e"`
-	RequirePasswordReset bool            `json:"pr"`
-	Role                 string          `json:"r"`
-	Permissions          map[string]uint `json:"p"`
+	ID                    uint            `json:"id"`
+	Username              string          `json:"un"`
+	Name                  string          `json:"n"`
+	Email                 string          `json:"e"`
+	RequirePasswordReset  bool            `json:"pr"`
+	RequireTwoFactorSetup bool            `json:"tf"`
+	Role                  string          `json:"r"`
+	Permissions           map[string]uint `json:"p"`
 }
 
 type JwtClaims struct {
@@ -57,7 +58,7 @@ func OptionalAuth(config *utils.HttpConfig) gin.HandlerFunc {
 		})
 
 		if err == nil && token.Valid {
-			if claims, ok := token.Claims.(*JwtClaims); ok && claims.Issuer == config.Jwt.Issuer+"-"+JwtVersion && !claims.User.RequirePasswordReset {
+			if claims, ok := token.Claims.(*JwtClaims); ok && claims.Issuer == config.Jwt.Issuer+"-"+JwtVersion && !claims.User.RequirePasswordReset && !claims.User.RequireTwoFactorSetup {
 				c.Set("user", claims.User)
 			}
 		}
@@ -66,7 +67,7 @@ func OptionalAuth(config *utils.HttpConfig) gin.HandlerFunc {
 	}
 }
 
-func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
+func Auth(config *utils.HttpConfig, resetAllowed, twoFactorSetupAllowed bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		if authorization == "" {
@@ -91,7 +92,7 @@ func Auth(config *utils.HttpConfig, resetAllowed bool) gin.HandlerFunc {
 		} else if claims, ok := token.Claims.(*JwtClaims); !ok {
 			c.JSON(http.StatusUnauthorized, responses.Error("Invalid token"))
 			c.Abort()
-		} else if claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion || (claims.User.RequirePasswordReset && !resetAllowed) {
+		} else if claims.Issuer != config.Jwt.Issuer+"-"+JwtVersion || (claims.User.RequirePasswordReset && !resetAllowed) || (claims.User.RequireTwoFactorSetup && !twoFactorSetupAllowed) {
 			c.JSON(http.StatusUnauthorized, responses.Error("Unauthorized"))
 			c.Abort()
 		} else {

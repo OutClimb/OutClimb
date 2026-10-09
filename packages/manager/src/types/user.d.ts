@@ -9,6 +9,7 @@ export interface UserRequest {
   name: string
   password: string
   requirePasswordReset: boolean
+  resetTwoFactor?: boolean
   username: string
   role: string
 }
@@ -26,6 +27,7 @@ export interface JwtClaims {
     n: string
     e: string
     pr: boolean
+    tf: boolean
     r: string
     p: Record<string, number>
   }
@@ -33,12 +35,20 @@ export interface JwtClaims {
 
 export type TokenResponse = string
 
+export interface TwoFactorSetupResponse {
+  qrCode: string
+  secret: string
+  url: string
+}
+
 export interface User {
   id: number
   username: string
   name: string
   email: string
   requiresPasswordReset: boolean
+  requiresTwoFactorSetup: boolean
+  twoFactorEnabled?: boolean
   role: string
   permissions: Record<string, number>
 }

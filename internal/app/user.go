@@ -42,7 +42,7 @@ func (a *appLayer) assertActorOutranks(actor *models.UserInternal, targetRole *s
 	return nil
 }
 
-func (a *appLayer) AuthenticateUser(username string, password string) (*models.UserInternal, error) {
+func (a *appLayer) AuthenticateUser(username, password, totpCode string) (*models.UserInternal, error) {
 	if user, err := a.store.GetUserWithUsername(username); err != nil {
 		// Prevents timing to know whether or not a user exists.
 		_ = bcrypt.CompareHashAndPassword([]byte(a.dummyHash), []byte(password))
@@ -59,6 +59,12 @@ func (a *appLayer) AuthenticateUser(username string, password string) (*models.U
 	} else {
 		userInternal := models.UserInternal{}
 		userInternal.Internalize(user, role, permissions)
+
+		if userInternal.TotpEnabled {
+			if err := a.verifyTotp(&userInternal, totpCode); err != nil {
+				return &models.UserInternal{}, err
+			}
+		}
 
 		return &userInternal, nil
 	}
@@ -267,7 +273,7 @@ func (a *appLayer) UpdatePassword(user *models.UserInternal, password string) er
 	return nil
 }
 
-func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error) {
+func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset, resetTwoFactor bool, username, roleName string) (*models.UserInternal, error) {
 	if len(email) == 0 || len(name) == 0 || len(username) == 0 || len(roleName) == 0 {
 		return &models.UserInternal{}, errors.New("bad request")
 	}
@@ -350,7 +356,7 @@ func (a *appLayer) UpdateUser(user *models.UserInternal, id uint, disabled bool,
 		hashedPassword = string(newHashedPassword)
 	}
 
-	if newUser, err := a.store.UpdateUser(id, user.Username, disabled, email, name, hashedPassword, requirePasswordReset, username, role.ID); err != nil {
+	if newUser, err := a.store.UpdateUser(id, user.Username, disabled, email, name, hashedPassword, requirePasswordReset, resetTwoFactor, username, role.ID); err != nil {
 		return &models.UserInternal{}, err
 	} else {
 		userInternal := models.UserInternal{}

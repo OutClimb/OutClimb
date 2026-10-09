@@ -1,5 +1,5 @@
 //
-// Role Response
+// Internal TOTP Setup Object
 // Copyright 2026 OutClimb
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,22 +15,10 @@
 // limitations under the License.
 //
 
-package responses
+package models
 
-import "github.com/OutClimb/OutClimb/internal/app/models"
-
-type RolePublic struct {
-	Id               uint            `json:"id"`
-	Name             string          `json:"name"`
-	Order            uint            `json:"order"`
-	Permissions      map[string]uint `json:"permissions"`
-	RequireTwoFactor bool            `json:"requireTwoFactor"`
-}
-
-func (r *RolePublic) Publicize(role *models.RoleInternal) {
-	r.Id = role.ID
-	r.Name = role.Name
-	r.Order = role.Order
-	r.Permissions = role.Permissions
-	r.RequireTwoFactor = role.RequireTwoFactor
+type TotpSetupInternal struct {
+	QRCode string
+	Secret string
+	URL    string
 }

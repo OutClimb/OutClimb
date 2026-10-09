@@ -18,6 +18,9 @@
 package app
 
 import (
+	"crypto/cipher"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
@@ -28,14 +31,16 @@ import (
 )
 
 type AppLayer interface {
-	AuthenticateUser(username string, password string) (*models.UserInternal, error)
+	AuthenticateUser(username, password, totpCode string) (*models.UserInternal, error)
+	BeginTotpSetup(user *models.UserInternal) (*models.TotpSetupInternal, error)
+	ConfirmTotpSetup(user *models.UserInternal, code string) error
 	CreateCaptchaChallenge() (*altcha.Challenge, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
 	CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
-	CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
+	CreateRole(user *models.UserInternal, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error)
 	CreateSubmission(slug string, values map[string]string) (*models.SubmissionInternal, error)
 	CreateUser(user *models.UserInternal, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	DeleteAsset(id uint) error
@@ -71,8 +76,8 @@ type AppLayer interface {
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
-	UpdateRole(user *models.UserInternal, id uint, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error)
-	UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
+	UpdateRole(user *models.UserInternal, id uint, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error)
+	UpdateUser(user *models.UserInternal, id uint, disabled bool, email, name, password string, requirePasswordReset, resetTwoFactor bool, username, roleName string) (*models.UserInternal, error)
 	ValidatePassword(username, oldPasswordHash, password string) error
 	VerifyCaptcha(encodedPayload string) error
 }
@@ -82,15 +87,29 @@ type appLayer struct {
 	store        store.StoreLayer
 	dummyHash    []byte
 	usedCaptchas *usedCaptchas
+	totpCipher   cipher.AEAD
 }
 
 func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 	dummyHash, _ := bcrypt.GenerateFromPassword([]byte("dummy_password"), config.PasswordCost)
+
+	totpCipher, err := newTotpCipher(config.TotpEncryptionKey)
+	if err != nil {
+		slog.Error(
+			"Unable to create totp cipher",
+			"layer", "app",
+			"entity", "app",
+			"error", err,
+		)
+		os.Exit(1)
+		return nil
+	}
 
 	return &appLayer{
 		config:       config,
 		store:        storeLayer,
 		dummyHash:    dummyHash,
 		usedCaptchas: newUsedCaptchas(),
+		totpCipher:   totpCipher,
 	}
 }

@@ -11,7 +11,11 @@ export interface RouterContext {
 const RootLayout = () => {
   const location = useLocation()
 
-  if (location.pathname === '/manage/login' || location.pathname === '/manage/reset') {
+  if (
+    location.pathname === '/manage/login' ||
+    location.pathname === '/manage/reset' ||
+    location.pathname === '/manage/two-factor'
+  ) {
     return (
       <>
         <HeadContent />

@@ -8,4 +8,5 @@ export interface Role {
   name: string
   order: number
   permissions: Record<string, number>
+  requireTwoFactor: boolean
 }

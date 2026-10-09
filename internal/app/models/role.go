@@ -20,16 +20,18 @@ package models
 import "github.com/OutClimb/OutClimb/internal/store"
 
 type RoleInternal struct {
-	ID          uint
-	Name        string
-	Order       uint
-	Permissions map[string]uint
+	ID               uint
+	Name             string
+	Order            uint
+	Permissions      map[string]uint
+	RequireTwoFactor bool
 }
 
 func (r *RoleInternal) Internalize(role *store.Role, permissions *[]store.Permission) {
 	r.ID = role.ID
 	r.Name = role.Name
 	r.Order = role.Order
+	r.RequireTwoFactor = role.RequireTwoFactor
 
 	permissionMap := map[string]uint{}
 	if role.Name == "Owner" {

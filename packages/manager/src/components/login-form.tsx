@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import type React from 'react'
+import { TwoFactorRequiredError } from '@/errors/two-factor-required'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -19,9 +20,11 @@ export function LoginForm() {
   const { hasPermission, user, login } = useSelfStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isCodeRequired, setIsCodeRequired] = useState(false)
   const [formData, setFormData] = useState({
     username: '',
     password: '',
+    code: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,14 +45,21 @@ export function LoginForm() {
       return
     }
 
+    if (isCodeRequired && !/^\d{6}$/.test(formData.code)) {
+      setError('Please enter the 6 digit code from your authenticator app')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      const data = await fetchToken(formData.username, formData.password)
+      const data = await fetchToken(formData.username, formData.password, isCodeRequired ? formData.code : undefined)
       login(data)
 
       if (user()?.requiresPasswordReset) {
         navigate({ to: '/manage/reset' })
+      } else if (user()?.requiresTwoFactorSetup) {
+        navigate({ to: '/manage/two-factor' })
       } else {
         const firstNavItem = NAVIGATION_ITEMS.find((item) => hasPermission(item.entity, READ_PERMISSION))
         if (!firstNavItem) {
@@ -59,8 +69,11 @@ export function LoginForm() {
         }
       }
     } catch (error) {
-      if (error instanceof UnauthorizedError) {
-        setError('Invalid username or password')
+      if (error instanceof TwoFactorRequiredError) {
+        setIsCodeRequired(true)
+      } else if (error instanceof UnauthorizedError) {
+        setError(isCodeRequired ? 'Invalid code' : 'Invalid username or password')
+        setFormData((prev) => ({ ...prev, code: '' }))
       } else {
         setError('An error occurred. Please try again.')
       }
@@ -94,7 +107,7 @@ export function LoginForm() {
               autoFocus
               autoCapitalize="none"
               autoComplete="username"
-              disabled={isLoading}
+              disabled={isLoading || isCodeRequired}
               required
             />
           </div>
@@ -108,10 +121,29 @@ export function LoginForm() {
               onChange={handleChange}
               autoCapitalize="none"
               autoComplete="current-password"
-              disabled={isLoading}
+              disabled={isLoading || isCodeRequired}
               required
             />
           </div>
+          {isCodeRequired && (
+            <div className="space-y-2">
+              <Label htmlFor="code">Two-factor code</Label>
+              <Input
+                id="code"
+                name="code"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={formData.code}
+                onChange={handleChange}
+                autoFocus
+                autoComplete="one-time-code"
+                disabled={isLoading}
+                required
+              />
+            </div>
+          )}
         </CardContent>
         <CardFooter>
           <Button className="w-full" type="submit" disabled={isLoading}>

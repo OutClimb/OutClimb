@@ -3,10 +3,20 @@
 import { Button } from '@/components/ui/button'
 import { createRole, updateRole } from '@/api/role'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '../ui/field'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '../ui/field'
 import { Input } from '@/components/ui/input'
 import { NAVIGATION_GROUPS, NAVIGATION_ITEMS } from '@/lib/navigation-items'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -19,6 +29,7 @@ interface FormData {
   name: string
   order: string
   permissions: Record<string, number>
+  requireTwoFactor: boolean
 }
 
 interface FormError {
@@ -49,6 +60,7 @@ function dataFromRole(role: Role): FormData {
     name: role.name,
     order: String(role.order),
     permissions: buildPermissions(role.permissions),
+    requireTwoFactor: role.requireTwoFactor,
   }
 }
 
@@ -76,6 +88,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
     name: '',
     order: (minOrder + 1).toString(),
     permissions: emptyPermissions(),
+    requireTwoFactor: false,
   })
 
   if (
@@ -83,9 +96,16 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
     (formData.id !== 0 ||
       formData.name !== '' ||
       formData.order !== (minOrder + 1).toString() ||
+      formData.requireTwoFactor ||
       Object.values(formData.permissions).some((value) => value !== NO_PERMISSION))
   ) {
-    setFormData({ id: 0, name: '', order: (minOrder + 1).toString(), permissions: emptyPermissions() })
+    setFormData({
+      id: 0,
+      name: '',
+      order: (minOrder + 1).toString(),
+      permissions: emptyPermissions(),
+      requireTwoFactor: false,
+    })
     setFormError(emptyFormError)
   }
 
@@ -103,6 +123,10 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
       ...prev,
       permissions: { ...prev.permissions, [entity]: Number(value) },
     }))
+  }, [])
+
+  const handleRequireTwoFactorChange = useCallback((checked: boolean) => {
+    setFormData((prev) => ({ ...prev, requireTwoFactor: checked }))
   }, [])
 
   const handleCancel = useCallback(() => {
@@ -139,6 +163,7 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
             name: formData.name.trim(),
             order: orderNumber,
             permissions: formData.permissions,
+            requireTwoFactor: formData.requireTwoFactor,
           }
           const role = isEditing ? await updateRole(token || '', payload) : await createRole(token || '', payload)
           populateSingle(role)
@@ -191,6 +216,21 @@ export function RoleEditorDialog({ open, onOpenChange, initialRole }: RoleEditor
                   required
                 />
                 <FieldError>{formError.name}</FieldError>
+              </Field>
+
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor="requireTwoFactor">Require two-factor</FieldLabel>
+                  <FieldDescription>
+                    Users with this role must set up two-factor authentication to log in
+                  </FieldDescription>
+                </FieldContent>
+                <Switch
+                  id="requireTwoFactor"
+                  checked={formData.requireTwoFactor}
+                  disabled={isLoading}
+                  onCheckedChange={handleRequireTwoFactorChange}
+                />
               </Field>
 
               <FieldSet>

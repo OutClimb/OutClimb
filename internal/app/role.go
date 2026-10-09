@@ -79,7 +79,7 @@ func (a *appLayer) syncRolePermissions(roleID uint, permissions map[string]uint)
 	return nil
 }
 
-func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error) {
+func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error) {
 	if len(name) == 0 {
 		return &models.RoleInternal{}, errors.New("bad request")
 	}
@@ -96,7 +96,7 @@ func (a *appLayer) CreateRole(user *models.UserInternal, name string, order uint
 		return &models.RoleInternal{}, err
 	}
 
-	role, err := a.store.CreateRole(user.Username, name, order)
+	role, err := a.store.CreateRole(user.Username, name, order, requireTwoFactor)
 	if err != nil {
 		slog.Error(
 			"Unable to create role",
@@ -248,7 +248,7 @@ func (a *appLayer) GetAllRoles() (*[]models.RoleInternal, error) {
 	return &rolesInternal, nil
 }
 
-func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, order uint, permissions map[string]uint) (*models.RoleInternal, error) {
+func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error) {
 	if len(name) == 0 {
 		return &models.RoleInternal{}, errors.New("bad request")
 	}
@@ -285,7 +285,7 @@ func (a *appLayer) UpdateRole(user *models.UserInternal, id uint, name string, o
 		return &models.RoleInternal{}, err
 	}
 
-	role, err := a.store.UpdateRole(id, user.Username, name, order)
+	role, err := a.store.UpdateRole(id, user.Username, name, order, requireTwoFactor)
 	if err != nil {
 		slog.Error(
 			"Unable to update role",

@@ -47,6 +47,7 @@ export function RolesTable({ data, canEdit, onEdit, onDelete }: RolesTableProps)
             <TableHead>Name</TableHead>
             <TableHead>Can Read...</TableHead>
             <TableHead>Can Write...</TableHead>
+            <TableHead>Two-Factor</TableHead>
             {canEdit && (
               <TableHead className="w-12">
                 <span className="sr-only">Actions</span>
@@ -73,6 +74,7 @@ export function RolesTable({ data, canEdit, onEdit, onDelete }: RolesTableProps)
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{readEntities}</TableCell>
                 <TableCell>{writeEntities}</TableCell>
+                <TableCell>{item.requireTwoFactor ? 'Required' : 'Optional'}</TableCell>
                 {canEdit && (
                   <TableCell>
                     {allowAction && (

@@ -20,16 +20,20 @@ package models
 import "github.com/OutClimb/OutClimb/internal/store"
 
 type UserInternal struct {
-	Deleted              bool
-	Disabled             bool
-	Email                string
-	ID                   uint
-	Name                 string
-	Password             string
-	RequirePasswordReset bool
-	Username             string
-	Role                 string
-	Permissions          map[string]uint
+	Deleted               bool
+	Disabled              bool
+	Email                 string
+	ID                    uint
+	Name                  string
+	Password              string
+	RequirePasswordReset  bool
+	Username              string
+	Role                  string
+	Permissions           map[string]uint
+	RequireTwoFactorSetup bool
+	TotpEnabled           bool
+	TotpLastStep          int64
+	EncryptedTotpSecret   string
 }
 
 func (u *UserInternal) Internalize(user *store.User, role *store.Role, permissions *[]store.Permission) {
@@ -42,6 +46,14 @@ func (u *UserInternal) Internalize(user *store.User, role *store.Role, permissio
 	u.RequirePasswordReset = user.RequirePasswordReset
 	u.Username = user.Username
 	u.Role = role.Name
+	u.TotpEnabled = user.TotpEnabled
+	u.TotpLastStep = user.TotpLastStep
+	if user.TotpSecret != nil {
+		u.EncryptedTotpSecret = *user.TotpSecret
+	} else {
+		u.EncryptedTotpSecret = ""
+	}
+	u.RequireTwoFactorSetup = role.RequireTwoFactor && !user.TotpEnabled
 
 	// Build permission map
 	permissionMap := map[string]uint{}

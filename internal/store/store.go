@@ -48,7 +48,7 @@ type StoreLayer interface {
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
-	CreateRole(createdBy, name string, order uint) (*Role, error)
+	CreateRole(createdBy, name string, order uint, requireTwoFactor bool) (*Role, error)
 	CreateSubmission(formId uint) (*Submission, error)
 	CreateSubmissionValue(submissionId, formFieldId uint, value string) (*SubmissionValue, error)
 	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
@@ -67,6 +67,7 @@ type StoreLayer interface {
 	DeleteSubmissionValuesForForm(formId uint) error
 	DeleteSubmissionValuesForSubmission(submissionId uint) error
 	DeleteUser(id uint) error
+	EnableTotp(id uint, step int64, updatedBy string) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	GetAllEvents() (*EventFeed, error)
 	FindAsset(fileName string) (string, error)
@@ -103,6 +104,7 @@ type StoreLayer interface {
 	GetUsersWithRole(roleId uint) (*[]User, error)
 	GetUserWithUsername(username string) (*User, error)
 	SetFormViewableBy(formId uint, userIds []uint) error
+	SetTotpSecret(id uint, secret, updatedBy string) error
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
 	UpdateEmail(id uint, updatedBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
 	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
@@ -111,9 +113,10 @@ type StoreLayer interface {
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
 	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
-	UpdateRole(id uint, updatedBy, name string, order uint) (*Role, error)
+	UpdateRole(id uint, updatedBy, name string, order uint, requireTwoFactor bool) (*Role, error)
 	UpdateSubmissionValue(id uint, value string) (*SubmissionValue, error)
-	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
+	UpdateTotpLastStep(id uint, step int64) (bool, error)
+	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset, resetTwoFactor bool, username string, roleId uint) (*User, error)
 	WithTransaction(fn func(StoreLayer) error) error
 }
 

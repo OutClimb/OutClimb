@@ -24,6 +24,7 @@ interface FormData {
   password: string
   role: string
   requirePasswordReset: boolean
+  resetTwoFactor: boolean
 }
 
 interface FormError {
@@ -42,6 +43,7 @@ const emptyFormData: FormData = {
   password: '',
   role: '',
   requirePasswordReset: true,
+  resetTwoFactor: false,
 }
 
 const emptyFormError: FormError = {
@@ -61,6 +63,7 @@ function dataFromUser(user: User): FormData {
     password: '',
     role: user.role,
     requirePasswordReset: user.requiresPasswordReset ?? false,
+    resetTwoFactor: false,
   }
 }
 
@@ -122,6 +125,10 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
     setFormData((prev) => ({ ...prev, requirePasswordReset: checked }))
   }, [])
 
+  const handleResetTwoFactorChange = useCallback((checked: boolean) => {
+    setFormData((prev) => ({ ...prev, resetTwoFactor: checked }))
+  }, [])
+
   const handleCancel = useCallback(() => {
     onOpenChange(false)
   }, [onOpenChange])
@@ -179,6 +186,7 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
             name: formData.name.trim(),
             password: formData.password,
             requirePasswordReset: formData.requirePasswordReset,
+            resetTwoFactor: formData.resetTwoFactor,
             username: formData.username.trim(),
             role: formData.role,
           }
@@ -304,6 +312,23 @@ export function UserEditorDialog({ open, onOpenChange, initialUser }: UserEditor
                   onCheckedChange={handleRequirePasswordResetChange}
                 />
               </Field>
+
+              {isEditing && initialUser?.twoFactorEnabled && (
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    <FieldLabel htmlFor="resetTwoFactor">Reset two-factor</FieldLabel>
+                    <FieldDescription>
+                      Removes the user's authenticator so they can set it up again, such as after losing their device
+                    </FieldDescription>
+                  </FieldContent>
+                  <Switch
+                    id="resetTwoFactor"
+                    checked={formData.resetTwoFactor}
+                    disabled={isLoading}
+                    onCheckedChange={handleResetTwoFactorChange}
+                  />
+                </Field>
+              )}
             </FieldGroup>
           </form>
         </div>

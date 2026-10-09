@@ -18,6 +18,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -28,14 +29,16 @@ import (
 )
 
 type AppConfig struct {
-	AltchaHmacKey        string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
-	AltchaHmacKeyFile    string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
-	EmailFromAddress     string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
-	MailerLiteApiKey     string `mapstructure:"OC_MAILERLITE_API_KEY"`
-	MailerLiteApiKeyFile string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
-	PasswordCost         int    `mapstructure:"OC_PASSWORD_COST"`
-	ResendApiKey         string `mapstructure:"OC_RESEND_API_KEY"`
-	ResendApiKeyFile     string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	AltchaHmacKey         string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
+	AltchaHmacKeyFile     string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
+	EmailFromAddress      string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	MailerLiteApiKey      string `mapstructure:"OC_MAILERLITE_API_KEY"`
+	MailerLiteApiKeyFile  string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
+	PasswordCost          int    `mapstructure:"OC_PASSWORD_COST"`
+	ResendApiKey          string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile      string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	TotpEncryptionKey     string `mapstructure:"OC_TOTP_ENCRYPTION_KEY"`
+	TotpEncryptionKeyFile string `mapstructure:"OC_TOTP_ENCRYPTION_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
@@ -125,6 +128,7 @@ func LoadConfig(env string) (Config, error) {
 	loadSecretFromFile(&config.Http.Jwt.Secret, config.Http.Jwt.SecretFile, "JWT Secret", env)
 	loadSecretFromFile(&config.Storage.SecretKey, config.Storage.SecretKeyFile, "Storage Secret Key", env)
 	loadSecretFromFile(&config.App.ResendApiKey, config.App.ResendApiKeyFile, "Resend API Key", env)
+	loadSecretFromFile(&config.App.TotpEncryptionKey, config.App.TotpEncryptionKeyFile, "TOTP Encryption Key", env)
 
 	return config, nil
 }
@@ -195,6 +199,10 @@ func (c *Config) Validate() error {
 
 	if len(c.App.AltchaHmacKey) == 0 {
 		return errors.New("no altcha hmac key provided")
+	}
+
+	if key, err := base64.StdEncoding.DecodeString(c.App.TotpEncryptionKey); err != nil || len(key) != 32 {
+		return errors.New("totp encryption key must be 32 bytes encoded as base64")
 	}
 
 	if len(c.Http.Jwt.Issuer) == 0 {

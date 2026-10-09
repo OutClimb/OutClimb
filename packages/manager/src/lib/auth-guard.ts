@@ -10,4 +10,11 @@ export default async (context: RouterContext, location: ParsedLocation) => {
       },
     })
   }
+
+  const user = context.user.user()
+  if (user?.requiresTwoFactorSetup && !user.requiresPasswordReset && location.pathname !== '/manage/two-factor') {
+    throw redirect({
+      to: '/manage/two-factor',
+    })
+  }
 }
