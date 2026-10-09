@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { createRedirect, updateRedirect } from '@/api/redirect'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '../ui/field'
-import { format, getTime } from 'date-fns'
+import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useState } from 'react'
@@ -39,8 +39,8 @@ function dataFromRedirect(redirect: Redirect): FormData {
     id: redirect.id,
     fromPath: redirect.fromPath,
     toUrl: redirect.toUrl,
-    startsOn: redirect.startsOn > 0 ? format(redirect.startsOn, 'yyyy-MM-dd') : '',
-    stopsOn: redirect.stopsOn > 0 ? format(redirect.stopsOn, 'yyyy-MM-dd') : '',
+    startsOn: redirect.startsOn > 0 ? formatInTimezone(redirect.startsOn, 'yyyy-MM-dd') : '',
+    stopsOn: redirect.stopsOn > 0 ? formatInTimezone(redirect.stopsOn, 'yyyy-MM-dd') : '',
   }
 }
 
@@ -114,8 +114,8 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
             id: formData.id,
             fromPath: formData.fromPath.trim().replace(/^[/]+/m, ''),
             toUrl: formData.toUrl.trim(),
-            startsOn: formData.startsOn ? getTime(formData.startsOn) : 0,
-            stopsOn: formData.stopsOn ? getTime(formData.stopsOn) : 0,
+            startsOn: parseInTimezone(formData.startsOn) ?? 0,
+            stopsOn: parseInTimezone(formData.stopsOn) ?? 0,
           }
           const redirect = isEditing
             ? await updateRedirect(token || '', payload)

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import type { Form } from '@/types/form'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/timezone'
 import { Link } from '@tanstack/react-router'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -43,8 +43,8 @@ export function FormsTable({
                 </Link>
               </TableCell>
               <TableCell>{item.slug}</TableCell>
-              <TableCell>{!item.opensOn ? '-' : format(item.opensOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
-              <TableCell>{!item.closesOn ? '-' : format(item.closesOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}</TableCell>
+              <TableCell>{!item.opensOn ? '-' : formatDateTime(item.opensOn)}</TableCell>
+              <TableCell>{!item.closesOn ? '-' : formatDateTime(item.closesOn)}</TableCell>
               <TableCell>{!item.maxSubmissions ? 'Unlimited' : item.maxSubmissions}</TableCell>
               {canEdit && (
                 <TableCell>

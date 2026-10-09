@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { fetchEmails } from '@/api/email'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormFieldBuilder } from '@/components/form/form-field-builder'
+import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
@@ -27,13 +28,12 @@ function slugify(name: string): string {
 
 function datetimeLocalToUnix(value: string): number | null {
   if (!value.trim()) return null
-  const ms = new Date(value).getTime()
-  return isNaN(ms) ? null : Math.floor(ms / 1000)
+  return parseInTimezone(value)
 }
 
-function unixToDatetimeLocal(ts: number | null | undefined): string {
-  if (!ts) return ''
-  return new Date(ts * 1000).toISOString().slice(0, 16)
+function unixToDatetimeLocal(ms: number | null | undefined): string {
+  if (!ms) return ''
+  return formatInTimezone(ms, "yyyy-MM-dd'T'HH:mm")
 }
 
 function stringToUint(value: string): number | null {
@@ -200,12 +200,12 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
         hasError = true
       }
 
-      if (formData.opensOn && isNaN(new Date(formData.opensOn).getTime())) {
+      if (formData.opensOn && parseInTimezone(formData.opensOn) === null) {
         errors.opensOn = 'Invalid date'
         hasError = true
       }
 
-      if (formData.closesOn && isNaN(new Date(formData.closesOn).getTime())) {
+      if (formData.closesOn && parseInTimezone(formData.closesOn) === null) {
         errors.closesOn = 'Invalid date'
         hasError = true
       }
@@ -289,7 +289,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="opensOn">Opens On</FieldLabel>
-              <FieldDescription>Leave blank to open immediately</FieldDescription>
+              <FieldDescription>Central Time. Leave blank to open immediately</FieldDescription>
               <Input
                 id="opensOn"
                 name="opensOn"
@@ -303,7 +303,7 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
 
             <Field>
               <FieldLabel htmlFor="closesOn">Closes On</FieldLabel>
-              <FieldDescription>Leave blank to never close</FieldDescription>
+              <FieldDescription>Central Time. Leave blank to never close</FieldDescription>
               <Input
                 id="closesOn"
                 name="closesOn"

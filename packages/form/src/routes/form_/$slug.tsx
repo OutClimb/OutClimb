@@ -22,7 +22,16 @@ export const Route = createFileRoute('/form_/$slug')({
 })
 
 function formatDate(ms: number): string {
-  return new Date(ms).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' })
+  // The backend always operates in Central Time, so show times in it regardless of the visitor's timezone.
+  return new Date(ms).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/Chicago',
+    timeZoneName: 'short',
+  })
 }
 
 function statusMessage(form: Form): string | null {

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/lib/timezone'
 import type { Redirect } from '@/types/redirect'
 import { SquareArrowOutUpRight } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -62,12 +62,8 @@ export function RedirectsTable({
                   {item.toUrl} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
                 </a>
               </TableCell>
-              <TableCell>
-                {item.startsOn === 0 ? '-' : format(item.startsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}
-              </TableCell>
-              <TableCell>
-                {item.stopsOn === 0 ? '-' : format(item.stopsOn, "EEEE, MMMM d, yyyy 'at' h:mm aa")}
-              </TableCell>
+              <TableCell>{item.startsOn === 0 ? '-' : formatDateTime(item.startsOn)}</TableCell>
+              <TableCell>{item.stopsOn === 0 ? '-' : formatDateTime(item.stopsOn)}</TableCell>
               {canEdit && (
                 <TableCell>
                   <div className="flex justify-end gap-2">

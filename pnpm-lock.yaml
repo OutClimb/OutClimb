@@ -296,6 +296,9 @@ importers:
 
   packages/manager:
     dependencies:
+      '@date-fns/tz':
+        specifier: ^1.5.0
+        version: 1.5.0
       '@fontsource/poppins':
         specifier: ^5.2.7
         version: 5.3.0
