@@ -122,10 +122,25 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
           />
         ))}
 
-        {/* Honeypot: hidden from people, but bots tend to fill in every field. */}
+        {/*
+          Honeypot: hidden from people, but bots tend to fill in every field. The name avoids anything
+          autofill recognizes, and the data attributes tell password managers (1Password, LastPass,
+          Bitwarden, Dashlane) to skip it so identity autofill doesn't trip it.
+        */}
         <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
-          <label htmlFor="website">Website</label>
-          <input ref={honeypotRef} id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+          <label htmlFor="oc-confirm">Leave this field empty</label>
+          <input
+            ref={honeypotRef}
+            id="oc-confirm"
+            name="oc-confirm"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            data-bwignore
+            data-form-type="other"
+          />
         </div>
 
         <altcha-widget
