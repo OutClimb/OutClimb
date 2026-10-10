@@ -108,3 +108,19 @@ func (f *FormDisplay) Publicize(form *models.FormInternal) {
 		f.Fields[i].Publicize(&form.Fields[i])
 	}
 }
+
+type FormViewableByRequest struct {
+	ViewableBy []uint `json:"viewableBy"`
+}
+
+type FormViewerPublic struct {
+	Id       uint   `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+}
+
+func (f *FormViewerPublic) Publicize(user *models.UserInternal) {
+	f.Id = user.ID
+	f.Username = user.Username
+	f.Name = user.Name
+}

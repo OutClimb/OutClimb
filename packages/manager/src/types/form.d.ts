@@ -45,3 +45,11 @@ export interface Submission {
 }
 
 export type GetSubmissionsResponse = Array<Submission>
+
+export interface FormViewer {
+  id: number
+  username: string
+  name: string
+}
+
+export type GetFormViewersResponse = Array<FormViewer>

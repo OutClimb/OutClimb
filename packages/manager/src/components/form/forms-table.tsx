@@ -5,6 +5,7 @@ import { RowActions } from '@/components/row-actions'
 import { Copy, Eye, Pencil, Trash2 } from 'lucide-react'
 import type { Form } from '@/types/form'
 import { formatDateTime } from '@/lib/timezone'
+import { getPublicFormLink } from '@/lib/form-link'
 import { Link } from '@tanstack/react-router'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -20,14 +21,6 @@ export function FormsTable({
   const handleDelete = (id: number) => {
     return () => {
       onDelete(id)
-    }
-  }
-
-  const getLink = (slug: string) => {
-    if (import.meta.env.MODE === 'dev') {
-      return `http://register.outclimb.local/form/${slug}`
-    } else {
-      return `https://register2.outclimb.gay/form/${slug}`
     }
   }
 
@@ -50,8 +43,8 @@ export function FormsTable({
             <TableRow key={item.id}>
               <TableCell>
                 <Link
-                  to="/manage/form/$id/submissions"
-                  params={{ id: item.id.toString() }}
+                  to="/manage/form/$id"
+                  params={{ id: item.slug }}
                   className="font-medium hover:text-primary hover:underline underline-offset-4">
                   {item.name}
                 </Link>
@@ -62,7 +55,7 @@ export function FormsTable({
               <TableCell>
                 <RowActions label={item.name}>
                   <DropdownMenuItem asChild>
-                    <a href={getLink(item.slug)} target="_blank">
+                    <a href={getPublicFormLink(item.slug)} target="_blank">
                       <Eye />
                       View
                     </a>

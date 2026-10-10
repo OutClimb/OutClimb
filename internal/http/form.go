@@ -161,7 +161,11 @@ func (h *httpLayer) deleteSubmission(c *gin.Context) {
 	}
 
 	if err := h.app.DeleteSubmission(user, uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete submission"})
+		if errors.Is(err, app.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete submission"})
+		}
 		return
 	}
 
@@ -228,6 +232,32 @@ func (h *httpLayer) getForms(c *gin.Context) {
 	result := make([]responses.FormPublic, len(*forms))
 	for i := range *forms {
 		result[i].Publicize(&(*forms)[i])
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *httpLayer) getFormViewers(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	users, err := h.app.GetFormViewerCandidates(user)
+	if err != nil {
+		if errors.Is(err, app.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve form viewers"})
+		}
+		return
+	}
+
+	result := make([]responses.FormViewerPublic, len(*users))
+	for i := range *users {
+		result[i].Publicize(&(*users)[i])
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -308,6 +338,49 @@ func (h *httpLayer) updateForm(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, app.ErrInvalidNotificationEmail) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification email address"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update form"})
+		}
+		return
+	}
+
+	resp := responses.FormPublic{}
+	resp.Publicize(form)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *httpLayer) updateFormViewableBy(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	bodyBytes, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return
+	}
+
+	body := responses.FormViewableByRequest{}
+	if err := json.Unmarshal(bodyBytes, &body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return
+	}
+
+	form, err := h.app.UpdateFormViewableBy(user, uint(id), body.ViewableBy)
+	if err != nil {
+		if errors.Is(err, app.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		} else if errors.Is(err, app.ErrFormNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Form not found"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update form"})
 		}

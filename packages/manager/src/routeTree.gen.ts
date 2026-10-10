@@ -26,9 +26,9 @@ import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/so
 import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
 import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
 import { Route as ManageEmailIdEditRouteImport } from './routes/manage_/email_/$id/edit'
+import { Route as ManageFormIdIndexRouteImport } from './routes/manage_/form_/$id/index'
 import { Route as ManageFormIdDuplicateRouteImport } from './routes/manage_/form_/$id/duplicate'
 import { Route as ManageFormIdEditRouteImport } from './routes/manage_/form_/$id/edit'
-import { Route as ManageFormIdSubmissionsRouteImport } from './routes/manage_/form_/$id/submissions'
 
 const ManageIndexRoute = ManageIndexRouteImport.update({
   id: '/manage_/',
@@ -117,6 +117,11 @@ const ManageEmailIdEditRoute = ManageEmailIdEditRouteImport.update({
   path: '/manage/email/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageFormIdIndexRoute = ManageFormIdIndexRouteImport.update({
+  id: '/manage_/form_/$id/',
+  path: '/manage/form/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageFormIdDuplicateRoute = ManageFormIdDuplicateRouteImport.update({
   id: '/manage_/form_/$id/duplicate',
   path: '/manage/form/$id/duplicate',
@@ -125,11 +130,6 @@ const ManageFormIdDuplicateRoute = ManageFormIdDuplicateRouteImport.update({
 const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
   id: '/manage_/form_/$id/edit',
   path: '/manage/form/$id/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManageFormIdSubmissionsRoute = ManageFormIdSubmissionsRouteImport.update({
-  id: '/manage_/form_/$id/submissions',
-  path: '/manage/form/$id/submissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -153,7 +153,7 @@ export interface FileRoutesByFullPath {
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
   '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
-  '/manage/form/$id/submissions': typeof ManageFormIdSubmissionsRoute
+  '/manage/form/$id/': typeof ManageFormIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/manage/asset': typeof ManageAssetRoute
@@ -175,7 +175,7 @@ export interface FileRoutesByTo {
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
   '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
-  '/manage/form/$id/submissions': typeof ManageFormIdSubmissionsRoute
+  '/manage/form/$id': typeof ManageFormIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,7 +198,7 @@ export interface FileRoutesById {
   '/manage_/email_/$id/edit': typeof ManageEmailIdEditRoute
   '/manage_/form_/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage_/form_/$id/edit': typeof ManageFormIdEditRoute
-  '/manage_/form_/$id/submissions': typeof ManageFormIdSubmissionsRoute
+  '/manage_/form_/$id/': typeof ManageFormIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -222,7 +222,7 @@ export interface FileRouteTypes {
     | '/manage/email/$id/edit'
     | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
-    | '/manage/form/$id/submissions'
+    | '/manage/form/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/manage/asset'
@@ -244,7 +244,7 @@ export interface FileRouteTypes {
     | '/manage/email/$id/edit'
     | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
-    | '/manage/form/$id/submissions'
+    | '/manage/form/$id'
   id:
     | '__root__'
     | '/manage_/asset'
@@ -266,7 +266,7 @@ export interface FileRouteTypes {
     | '/manage_/email_/$id/edit'
     | '/manage_/form_/$id/duplicate'
     | '/manage_/form_/$id/edit'
-    | '/manage_/form_/$id/submissions'
+    | '/manage_/form_/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -289,7 +289,7 @@ export interface RootRouteChildren {
   ManageEmailIdEditRoute: typeof ManageEmailIdEditRoute
   ManageFormIdDuplicateRoute: typeof ManageFormIdDuplicateRoute
   ManageFormIdEditRoute: typeof ManageFormIdEditRoute
-  ManageFormIdSubmissionsRoute: typeof ManageFormIdSubmissionsRoute
+  ManageFormIdIndexRoute: typeof ManageFormIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -413,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageEmailIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage_/form_/$id/': {
+      id: '/manage_/form_/$id/'
+      path: '/manage/form/$id'
+      fullPath: '/manage/form/$id/'
+      preLoaderRoute: typeof ManageFormIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage_/form_/$id/duplicate': {
       id: '/manage_/form_/$id/duplicate'
       path: '/manage/form/$id/duplicate'
@@ -425,13 +432,6 @@ declare module '@tanstack/react-router' {
       path: '/manage/form/$id/edit'
       fullPath: '/manage/form/$id/edit'
       preLoaderRoute: typeof ManageFormIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manage_/form_/$id/submissions': {
-      id: '/manage_/form_/$id/submissions'
-      path: '/manage/form/$id/submissions'
-      fullPath: '/manage/form/$id/submissions'
-      preLoaderRoute: typeof ManageFormIdSubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -457,7 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageEmailIdEditRoute: ManageEmailIdEditRoute,
   ManageFormIdDuplicateRoute: ManageFormIdDuplicateRoute,
   ManageFormIdEditRoute: ManageFormIdEditRoute,
-  ManageFormIdSubmissionsRoute: ManageFormIdSubmissionsRoute,
+  ManageFormIdIndexRoute: ManageFormIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

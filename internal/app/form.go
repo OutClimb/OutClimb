@@ -80,6 +80,10 @@ func (a *appLayer) CanViewForm(user *models.UserInternal, form *models.FormInter
 	return false
 }
 
+func canEditForms(user *models.UserInternal) bool {
+	return user.Role == "Owner" || user.Permissions["form"] >= uint(store.LevelWrite)
+}
+
 func millisToTime(ms *int64) *time.Time {
 	if ms == nil || *ms <= 0 {
 		return nil
@@ -293,6 +297,48 @@ func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug str
 	}
 
 	return a.loadFormInternal(id)
+}
+
+func (a *appLayer) UpdateFormViewableBy(user *models.UserInternal, id uint, viewableBy []uint) (*models.FormInternal, error) {
+	if !canEditForms(user) {
+		return nil, ErrForbidden
+	}
+
+	if _, err := a.store.GetForm(id); err != nil {
+		return nil, ErrFormNotFound
+	}
+
+	if err := a.store.SetFormViewableBy(id, viewableBy); err != nil {
+		slog.Error("Unable to update form viewable by",
+			"layer", "app",
+			"entity", "form",
+			"id", id,
+			"error", err,
+		)
+		return nil, err
+	}
+
+	return a.loadFormInternal(id)
+}
+
+func (a *appLayer) GetFormViewerCandidates(user *models.UserInternal) (*[]models.UserInternal, error) {
+	if !canEditForms(user) {
+		return nil, ErrForbidden
+	}
+
+	users, err := a.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.UserInternal, 0, len(*users))
+	for _, u := range *users {
+		if u.Role != "Owner" && u.Permissions["form"] == uint(store.LevelRead) {
+			result = append(result, u)
+		}
+	}
+
+	return &result, nil
 }
 
 func (a *appLayer) DeleteForm(user *models.UserInternal, id uint) error {
@@ -560,6 +606,10 @@ func (a *appLayer) GetSubmissionsForForm(user *models.UserInternal, formId uint)
 }
 
 func (a *appLayer) DeleteSubmission(user *models.UserInternal, submissionId uint) error {
+	if !canEditForms(user) {
+		return ErrForbidden
+	}
+
 	if err := a.store.DeleteSubmissionValuesForSubmission(submissionId); err != nil {
 		slog.Error("Unable to delete submission values", "layer", "app", "entity", "form", "submissionId", submissionId, "error", err)
 		return err

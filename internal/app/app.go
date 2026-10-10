@@ -65,6 +65,7 @@ type AppLayer interface {
 	GetAsset(id uint) (*models.AssetInternal, error)
 	GetEmail(id uint) (*models.EmailInternal, error)
 	GetForm(user *models.UserInternal, id uint) (*models.FormInternal, error)
+	GetFormViewerCandidates(user *models.UserInternal) (*[]models.UserInternal, error)
 	GetFormBySlug(slug string) (*models.FormInternal, error)
 	GetLocation(id uint) (*models.LocationInternal, error)
 	GetRedirect(id uint) (*models.RedirectInternal, error)
@@ -74,6 +75,7 @@ type AppLayer interface {
 	UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error)
 	UpdateEmail(user *models.UserInternal, id uint, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
+	UpdateFormViewableBy(user *models.UserInternal, id uint, viewableBy []uint) (*models.FormInternal, error)
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)

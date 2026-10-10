@@ -1,6 +1,7 @@
 import type {
   CreateFormResponse,
   Form,
+  GetFormViewersResponse,
   GetFormsResponse,
   GetSubmissionsResponse,
   UpdateFormResponse,
@@ -26,6 +27,18 @@ export async function removeForm(token: string, id: number): Promise<boolean> {
 
 export async function updateForm(token: string, form: Form): Promise<UpdateFormResponse> {
   return apiFetch<UpdateFormResponse>(token, 'PUT', `/api/v1/form/${form.id}`, form)
+}
+
+export async function updateFormViewableBy(
+  token: string,
+  id: number,
+  viewableBy: Array<number>,
+): Promise<UpdateFormResponse> {
+  return apiFetch<UpdateFormResponse>(token, 'PUT', `/api/v1/form/${id}/viewable-by`, { viewableBy })
+}
+
+export async function fetchFormViewers(token: string): Promise<GetFormViewersResponse> {
+  return apiFetch<GetFormViewersResponse>(token, 'GET', '/api/v1/form-viewer')
 }
 
 export async function fetchSubmissions(token: string, formId: number): Promise<GetSubmissionsResponse> {

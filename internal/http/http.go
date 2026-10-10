@@ -235,6 +235,8 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			authFormApi.POST("/form", h.createForm)
 			authFormApi.PUT("/form/:id", h.updateForm)
 			authFormApi.DELETE("/form/:id", h.deleteForm)
+			authFormApi.PUT("/form/:id/viewable-by", h.updateFormViewableBy)
+			authFormApi.GET("/form-viewer", h.getFormViewers)
 			authFormApi.GET("/submission", h.getSubmissions)
 			authFormApi.DELETE("/submission/:id", h.deleteSubmission)
 		}
