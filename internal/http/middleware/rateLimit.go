@@ -79,10 +79,27 @@ func (l *ipRateLimiter) get(ip string) *rate.Limiter {
 // Per-IP limiters are kept in an LRU capped at rateLimitMaxEntries to bound memory.
 // When trustedProxies is empty, we use RemoteIP instead of ClientIP.
 func RateLimit(count int, window time.Duration, trustedProxies []string) gin.HandlerFunc {
+	return rateLimit(count, window, trustedProxies, false)
+}
+
+// UnauthenticatedRateLimit behaves like RateLimit but skips requests that already have
+// an authenticated user in the context. It must run after OptionalAuth.
+func UnauthenticatedRateLimit(count int, window time.Duration, trustedProxies []string) gin.HandlerFunc {
+	return rateLimit(count, window, trustedProxies, true)
+}
+
+func rateLimit(count int, window time.Duration, trustedProxies []string, skipAuthenticated bool) gin.HandlerFunc {
 	limiter := newIPRateLimiter(count, window)
 	hasTrustedProxies := len(trustedProxies) > 0
 
 	return func(c *gin.Context) {
+		if skipAuthenticated {
+			if _, ok := c.Get("user"); ok {
+				c.Next()
+				return
+			}
+		}
+
 		ip := c.RemoteIP()
 		if hasTrustedProxies {
 			ip = c.ClientIP()
