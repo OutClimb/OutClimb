@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { createRedirect, updateRedirect } from '@/api/redirect'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field'
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '../ui/field'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -32,6 +32,8 @@ const emptyFormData: FormData = {
 const emptyFormError = {
   fromPath: '',
   toUrl: '',
+  startsOn: '',
+  stopsOn: '',
 }
 
 function dataFromRedirect(redirect: Redirect): FormData {
@@ -39,8 +41,8 @@ function dataFromRedirect(redirect: Redirect): FormData {
     id: redirect.id,
     fromPath: redirect.fromPath,
     toUrl: redirect.toUrl,
-    startsOn: redirect.startsOn > 0 ? formatInTimezone(redirect.startsOn, 'yyyy-MM-dd') : '',
-    stopsOn: redirect.stopsOn > 0 ? formatInTimezone(redirect.stopsOn, 'yyyy-MM-dd') : '',
+    startsOn: redirect.startsOn > 0 ? formatInTimezone(redirect.startsOn, "yyyy-MM-dd'T'HH:mm") : '',
+    stopsOn: redirect.stopsOn > 0 ? formatInTimezone(redirect.stopsOn, "yyyy-MM-dd'T'HH:mm") : '',
   }
 }
 
@@ -103,6 +105,16 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
       } else if (!formData.toUrl.trim().startsWith('http')) {
         hasError = true
         nextError.toUrl = 'URL must start with http or https'
+      }
+
+      if (formData.startsOn && parseInTimezone(formData.startsOn) === null) {
+        hasError = true
+        nextError.startsOn = 'Invalid date'
+      }
+
+      if (formData.stopsOn && parseInTimezone(formData.stopsOn) === null) {
+        hasError = true
+        nextError.stopsOn = 'Invalid date'
       }
 
       setFormError(nextError)
@@ -173,26 +185,30 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
 
               <Field>
                 <FieldLabel htmlFor="startsOn">Starts On</FieldLabel>
+                <FieldDescription>Leave blank to start immediately</FieldDescription>
                 <Input
                   id="startsOn"
                   name="startsOn"
-                  type="text"
+                  type="datetime-local"
                   value={formData.startsOn}
                   onChange={handleChange}
                   disabled={isLoading}
                 />
+                <FieldError>{formError.startsOn}</FieldError>
               </Field>
 
               <Field>
                 <FieldLabel htmlFor="stopsOn">Stops On</FieldLabel>
+                <FieldDescription>Leave blank to never stop</FieldDescription>
                 <Input
                   id="stopsOn"
                   name="stopsOn"
-                  type="text"
+                  type="datetime-local"
                   value={formData.stopsOn}
                   onChange={handleChange}
                   disabled={isLoading}
                 />
+                <FieldError>{formError.stopsOn}</FieldError>
               </Field>
             </FieldGroup>
           </form>
