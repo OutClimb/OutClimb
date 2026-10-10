@@ -4,23 +4,31 @@ import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdow
 import { RowActions } from '@/components/row-actions'
 import { formatDateTime } from '@/lib/timezone'
 import type { Redirect } from '@/types/redirect'
-import { Pencil, SquareArrowOutUpRight, Trash2 } from 'lucide-react'
+import { Copy, Pencil, SquareArrowOutUpRight, Trash2 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function RedirectsTable({
   data,
   canEdit,
   onEdit,
+  onDuplicate,
   onDelete,
 }: {
   data: Array<Redirect>
   canEdit: boolean
   onEdit: (id: number) => void
+  onDuplicate: (id: number) => void
   onDelete: (id: number) => void
 }) {
   const handleEdit = (id: number) => {
     return () => {
       onEdit(id)
+    }
+  }
+
+  const handleDuplicate = (id: number) => {
+    return () => {
+      onDuplicate(id)
     }
   }
 
@@ -75,6 +83,10 @@ export function RedirectsTable({
                     <DropdownMenuItem onSelect={handleEdit(item.id)}>
                       <Pencil />
                       Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={handleDuplicate(item.id)}>
+                      <Copy />
+                      Duplicate
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>

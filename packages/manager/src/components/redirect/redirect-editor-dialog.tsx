@@ -50,22 +50,30 @@ interface RedirectEditorDialogProps {
   open: boolean
   onOpenChange: (isOpen: boolean) => void
   initialRedirect?: Redirect
+  isDuplicate?: boolean
 }
 
-export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: RedirectEditorDialogProps) {
+export function RedirectEditorDialog({
+  open,
+  onOpenChange,
+  initialRedirect,
+  isDuplicate = false,
+}: RedirectEditorDialogProps) {
   const navigate = useNavigate()
   const { token } = useSelfStore()
   const { populateSingle } = useRedirectStore()
 
-  const isEditing = initialRedirect !== undefined
+  const isEditing = initialRedirect !== undefined && !isDuplicate
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [formError, setFormError] = useState(emptyFormError)
   const [formData, setFormData] = useState<FormData>(emptyFormData)
+  const [isPopulated, setIsPopulated] = useState<boolean>(false)
 
   if (
     !open &&
-    (formData.id !== 0 ||
+    (isPopulated ||
+      formData.id !== 0 ||
       formData.fromPath !== '' ||
       formData.toUrl !== '' ||
       formData.startsOn !== '' ||
@@ -73,10 +81,13 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
   ) {
     setFormData(emptyFormData)
     setFormError(emptyFormError)
+    setIsPopulated(false)
   }
 
-  if (open && formData.id === 0 && initialRedirect != null) {
-    setFormData(dataFromRedirect(initialRedirect))
+  if (open && !isPopulated && initialRedirect != null) {
+    const data = dataFromRedirect(initialRedirect)
+    setFormData(isDuplicate ? { ...data, id: 0, fromPath: `${data.fromPath}-copy` } : data)
+    setIsPopulated(true)
   }
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +160,9 @@ export function RedirectEditorDialog({ open, onOpenChange, initialRedirect }: Re
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Redirect' : 'Create Redirect'}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? 'Edit Redirect' : isDuplicate ? 'Duplicate Redirect' : 'Create Redirect'}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">

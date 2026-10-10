@@ -43,10 +43,12 @@ function Redirects() {
   const {
     selectedId,
     isEditorOpen,
+    isDuplicating,
     handleEditorOpenChange,
     isDeleteDialogOpen,
     handleCreate,
     handleEdit,
+    handleDuplicate,
     handleDelete,
     handleDeleteDialogOpenChange,
   } = useCrudDialogs()
@@ -120,6 +122,7 @@ function Redirects() {
                 data={list()}
                 canEdit={hasPermission('redirect', WRITE_PERMISSION)}
                 onEdit={handleEdit}
+                onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
               />
             )}
@@ -133,6 +136,7 @@ function Redirects() {
             open={isEditorOpen}
             onOpenChange={handleEditorOpenChange}
             initialRedirect={selectedId != null ? data[selectedId] : undefined}
+            isDuplicate={isDuplicating}
           />
           <DeleteDialog
             id={selectedId}
