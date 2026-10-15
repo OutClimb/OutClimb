@@ -21,11 +21,87 @@ import (
 	"bytes"
 	htmltemplate "html/template"
 	"log/slog"
+	"strings"
+	"sync"
 	"text/template"
+	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/resend/resend-go/v3"
 )
+
+const (
+	defaultConfirmationEmailLimit       = 3
+	defaultConfirmationEmailLimitWindow = time.Hour
+)
+
+// recipientLimiter caps how many emails a single address can be sent within a sliding window,
+// so a public form can't be used to flood someone's inbox. It lives in memory, which is fine
+// because only one app instance runs.
+type recipientLimiter struct {
+	mu      sync.Mutex
+	limit   int
+	window  time.Duration
+	entries map[string][]time.Time
+}
+
+func newRecipientLimiter(limit int, window string) *recipientLimiter {
+	if limit <= 0 {
+		slog.Error("Invalid confirmation email limit, defaulting to 3",
+			"layer", "app",
+			"entity", "email",
+			"input", limit,
+		)
+		limit = defaultConfirmationEmailLimit
+	}
+
+	parsedWindow, err := time.ParseDuration(window)
+	if err != nil || parsedWindow <= 0 {
+		slog.Error("Failed to parse confirmation email limit window, defaulting to 1 hour",
+			"layer", "app",
+			"entity", "email",
+			"input", window,
+			"error", err,
+		)
+		parsedWindow = defaultConfirmationEmailLimitWindow
+	}
+
+	return &recipientLimiter{
+		limit:   limit,
+		window:  parsedWindow,
+		entries: map[string][]time.Time{},
+	}
+}
+
+// allow records a send to the address and reports false if the address is already at its limit.
+func (l *recipientLimiter) allow(address string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-l.window)
+	for key, sends := range l.entries {
+		kept := sends[:0]
+		for _, sentAt := range sends {
+			if sentAt.After(cutoff) {
+				kept = append(kept, sentAt)
+			}
+		}
+		if len(kept) == 0 {
+			delete(l.entries, key)
+		} else {
+			l.entries[key] = kept
+		}
+	}
+
+	key := strings.ToLower(strings.TrimSpace(address))
+	if len(l.entries[key]) >= l.limit {
+		return false
+	}
+
+	l.entries[key] = append(l.entries[key], now)
+	return true
+}
 
 func (a *appLayer) sendEmail(to []string, email *models.EmailInternal, data interface{}) error {
 	if len(a.config.ResendApiKey) == 0 {

@@ -68,6 +68,8 @@ func (h *httpLayer) createForm(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, app.ErrInvalidNotificationEmail) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification email address"})
+		} else if errors.Is(err, app.ErrInvalidConfirmationField) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Confirmation email field must be an email field"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create form"})
 		}
@@ -338,6 +340,8 @@ func (h *httpLayer) updateForm(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, app.ErrInvalidNotificationEmail) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification email address"})
+		} else if errors.Is(err, app.ErrInvalidConfirmationField) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Confirmation email field must be an email field"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update form"})
 		}

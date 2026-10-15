@@ -22,9 +22,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/mail"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dlclark/regexp2"
 
@@ -37,6 +39,7 @@ var (
 	ErrFormNotOpen              = errors.New("form not open")
 	ErrFormClosed               = errors.New("form closed")
 	ErrFormFull                 = errors.New("form max submissions reached")
+	ErrInvalidConfirmationField = errors.New("confirmation email field must be an email field")
 	ErrInvalidField             = errors.New("invalid field value")
 	ErrInvalidNotificationEmail = errors.New("invalid notification email address")
 	ErrMissingField             = errors.New("missing required field")
@@ -193,6 +196,78 @@ func validateFieldValue(field store.FormField, val string) error {
 	return nil
 }
 
+// The confirmation email field must point at a field of type email, so the recipient address is
+// always validated as one.
+func validateConfirmationEmailField(confirmationEmailFieldSlug *string, fields []FormFieldInput) error {
+	if confirmationEmailFieldSlug == nil || *confirmationEmailFieldSlug == "" {
+		return nil
+	}
+
+	for _, f := range fields {
+		if f.Slug == *confirmationEmailFieldSlug && f.Type == "email" {
+			return nil
+		}
+	}
+
+	return ErrInvalidConfirmationField
+}
+
+const confirmationValueMaxLength = 100
+
+// Field types whose values are limited to options the admin defined, so they're safe to echo as-is.
+var adminDefinedFieldTypes = map[string]bool{
+	"bool":       true,
+	"checkboxes": true,
+	"newsletter": true,
+	"radios":     true,
+	"select":     true,
+}
+
+var urlLikePattern = regexp.MustCompile(`(?i)://|^www\.|[\p{L}\p{N}-]\.[\p{L}][\p{L}\p{N}-]+`)
+
+// Strips anything that could turn a confirmation email into spam or phishing: control characters
+// and newlines are collapsed, URL-like words are removed, and the result is truncated.
+func sanitizeConfirmationValue(val string) string {
+	words := strings.FieldsFunc(val, func(r rune) bool {
+		return unicode.IsSpace(r) || unicode.IsControl(r)
+	})
+
+	kept := make([]string, 0, len(words))
+	for _, word := range words {
+		if !urlLikePattern.MatchString(word) {
+			kept = append(kept, word)
+		}
+	}
+
+	runes := []rune(strings.Join(kept, " "))
+	if len(runes) > confirmationValueMaxLength {
+		return strings.TrimSpace(string(runes[:confirmationValueMaxLength])) + "…"
+	}
+
+	return string(runes)
+}
+
+// Builds the values a confirmation email may echo back. These go to an address the submitter chose,
+// so free-text values are sanitized. The recipient's own address is kept since it was validated and
+// it's where the email is going anyway.
+func confirmationEmailValues(form *store.Form, fields []store.FormField, values map[string]string) map[string]string {
+	result := make(map[string]string, len(fields))
+	for _, field := range fields {
+		val, ok := values[field.Slug]
+		if !ok {
+			continue
+		}
+
+		if adminDefinedFieldTypes[field.Type] || field.Slug == *form.ConfirmationEmailFieldSlug {
+			result[field.Slug] = val
+		} else {
+			result[field.Slug] = sanitizeConfirmationValue(val)
+		}
+	}
+
+	return result
+}
+
 func validateNotificationEmailTo(notificationEmailTo *string) error {
 	if notificationEmailTo == nil || *notificationEmailTo == "" {
 		return nil
@@ -209,6 +284,10 @@ func validateNotificationEmailTo(notificationEmailTo *string) error {
 
 func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
 	if err := validateNotificationEmailTo(notificationEmailTo); err != nil {
+		return nil, err
+	}
+
+	if err := validateConfirmationEmailField(confirmationEmailFieldSlug, fields); err != nil {
 		return nil, err
 	}
 
@@ -244,6 +323,10 @@ func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, open
 
 func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error) {
 	if err := validateNotificationEmailTo(notificationEmailTo); err != nil {
+		return nil, err
+	}
+
+	if err := validateConfirmationEmailField(confirmationEmailFieldSlug, fields); err != nil {
 		return nil, err
 	}
 
@@ -508,7 +591,23 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 
 	if form.ConfirmationEmailSlug != nil && form.ConfirmationEmailFieldSlug != nil {
 		toAddress := values[*form.ConfirmationEmailFieldSlug]
-		if toAddress != "" {
+		confirmationField, ok := fieldBySlug[*form.ConfirmationEmailFieldSlug]
+		switch {
+		case toAddress == "":
+		case !ok || confirmationField.Type != "email":
+			slog.Warn("Confirmation email field is not an email field, skipping confirmation email",
+				"layer", "app",
+				"entity", "form",
+				"formId", form.ID,
+				"field", *form.ConfirmationEmailFieldSlug,
+			)
+		case !a.confirmationEmailLimiter.allow(toAddress):
+			slog.Warn("Confirmation email limit reached for recipient, skipping confirmation email",
+				"layer", "app",
+				"entity", "form",
+				"formId", form.ID,
+			)
+		default:
 			confirmationEmail, err := a.store.GetEmailWithSlug(*form.ConfirmationEmailSlug)
 			if err != nil {
 				slog.Error("Unable to get confirmation email template",
@@ -521,7 +620,13 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 				emailInternal := models.EmailInternal{}
 				emailInternal.Internalize(confirmationEmail)
 
-				if err := a.sendEmail([]string{toAddress}, &emailInternal, emailData); err != nil {
+				confirmationData := emailTemplateData{
+					Form:   form,
+					Fields: *fields,
+					Values: confirmationEmailValues(form, *fields, values),
+				}
+
+				if err := a.sendEmail([]string{toAddress}, &emailInternal, confirmationData); err != nil {
 					slog.Error("Unable to send confirmation email",
 						"layer", "app",
 						"entity", "form",

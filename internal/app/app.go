@@ -91,6 +91,8 @@ type appLayer struct {
 	dummyHash    []byte
 	usedCaptchas *usedCaptchas
 	totpCipher   cipher.AEAD
+
+	confirmationEmailLimiter *recipientLimiter
 }
 
 func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
@@ -114,5 +116,7 @@ func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 		dummyHash:    dummyHash,
 		usedCaptchas: newUsedCaptchas(),
 		totpCipher:   totpCipher,
+
+		confirmationEmailLimiter: newRecipientLimiter(config.ConfirmationEmailLimit, config.ConfirmationEmailLimitWindow),
 	}
 }

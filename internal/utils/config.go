@@ -29,16 +29,18 @@ import (
 )
 
 type AppConfig struct {
-	AltchaHmacKey         string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
-	AltchaHmacKeyFile     string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
-	EmailFromAddress      string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
-	MailerLiteApiKey      string `mapstructure:"OC_MAILERLITE_API_KEY"`
-	MailerLiteApiKeyFile  string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
-	PasswordCost          int    `mapstructure:"OC_PASSWORD_COST"`
-	ResendApiKey          string `mapstructure:"OC_RESEND_API_KEY"`
-	ResendApiKeyFile      string `mapstructure:"OC_RESEND_API_KEY_FILE"`
-	TotpEncryptionKey     string `mapstructure:"OC_TOTP_ENCRYPTION_KEY"`
-	TotpEncryptionKeyFile string `mapstructure:"OC_TOTP_ENCRYPTION_KEY_FILE"`
+	AltchaHmacKey                string `mapstructure:"OC_ALTCHA_HMAC_KEY"`
+	AltchaHmacKeyFile            string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
+	ConfirmationEmailLimit       int    `mapstructure:"OC_CONFIRMATION_EMAIL_LIMIT"`
+	ConfirmationEmailLimitWindow string `mapstructure:"OC_CONFIRMATION_EMAIL_LIMIT_WINDOW"`
+	EmailFromAddress             string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
+	MailerLiteApiKey             string `mapstructure:"OC_MAILERLITE_API_KEY"`
+	MailerLiteApiKeyFile         string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
+	PasswordCost                 int    `mapstructure:"OC_PASSWORD_COST"`
+	ResendApiKey                 string `mapstructure:"OC_RESEND_API_KEY"`
+	ResendApiKeyFile             string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	TotpEncryptionKey            string `mapstructure:"OC_TOTP_ENCRYPTION_KEY"`
+	TotpEncryptionKeyFile        string `mapstructure:"OC_TOTP_ENCRYPTION_KEY_FILE"`
 }
 
 type DatabaseConfig struct {
