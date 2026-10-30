@@ -398,7 +398,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                     </span>
                   )}
                   <span className="truncate">
-                    {field.type === 'paragraph' ? parseMetadata(field.metadata).content || field.name : field.name}
+                    {field.name}
                   </span>
                   {!CONTENT_FIELD_TYPES.has(field.type) && field.required && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary">
