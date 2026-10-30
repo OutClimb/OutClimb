@@ -6,6 +6,7 @@ import type { AltchaWidgetElement } from 'altcha/types/generic'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSubmission } from '@/api/form'
 import { FormField } from '@/components/form-field'
+import { isFieldVisible } from '@/lib/conditions'
 import { initialValue, isContentField, type FieldValue } from '@/lib/form-field'
 import { Button } from '@/components/ui/button'
 import { FieldError, FieldGroup } from '@/components/ui/field'
@@ -56,6 +57,9 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   const [values, setValues] = useState<Record<string, FieldValue>>(() =>
     Object.fromEntries(inputFields.map((f) => [f.slug, initialValue(f.type)])),
   )
+  const fieldsBySlug = new Map(fields.map((f) => [f.slug, f]))
+  const visibleFields = fields.filter((f) => isFieldVisible(f, fieldsBySlug, values))
+  const visibleInputFields = visibleFields.filter((f) => !isContentField(f.type))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -87,8 +91,14 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   }, [])
 
   const handleChange = (slug: string, value: FieldValue) => {
-    setValues((prev) => ({ ...prev, [slug]: value }))
-    setErrors((prev) => (prev[slug] ? { ...prev, [slug]: '' } : prev))
+    const nextValues = { ...values, [slug]: value }
+    setValues(nextValues)
+
+    // Errors on fields this change hides are dropped, so they don't come back if the field is shown again.
+    const hidden = new Set(fields.filter((f) => !isFieldVisible(f, fieldsBySlug, nextValues)).map((f) => f.slug))
+    setErrors((prev) =>
+      Object.fromEntries(Object.entries(prev).filter(([s, error]) => error && s !== slug && !hidden.has(s))),
+    )
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -96,13 +106,13 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
     setSubmitError('')
 
     const nextErrors: Record<string, string> = {}
-    for (const field of inputFields) {
+    for (const field of visibleInputFields) {
       const error = validate(field, values[field.slug])
       if (error) nextErrors[field.slug] = error
     }
     setErrors(nextErrors)
 
-    const firstInvalid = inputFields.find((f) => nextErrors[f.slug])
+    const firstInvalid = visibleInputFields.find((f) => nextErrors[f.slug])
     if (firstInvalid) {
       document.getElementById(`field-${firstInvalid.slug}`)?.focus()
       return
@@ -117,7 +127,7 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
       }
 
       const body: CreateSubmissionRequest = {
-        values: Object.fromEntries(inputFields.map((f) => [f.slug, serialize(values[f.slug])])),
+        values: Object.fromEntries(visibleInputFields.map((f) => [f.slug, serialize(values[f.slug])])),
         altcha,
         honeypot: honeypotRef.current?.value ?? '',
       }
@@ -137,7 +147,7 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   return (
     <form noValidate onSubmit={handleSubmit}>
       <FieldGroup className="gap-4">
-        {fields.map((field) => (
+        {visibleFields.map((field) => (
           <FormField
             key={field.slug}
             field={field}

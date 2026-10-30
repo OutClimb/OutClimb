@@ -1,9 +1,12 @@
+import type { FieldConditions } from '@/types/form'
+
 export type FieldValue = string | Array<string> | boolean
 
 interface FieldMetadata {
   options: Array<string>
   placeholder?: string
   content?: string
+  conditions?: FieldConditions
 }
 
 const CONTENT_FIELD_TYPES = new Set(['subheader', 'divider', 'paragraph'])
@@ -29,6 +32,7 @@ export function parseMetadata(metadata: string | null): FieldMetadata {
       options: Array.isArray(meta?.options) ? (meta.options as Array<string>) : [],
       placeholder: typeof meta?.placeholder === 'string' ? meta.placeholder : undefined,
       content: typeof meta?.content === 'string' ? meta.content : undefined,
+      conditions: Array.isArray(meta?.conditions?.rules) ? (meta.conditions as FieldConditions) : undefined,
     }
   } catch {
     return { options: [] }
