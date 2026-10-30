@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldContent, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { DEFAULT_PLACEHOLDERS, LINK_PATTERN, parseMetadata, type FieldValue } from '@/lib/form-field'
@@ -60,6 +61,23 @@ export function FormField({ field, value, error, disabled, onChange }: FormField
   const errorNode = error && <FieldError>{error}</FieldError>
 
   switch (field.type) {
+    case 'subheader':
+      return (
+        <h2 id={field.slug} className="scroll-mt-4 pt-2 text-xl font-semibold">
+          {renderName(field.name)}
+        </h2>
+      )
+
+    case 'divider':
+      return <Separator id={field.slug} className="scroll-mt-4" />
+
+    case 'paragraph':
+      return (
+        <p id={field.slug} className="scroll-mt-4 text-sm whitespace-pre-line">
+          {renderName(meta.content ?? '')}
+        </p>
+      )
+
     case 'bool':
     case 'newsletter':
       return (

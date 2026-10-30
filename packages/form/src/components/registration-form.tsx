@@ -6,7 +6,7 @@ import type { AltchaWidgetElement } from 'altcha/types/generic'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSubmission } from '@/api/form'
 import { FormField } from '@/components/form-field'
-import { initialValue, type FieldValue } from '@/lib/form-field'
+import { initialValue, isContentField, type FieldValue } from '@/lib/form-field'
 import { Button } from '@/components/ui/button'
 import { FieldError, FieldGroup } from '@/components/ui/field'
 import type { CreateSubmissionRequest, Form, FormField as FormFieldType } from '@/types/form'
@@ -52,8 +52,9 @@ export interface RegistrationFormProps {
 
 export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   const fields = [...form.fields].sort((a, b) => a.order - b.order)
+  const inputFields = fields.filter((f) => !isContentField(f.type))
   const [values, setValues] = useState<Record<string, FieldValue>>(() =>
-    Object.fromEntries(fields.map((f) => [f.slug, initialValue(f.type)])),
+    Object.fromEntries(inputFields.map((f) => [f.slug, initialValue(f.type)])),
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
@@ -61,6 +62,16 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
   const altchaRef = useRef<AltchaWidgetElement>(null)
   const altchaPayload = useRef<string | null>(null)
   const honeypotRef = useRef<HTMLInputElement>(null)
+
+  // The form renders after the loader resolves, so the browser's own `#slug` scroll has already missed.
+  useEffect(() => {
+    try {
+      const id = decodeURIComponent(window.location.hash.slice(1))
+      if (id) document.getElementById(id)?.scrollIntoView()
+    } catch {
+      /* Malformed Hash - do nothing. */
+    }
+  }, [])
 
   useEffect(() => {
     const widget = altchaRef.current
@@ -85,13 +96,13 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
     setSubmitError('')
 
     const nextErrors: Record<string, string> = {}
-    for (const field of fields) {
+    for (const field of inputFields) {
       const error = validate(field, values[field.slug])
       if (error) nextErrors[field.slug] = error
     }
     setErrors(nextErrors)
 
-    const firstInvalid = fields.find((f) => nextErrors[f.slug])
+    const firstInvalid = inputFields.find((f) => nextErrors[f.slug])
     if (firstInvalid) {
       document.getElementById(`field-${firstInvalid.slug}`)?.focus()
       return
@@ -106,7 +117,7 @@ export function RegistrationForm({ form, onSuccess }: RegistrationFormProps) {
       }
 
       const body: CreateSubmissionRequest = {
-        values: Object.fromEntries(fields.map((f) => [f.slug, serialize(values[f.slug])])),
+        values: Object.fromEntries(inputFields.map((f) => [f.slug, serialize(values[f.slug])])),
         altcha,
         honeypot: honeypotRef.current?.value ?? '',
       }

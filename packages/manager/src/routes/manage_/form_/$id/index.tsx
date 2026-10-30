@@ -80,9 +80,7 @@ function FormDetails() {
     load()
   }, [slug, token, populateSingle, navigate])
 
-  const fields = (form?.fields ?? [])
-    .filter((field) => !isContentField(field.type))
-    .sort((a, b) => a.order - b.order)
+  const fields = (form?.fields ?? []).filter((field) => !isContentField(field.type)).sort((a, b) => a.order - b.order)
 
   const handleExport = () => {
     if (!form) return
