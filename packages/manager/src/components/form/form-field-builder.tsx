@@ -12,22 +12,27 @@ import { ChevronUp, ChevronDown, Pencil, Trash2, Plus } from 'lucide-react'
 import type { FormField } from '@/types/form'
 
 const FIELD_TYPES = [
+  { value: 'checkboxes', label: 'Checkboxes' },
+  { value: 'divider', label: 'Divider' },
+  { value: 'email', label: 'Email Address' },
   { value: 'given-name', label: 'First Name' },
   { value: 'family-name', label: 'Last Name' },
-  { value: 'email', label: 'Email Address' },
+  { value: 'newsletter', label: 'Newsletter' },
+  { value: 'paragraph', label: 'Paragraph' },
   { value: 'phone', label: 'Phone Number' },
-  { value: 'text-input', label: 'Text Input' },
-  { value: 'text-area', label: 'Text Area' },
-  { value: 'checkboxes', label: 'Checkboxes' },
   { value: 'radios', label: 'Radio Buttons' },
   { value: 'select', label: 'Select' },
+  { value: 'subheader', label: 'Subheader' },
+  { value: 'text-area', label: 'Text Area' },
+  { value: 'text-input', label: 'Text Input' },
   { value: 'bool', label: 'Yes/No' },
-  { value: 'newsletter', label: 'Newsletter' },
 ] as const
 
 const TYPES_WITH_OPTIONS = new Set(['checkboxes', 'radios', 'select'])
+const CONTENT_TYPES = new Set(['subheader', 'divider', 'paragraph'])
 const TYPES_WITH_PLACEHOLDER = new Set(['text-input', 'text-area', 'select'])
 const NO_FIELD = '__none__'
+const DEFAULT_CONTENT_NAMES: Record<string, string> = { divider: 'Divider', paragraph: 'Paragraph' }
 
 function slugify(name: string): string {
   return name
@@ -48,6 +53,7 @@ interface ParsedMetadata {
   firstNameFieldSlug: string
   lastNameFieldSlug: string
   emailFieldSlug: string
+  content: string
 }
 
 const emptyMetadata: ParsedMetadata = {
@@ -56,6 +62,7 @@ const emptyMetadata: ParsedMetadata = {
   firstNameFieldSlug: '',
   lastNameFieldSlug: '',
   emailFieldSlug: '',
+  content: '',
 }
 
 function parseMetadata(metadata: string | null): ParsedMetadata {
@@ -68,6 +75,7 @@ function parseMetadata(metadata: string | null): ParsedMetadata {
       firstNameFieldSlug: typeof meta?.firstNameFieldSlug === 'string' ? meta.firstNameFieldSlug : '',
       lastNameFieldSlug: typeof meta?.lastNameFieldSlug === 'string' ? meta.lastNameFieldSlug : '',
       emailFieldSlug: typeof meta?.emailFieldSlug === 'string' ? meta.emailFieldSlug : '',
+      content: typeof meta?.content === 'string' ? meta.content : '',
     }
   } catch {
     return emptyMetadata
@@ -82,6 +90,7 @@ function buildMetadata(dialog: DialogState): string | null {
     firstNameFieldSlug?: string
     lastNameFieldSlug?: string
     emailFieldSlug?: string
+    content?: string
   } = {}
   if (TYPES_WITH_OPTIONS.has(type)) {
     const optionList = options
@@ -92,6 +101,9 @@ function buildMetadata(dialog: DialogState): string | null {
   }
   if (TYPES_WITH_PLACEHOLDER.has(type) && placeholder.trim()) {
     meta.placeholder = placeholder.trim()
+  }
+  if (type === 'paragraph') {
+    meta.content = dialog.content.trim()
   }
   if (type === 'newsletter') {
     if (dialog.firstNameFieldSlug) meta.firstNameFieldSlug = dialog.firstNameFieldSlug
@@ -113,6 +125,7 @@ interface DialogState {
   firstNameFieldSlug: string
   lastNameFieldSlug: string
   emailFieldSlug: string
+  content: string
 }
 
 interface DialogErrors {
@@ -120,6 +133,7 @@ interface DialogErrors {
   slug: string
   options: string
   emailFieldSlug: string
+  content: string
 }
 
 const emptyDialog: DialogState = {
@@ -134,9 +148,10 @@ const emptyDialog: DialogState = {
   firstNameFieldSlug: '',
   lastNameFieldSlug: '',
   emailFieldSlug: '',
+  content: '',
 }
 
-const emptyErrors: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '' }
+const emptyErrors: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '', content: '' }
 
 export interface FormFieldBuilderProps {
   fields: Array<FormField>
@@ -200,6 +215,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
         firstNameFieldSlug: meta.firstNameFieldSlug,
         lastNameFieldSlug: meta.lastNameFieldSlug,
         emailFieldSlug: meta.emailFieldSlug,
+        content: meta.content,
       })
       setErrors(emptyErrors)
       setDialogOpen(true)
@@ -207,12 +223,22 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
     [fields],
   )
 
+  const nextSlug = useCallback(
+    (type: string) => {
+      const taken = new Set(fields.filter((_, i) => i !== editingIndex).map((f) => f.slug))
+      let n = 1
+      while (taken.has(`${type}-${n}`)) n++
+      return `${type}-${n}`
+    },
+    [fields, editingIndex],
+  )
+
   const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value
     setDialog((prev) => ({
       ...prev,
       name,
-      slug: prev.slugManuallyEdited ? prev.slug : slugify(name),
+      slug: prev.slugManuallyEdited || prev.type === 'paragraph' ? prev.slug : slugify(name),
     }))
   }, [])
 
@@ -221,8 +247,28 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
     setDialog((prev) => ({ ...prev, slug, slugManuallyEdited: true }))
   }, [])
 
-  const handleTypeChange = useCallback((value: string) => {
-    setDialog((prev) => ({ ...prev, type: value }))
+  const handleTypeChange = useCallback(
+    (value: string) => {
+      setDialog((prev) => {
+        const isDefaultName = Object.values(DEFAULT_CONTENT_NAMES).includes(prev.name)
+        let name = prev.name
+        if (value === 'divider' || (value === 'paragraph' && (!prev.name || isDefaultName))) {
+          name = DEFAULT_CONTENT_NAMES[value]
+        } else if (isDefaultName) {
+          name = ''
+        }
+        let slug = prev.slug
+        if (!prev.slugManuallyEdited) {
+          slug = value === 'divider' || value === 'paragraph' ? nextSlug(value) : slugify(name)
+        }
+        return { ...prev, type: value, name, slug }
+      })
+    },
+    [nextSlug],
+  )
+
+  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDialog((prev) => ({ ...prev, content: e.target.value }))
   }, [])
 
   const handleValidationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,10 +296,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   )
 
   const handleSave = useCallback(() => {
-    const errs: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '' }
+    const errs: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '', content: '' }
     let hasError = false
+    const isContent = CONTENT_TYPES.has(dialog.type)
 
-    if (!dialog.name.trim()) {
+    if (dialog.type !== 'divider' && !dialog.name.trim()) {
       errs.name = 'Please fill in this field'
       hasError = true
     }
@@ -280,6 +327,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       }
     }
 
+    if (dialog.type === 'paragraph' && !dialog.content.trim()) {
+      errs.content = 'Please fill in this field'
+      hasError = true
+    }
+
     if (dialog.type === 'newsletter' && !dialog.emailFieldSlug) {
       errs.emailFieldSlug = 'Please select an email field'
       hasError = true
@@ -290,11 +342,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
     const field: FormField = {
       id: editingIndex !== null ? fields[editingIndex].id : 0,
-      name: dialog.name.trim(),
+      name: dialog.type === 'divider' ? DEFAULT_CONTENT_NAMES.divider : dialog.name.trim(),
       slug: dialog.slug.trim(),
       type: dialog.type,
-      required: dialog.required,
-      validation: dialog.validation.trim() || null,
+      required: isContent ? false : dialog.required,
+      validation: isContent ? null : dialog.validation.trim() || null,
       metadata: buildMetadata(dialog),
       order: editingIndex !== null ? fields[editingIndex].order : fields.length,
     }
@@ -340,15 +392,23 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex items-center gap-2 text-sm font-medium">
-                  <span className="truncate">{field.name}</span>
-                  {field.required && (
+                  {CONTENT_TYPES.has(field.type) && (
+                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
+                      {fieldTypeLabel(field.type)}
+                    </span>
+                  )}
+                  <span className="truncate">
+                    {field.type === 'paragraph' ? parseMetadata(field.metadata).content || field.name : field.name}
+                  </span>
+                  {!CONTENT_TYPES.has(field.type) && field.required && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary">
                       Required
                     </span>
                   )}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {fieldTypeLabel(field.type)} · <span className="font-mono">{field.slug}</span>
+                  {!CONTENT_TYPES.has(field.type) && <>{fieldTypeLabel(field.type)} · </>}
+                  <span className="font-mono">{field.slug}</span>
                 </span>
               </div>
 
@@ -396,17 +456,28 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
           <div className="no-scrollbar -mx-6 -my-1 max-h-[70vh] overflow-y-auto px-6 py-1">
             <FieldGroup>
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="field-name">Name</FieldLabel>
-                  <Input
-                    id="field-name"
-                    value={dialog.name}
-                    onChange={handleNameChange}
-                    placeholder="Full Name"
-                    aria-invalid={!!errors.name}
-                  />
-                  {errors.name && <FieldError>{errors.name}</FieldError>}
-                </Field>
+                {dialog.type !== 'divider' && (
+                  <Field>
+                    <FieldLabel htmlFor="field-name">{dialog.type === 'subheader' ? 'Heading' : 'Name'}</FieldLabel>
+                    <Input
+                      id="field-name"
+                      value={dialog.name}
+                      onChange={handleNameChange}
+                      placeholder={
+                        dialog.type === 'subheader'
+                          ? 'Contact Information'
+                          : dialog.type === 'paragraph'
+                            ? 'Paragraph'
+                            : 'Full Name'
+                      }
+                      aria-invalid={!!errors.name}
+                    />
+                    {dialog.type === 'paragraph' && (
+                      <FieldDescription>Internal label, not shown on the form</FieldDescription>
+                    )}
+                    {errors.name && <FieldError>{errors.name}</FieldError>}
+                  </Field>
+                )}
 
                 <Field>
                   <FieldLabel htmlFor="field-slug">Slug</FieldLabel>
@@ -437,6 +508,21 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                   </SelectContent>
                 </Select>
               </Field>
+
+              {dialog.type === 'paragraph' && (
+                <Field>
+                  <FieldLabel htmlFor="field-content">Text</FieldLabel>
+                  <FieldDescription>Line breaks are kept. Use [text](url) to add links</FieldDescription>
+                  <Textarea
+                    id="field-content"
+                    value={dialog.content}
+                    onChange={handleContentChange}
+                    rows={5}
+                    aria-invalid={!!errors.content}
+                  />
+                  {errors.content && <FieldError>{errors.content}</FieldError>}
+                </Field>
+              )}
 
               {TYPES_WITH_OPTIONS.has(dialog.type) && (
                 <Field>
@@ -532,25 +618,29 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 </>
               )}
 
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="field-required">Required</FieldLabel>
-                <Switch
-                  id="field-required"
-                  checked={dialog.required}
-                  onCheckedChange={(checked) => setDialog((prev) => ({ ...prev, required: checked }))}
-                />
-              </Field>
+              {!CONTENT_TYPES.has(dialog.type) && (
+                <>
+                  <Field orientation="horizontal">
+                    <FieldLabel htmlFor="field-required">Required</FieldLabel>
+                    <Switch
+                      id="field-required"
+                      checked={dialog.required}
+                      onCheckedChange={(checked) => setDialog((prev) => ({ ...prev, required: checked }))}
+                    />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="field-validation">Validation (RegExp)</FieldLabel>
-                <FieldDescription>Leave blank for no validation</FieldDescription>
-                <Input
-                  id="field-validation"
-                  value={dialog.validation}
-                  onChange={handleValidationChange}
-                  placeholder="^[a-zA-Z ]+$"
-                />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="field-validation">Validation (RegExp)</FieldLabel>
+                    <FieldDescription>Leave blank for no validation</FieldDescription>
+                    <Input
+                      id="field-validation"
+                      value={dialog.validation}
+                      onChange={handleValidationChange}
+                      placeholder="^[a-zA-Z ]+$"
+                    />
+                  </Field>
+                </>
+              )}
             </FieldGroup>
           </div>
 
