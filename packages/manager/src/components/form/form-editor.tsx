@@ -148,7 +148,9 @@ export function FormEditor({ initialForm, onSave, submitLabel, submitLoadingLabe
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<EditorData>(() => (initialForm ? dataFromForm(initialForm) : emptyData))
   const [formErrors, setFormErrors] = useState<EditorErrors>(emptyErrors)
-  const [fields, setFields] = useState<Array<FormField>>(() => initialForm?.fields ?? [])
+  const [fields, setFields] = useState<Array<FormField>>(() =>
+    [...(initialForm?.fields ?? [])].sort((a, b) => a.order - b.order),
+  )
 
   const emailsFetched = useRef(false)
   useEffect(() => {
