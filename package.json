@@ -31,7 +31,7 @@
     "preview:manager": "pnpm run -r -F @outclimb/manager preview"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
+    "@babel/core": "^8.0.9",
     "@rolldown/plugin-babel": "^0.2.4",
     "@tanstack/eslint-plugin-query": "^5.105.0",
     "@tanstack/router-plugin": "^1.168.48",
