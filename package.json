@@ -28,7 +28,8 @@
     "preinstall": "npx only-allow pnpm",
     "preview": "pnpm run -r -F !@outclimb/root preview",
     "preview:form": "pnpm run -r -F @outclimb/form preview",
-    "preview:manager": "pnpm run -r -F @outclimb/manager preview"
+    "preview:manager": "pnpm run -r -F @outclimb/manager preview",
+    "test": "pnpm run -r -F !@outclimb/root test"
   },
   "devDependencies": {
     "@babel/core": "8.0.9",
@@ -45,7 +46,8 @@
     "oxfmt": "^0.72.0",
     "oxlint": "^1.90.0",
     "typescript": "^6.0.3",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   },
   "lint-staged": {
     "packages/**/src/**/*.{css,html,js,jsx,scss,ts,tsx,vue}": [
