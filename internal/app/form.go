@@ -602,8 +602,10 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 		fieldSlugByID[f.ID] = f.Slug
 	}
 
+	visible := visibleFieldSlugs(*fields, values)
+
 	for _, field := range *fields {
-		if isContentField(field.Type) {
+		if isContentField(field.Type) || !visible[field.Slug] {
 			continue
 		}
 
@@ -611,6 +613,16 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 			return nil, err
 		}
 	}
+
+	// Values for hidden fields are thrown away so they are never stored, emailed or subscribed.
+	visibleValues := make(map[string]string, len(values))
+	for slug, val := range values {
+		if _, ok := fieldBySlug[slug]; ok && !visible[slug] {
+			continue
+		}
+		visibleValues[slug] = val
+	}
+	values = visibleValues
 
 	submission, err := a.store.CreateSubmission(form.ID)
 	if err != nil {

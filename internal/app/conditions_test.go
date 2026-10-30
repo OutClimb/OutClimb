@@ -251,3 +251,53 @@ func TestNormalizeFieldInput(t *testing.T) {
 		})
 	}
 }
+
+func TestVisibleFieldSlugs(t *testing.T) {
+	str := func(s string) *string { return &s }
+
+	fields := []store.FormField{
+		{Slug: "wants-shirt", Type: "bool"},
+		{Slug: "size", Type: "text-input", Metadata: str(`{"conditions":{"match":"all","rules":[{"field":"wants-shirt","operator":"equals","value":"true"}]}}`)},
+		{Slug: "shirt-note", Type: "paragraph", Metadata: str(`{"conditions":{"match":"all","rules":[{"field":"wants-shirt","operator":"equals","value":"true"}]}}`)},
+		{Slug: "color", Type: "checkboxes", Metadata: str(`{"options":["Red","Blue"]}`)},
+		{Slug: "either", Type: "text-input", Metadata: str(`{"conditions":{"match":"any","rules":[{"field":"wants-shirt","operator":"equals","value":"true"},{"field":"color","operator":"includes","value":"Red"}]}}`)},
+		{Slug: "broken", Type: "text-input", Metadata: str(`{`)},
+		{Slug: "missing-source", Type: "text-input", Metadata: str(`{"conditions":{"match":"all","rules":[{"field":"gone","operator":"equals","value":"x"}]}}`)},
+	}
+
+	tests := []struct {
+		name   string
+		values map[string]string
+		want   map[string]bool
+	}{
+		{
+			"nothing submitted",
+			map[string]string{},
+			map[string]bool{"wants-shirt": true, "size": false, "shirt-note": false, "color": true, "either": false, "broken": true, "missing-source": false},
+		},
+		{
+			"bool checked shows targets",
+			map[string]string{"wants-shirt": "true"},
+			map[string]bool{"wants-shirt": true, "size": true, "shirt-note": true, "color": true, "either": true, "broken": true, "missing-source": false},
+		},
+		{
+			"any matches on second rule",
+			map[string]string{"color": "Red, Blue"},
+			map[string]bool{"wants-shirt": true, "size": false, "shirt-note": false, "color": true, "either": true, "broken": true, "missing-source": false},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := visibleFieldSlugs(fields, tt.values)
+			if len(got) != len(tt.want) {
+				t.Fatalf("got %v, want %v", got, tt.want)
+			}
+			for slug, want := range tt.want {
+				if got[slug] != want {
+					t.Errorf("%s visible = %v, want %v", slug, got[slug], want)
+				}
+			}
+		})
+	}
+}

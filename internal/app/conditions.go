@@ -129,6 +129,28 @@ func evaluateConditions(c *fieldConditions, fieldBySlug map[string]*store.FormFi
 	return c.Match != "any"
 }
 
+// Works out which fields are shown for the submitted values. Fields without conditions are always
+// visible. Sources can't have conditions themselves, so one pass over the fields is enough.
+func visibleFieldSlugs(fields []store.FormField, values map[string]string) map[string]bool {
+	fieldBySlug := make(map[string]*store.FormField, len(fields))
+	for i := range fields {
+		fieldBySlug[fields[i].Slug] = &fields[i]
+	}
+
+	visible := make(map[string]bool, len(fields))
+	for _, field := range fields {
+		conditions, err := parseConditions(field.Metadata)
+		if err != nil {
+			// Conditions are validated on save, so unreadable metadata is treated as no conditions.
+			conditions = nil
+		}
+
+		visible[field.Slug] = evaluateConditions(conditions, fieldBySlug, values)
+	}
+
+	return visible
+}
+
 // Operators each source type allows.
 var conditionOperators = map[string][]string{
 	"bool":       {"equals"},
