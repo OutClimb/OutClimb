@@ -223,6 +223,44 @@ var adminDefinedFieldTypes = map[string]bool{
 	"select":     true,
 }
 
+// Display-only field types that structure a form but never hold a submitted value.
+var contentFieldTypes = map[string]bool{
+	"divider":   true,
+	"paragraph": true,
+	"subheader": true,
+}
+
+func isContentField(t string) bool {
+	return contentFieldTypes[t]
+}
+
+// Content fields are never required or validated, and only paragraphs keep metadata (their text).
+func normalizeFieldInput(f FormFieldInput) FormFieldInput {
+	if !isContentField(f.Type) {
+		return f
+	}
+
+	f.Required = false
+	f.Validation = nil
+	if f.Type != "paragraph" {
+		f.Metadata = nil
+	}
+
+	return f
+}
+
+// Drops content fields so email templates looping over the fields only see inputs.
+func inputFields(fields []store.FormField) []store.FormField {
+	result := make([]store.FormField, 0, len(fields))
+	for _, f := range fields {
+		if !isContentField(f.Type) {
+			result = append(result, f)
+		}
+	}
+
+	return result
+}
+
 var urlLikePattern = regexp.MustCompile(`(?i)://|^www\.|[\p{L}\p{N}-]\.[\p{L}][\p{L}\p{N}-]+`)
 
 // Strips anything that could turn a confirmation email into spam or phishing: control characters
@@ -254,7 +292,7 @@ func confirmationEmailValues(form *store.Form, fields []store.FormField, values 
 	result := make(map[string]string, len(fields))
 	for _, field := range fields {
 		val, ok := values[field.Slug]
-		if !ok {
+		if !ok || isContentField(field.Type) {
 			continue
 		}
 
@@ -301,6 +339,7 @@ func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, open
 		formId = form.ID
 
 		for _, f := range fields {
+			f = normalizeFieldInput(f)
 			if _, err := tx.CreateFormField(user.Username, form.ID, f.Name, f.Slug, f.Type, f.Metadata, f.Validation, f.Required, f.Order); err != nil {
 				return err
 			}
@@ -348,6 +387,7 @@ func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug str
 		}
 
 		for _, f := range fields {
+			f = normalizeFieldInput(f)
 			if ex, ok := existingBySlug[f.Slug]; ok {
 				if _, err := tx.UpdateFormField(ex.ID, user.Username, f.Name, f.Slug, f.Type, f.Metadata, f.Validation, f.Required, f.Order); err != nil {
 					return err
@@ -553,6 +593,10 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 	}
 
 	for _, field := range *fields {
+		if isContentField(field.Type) {
+			continue
+		}
+
 		if err := validateFieldValue(field, values[field.Slug]); err != nil {
 			return nil, err
 		}
@@ -566,7 +610,7 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 
 	for slug, val := range values {
 		field, ok := fieldBySlug[slug]
-		if !ok {
+		if !ok || isContentField(field.Type) {
 			continue
 		}
 		if _, err := a.store.CreateSubmissionValue(submission.ID, field.ID, val); err != nil {
@@ -583,9 +627,10 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 	submissionInternal := models.SubmissionInternal{}
 	submissionInternal.Internalize(submission, storedValues, fieldSlugByID)
 
+	emailFields := inputFields(*fields)
 	emailData := emailTemplateData{
 		Form:   form,
-		Fields: *fields,
+		Fields: emailFields,
 		Values: values,
 	}
 
@@ -622,7 +667,7 @@ func (a *appLayer) CreateSubmission(slug string, values map[string]string) (*mod
 
 				confirmationData := emailTemplateData{
 					Form:   form,
-					Fields: *fields,
+					Fields: emailFields,
 					Values: confirmationEmailValues(form, *fields, values),
 				}
 
