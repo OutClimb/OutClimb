@@ -9,6 +9,7 @@ import { downloadCsv } from '@/lib/csv'
 import { Download, FileText, Inbox, Pencil } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchForm, fetchSubmissions } from '@/api/form'
+import { isContentField } from '@/lib/form-field'
 import { formatDateTime } from '@/lib/timezone'
 import { FormViewersCard } from '@/components/form/form-viewers-card'
 import { getPublicFormLink } from '@/lib/form-link'
@@ -79,7 +80,9 @@ function FormDetails() {
     load()
   }, [slug, token, populateSingle, navigate])
 
-  const fields = [...(form?.fields ?? [])].sort((a, b) => a.order - b.order)
+  const fields = (form?.fields ?? [])
+    .filter((field) => !isContentField(field.type))
+    .sort((a, b) => a.order - b.order)
 
   const handleExport = () => {
     if (!form) return

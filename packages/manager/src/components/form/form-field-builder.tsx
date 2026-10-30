@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ChevronUp, ChevronDown, Pencil, Trash2, Plus } from 'lucide-react'
+import { CONTENT_FIELD_TYPES } from '@/lib/form-field'
 import type { FormField } from '@/types/form'
 
 const FIELD_TYPES = [
@@ -29,7 +30,6 @@ const FIELD_TYPES = [
 ] as const
 
 const TYPES_WITH_OPTIONS = new Set(['checkboxes', 'radios', 'select'])
-const CONTENT_TYPES = new Set(['subheader', 'divider', 'paragraph'])
 const TYPES_WITH_PLACEHOLDER = new Set(['text-input', 'text-area', 'select'])
 const NO_FIELD = '__none__'
 const DEFAULT_CONTENT_NAMES: Record<string, string> = { divider: 'Divider', paragraph: 'Paragraph' }
@@ -298,7 +298,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   const handleSave = useCallback(() => {
     const errs: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '', content: '' }
     let hasError = false
-    const isContent = CONTENT_TYPES.has(dialog.type)
+    const isContent = CONTENT_FIELD_TYPES.has(dialog.type)
 
     if (dialog.type !== 'divider' && !dialog.name.trim()) {
       errs.name = 'Please fill in this field'
@@ -392,7 +392,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex items-center gap-2 text-sm font-medium">
-                  {CONTENT_TYPES.has(field.type) && (
+                  {CONTENT_FIELD_TYPES.has(field.type) && (
                     <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
                       {fieldTypeLabel(field.type)}
                     </span>
@@ -400,14 +400,14 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                   <span className="truncate">
                     {field.type === 'paragraph' ? parseMetadata(field.metadata).content || field.name : field.name}
                   </span>
-                  {!CONTENT_TYPES.has(field.type) && field.required && (
+                  {!CONTENT_FIELD_TYPES.has(field.type) && field.required && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary">
                       Required
                     </span>
                   )}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {!CONTENT_TYPES.has(field.type) && <>{fieldTypeLabel(field.type)} · </>}
+                  {!CONTENT_FIELD_TYPES.has(field.type) && <>{fieldTypeLabel(field.type)} · </>}
                   <span className="font-mono">{field.slug}</span>
                 </span>
               </div>
@@ -618,7 +618,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                 </>
               )}
 
-              {!CONTENT_TYPES.has(dialog.type) && (
+              {!CONTENT_FIELD_TYPES.has(dialog.type) && (
                 <>
                   <Field orientation="horizontal">
                     <FieldLabel htmlFor="field-required">Required</FieldLabel>
