@@ -40,6 +40,7 @@ var (
 	ErrFormClosed               = errors.New("form closed")
 	ErrFormFull                 = errors.New("form max submissions reached")
 	ErrInvalidConfirmationField = errors.New("confirmation email field must be an email field")
+	ErrInvalidFieldConditions   = errors.New("invalid field conditions")
 	ErrInvalidField             = errors.New("invalid field value")
 	ErrInvalidNotificationEmail = errors.New("invalid notification email address")
 	ErrMissingField             = errors.New("missing required field")
@@ -234,7 +235,8 @@ func isContentField(t string) bool {
 	return contentFieldTypes[t]
 }
 
-// Content fields are never required or validated, and only paragraphs keep metadata (their text).
+// Content fields are never required or validated. Paragraphs keep their metadata (their text), the
+// other content fields only keep their conditions.
 func normalizeFieldInput(f FormFieldInput) FormFieldInput {
 	if !isContentField(f.Type) {
 		return f
@@ -243,7 +245,7 @@ func normalizeFieldInput(f FormFieldInput) FormFieldInput {
 	f.Required = false
 	f.Validation = nil
 	if f.Type != "paragraph" {
-		f.Metadata = nil
+		f.Metadata = conditionsOnlyMetadata(f.Metadata)
 	}
 
 	return f
@@ -329,6 +331,10 @@ func (a *appLayer) CreateForm(user *models.UserInternal, name, slug string, open
 		return nil, err
 	}
 
+	if err := validateFieldConditions(fields); err != nil {
+		return nil, err
+	}
+
 	var formId uint
 
 	err := a.store.WithTransaction(func(tx store.StoreLayer) error {
@@ -366,6 +372,10 @@ func (a *appLayer) UpdateForm(user *models.UserInternal, id uint, name, slug str
 	}
 
 	if err := validateConfirmationEmailField(confirmationEmailFieldSlug, fields); err != nil {
+		return nil, err
+	}
+
+	if err := validateFieldConditions(fields); err != nil {
 		return nil, err
 	}
 

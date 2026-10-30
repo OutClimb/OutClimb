@@ -19,6 +19,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"slices"
 	"strings"
 
@@ -126,4 +127,112 @@ func evaluateConditions(c *fieldConditions, fieldBySlug map[string]*store.FormFi
 	}
 
 	return c.Match != "any"
+}
+
+// Operators each source type allows.
+var conditionOperators = map[string][]string{
+	"bool":       {"equals"},
+	"checkboxes": {"includes", "excludes"},
+	"newsletter": {"equals"},
+	"radios":     {"equals", "notEquals"},
+	"select":     {"equals", "notEquals"},
+}
+
+func allowedConditionOperators(fieldType string) []string {
+	if freeTextFieldTypes[fieldType] {
+		return []string{"equals", "notEquals"}
+	}
+
+	return conditionOperators[fieldType]
+}
+
+func fieldOptions(metadata *string) []string {
+	if metadata == nil || len(*metadata) == 0 {
+		return nil
+	}
+
+	var parsed struct {
+		Options []string `json:"options"`
+	}
+	if err := json.Unmarshal([]byte(*metadata), &parsed); err != nil {
+		return nil
+	}
+
+	return parsed.Options
+}
+
+// Keeps only the conditions key of a field's metadata. Anything else, or unparsable metadata, is dropped.
+func conditionsOnlyMetadata(metadata *string) *string {
+	if metadata == nil || len(*metadata) == 0 {
+		return nil
+	}
+
+	var parsed struct {
+		Conditions json.RawMessage `json:"conditions"`
+	}
+	if err := json.Unmarshal([]byte(*metadata), &parsed); err != nil || len(parsed.Conditions) == 0 || string(parsed.Conditions) == "null" {
+		return nil
+	}
+
+	out, err := json.Marshal(map[string]json.RawMessage{"conditions": parsed.Conditions})
+	if err != nil {
+		return nil
+	}
+
+	result := string(out)
+	return &result
+}
+
+// Checks every field's conditions against the other fields in the same form.
+func validateFieldConditions(fields []FormFieldInput) error {
+	fieldBySlug := make(map[string]*FormFieldInput, len(fields))
+	for i := range fields {
+		fieldBySlug[fields[i].Slug] = &fields[i]
+	}
+
+	for _, field := range fields {
+		conditions, err := parseConditions(field.Metadata)
+		if err != nil {
+			return errors.Join(ErrInvalidFieldConditions, err)
+		}
+		if conditions == nil {
+			continue
+		}
+
+		if conditions.Match != "all" && conditions.Match != "any" {
+			return ErrInvalidFieldConditions
+		}
+		if len(conditions.Rules) == 0 {
+			return ErrInvalidFieldConditions
+		}
+
+		for _, rule := range conditions.Rules {
+			source, ok := fieldBySlug[rule.Field]
+			if !ok || source.Slug == field.Slug || isContentField(source.Type) {
+				return ErrInvalidFieldConditions
+			}
+
+			sourceConditions, err := parseConditions(source.Metadata)
+			if err != nil || sourceConditions != nil {
+				return ErrInvalidFieldConditions
+			}
+
+			if !slices.Contains(allowedConditionOperators(source.Type), rule.Operator) {
+				return ErrInvalidFieldConditions
+			}
+
+			switch source.Type {
+			case "bool", "newsletter":
+				if rule.Value != "true" && rule.Value != "false" {
+					return ErrInvalidFieldConditions
+				}
+			case "checkboxes", "radios", "select":
+				if !slices.Contains(fieldOptions(source.Metadata), rule.Value) {
+					return ErrInvalidFieldConditions
+				}
+			}
+		}
+	}
+
+	return nil
 }

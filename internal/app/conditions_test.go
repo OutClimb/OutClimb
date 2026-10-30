@@ -18,6 +18,7 @@
 package app
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/OutClimb/OutClimb/internal/store"
@@ -159,6 +160,93 @@ func TestEvaluateConditions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := evaluateConditions(tt.cond, fields, tt.values); got != tt.want {
 				t.Fatalf("evaluateConditions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateFieldConditions(t *testing.T) {
+	cond := func(match, field, op, value string) *string {
+		s := `{"conditions":{"match":"` + match + `","rules":[{"field":"` + field + `","operator":"` + op + `","value":"` + value + `"}]}}`
+		return &s
+	}
+	str := func(s string) *string { return &s }
+	opts := str(`{"options":["Yes","No"]}`)
+
+	sources := []FormFieldInput{
+		{Slug: "radio", Type: "radios", Metadata: opts},
+		{Slug: "check", Type: "checkboxes", Metadata: opts},
+		{Slug: "bool", Type: "bool"},
+		{Slug: "text", Type: "text-input"},
+		{Slug: "head", Type: "subheader"},
+	}
+
+	tests := []struct {
+		name    string
+		target  FormFieldInput
+		extra   []FormFieldInput
+		wantErr bool
+	}{
+		{"no conditions", FormFieldInput{Slug: "t", Type: "text-input"}, nil, false},
+		{"valid radios", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "radio", "equals", "Yes")}, nil, false},
+		{"valid checkboxes", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("any", "check", "excludes", "No")}, nil, false},
+		{"valid bool", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "bool", "equals", "false")}, nil, false},
+		{"valid text", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "text", "notEquals", "anything")}, nil, false},
+		{"valid on subheader", FormFieldInput{Slug: "t", Type: "subheader", Metadata: cond("all", "bool", "equals", "true")}, nil, false},
+		{"bad match", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("some", "radio", "equals", "Yes")}, nil, true},
+		{"no rules", FormFieldInput{Slug: "t", Type: "text-input", Metadata: str(`{"conditions":{"match":"all","rules":[]}}`)}, nil, true},
+		{"unknown source", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "missing", "equals", "Yes")}, nil, true},
+		{"self source", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "t", "equals", "x")}, nil, true},
+		{"content source", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "head", "equals", "x")}, nil, true},
+		{"chain", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "gated", "equals", "x")}, []FormFieldInput{{Slug: "gated", Type: "text-input", Metadata: cond("all", "bool", "equals", "true")}}, true},
+		{"operator not allowed for type", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "radio", "includes", "Yes")}, nil, true},
+		{"bool with notEquals", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "bool", "notEquals", "true")}, nil, true},
+		{"option not in source", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "radio", "equals", "Maybe")}, nil, true},
+		{"bad bool value", FormFieldInput{Slug: "t", Type: "text-input", Metadata: cond("all", "bool", "equals", "yes")}, nil, true},
+		{"invalid json", FormFieldInput{Slug: "t", Type: "text-input", Metadata: str(`{`)}, nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fields := append(append([]FormFieldInput{}, sources...), tt.extra...)
+			fields = append(fields, tt.target)
+
+			err := validateFieldConditions(fields)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("err = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !errors.Is(err, ErrInvalidFieldConditions) {
+				t.Fatalf("err = %v, want ErrInvalidFieldConditions", err)
+			}
+		})
+	}
+}
+
+func TestNormalizeFieldInput(t *testing.T) {
+	str := func(s string) *string { return &s }
+	conds := `"conditions":{"match":"all","rules":[{"field":"a","operator":"equals","value":"x"}]}`
+
+	tests := []struct {
+		name         string
+		in           FormFieldInput
+		wantMetadata *string
+	}{
+		{"input field unchanged", FormFieldInput{Type: "text-input", Required: true, Metadata: str(`{` + conds + `}`)}, str(`{` + conds + `}`)},
+		{"divider without conditions", FormFieldInput{Type: "divider", Metadata: str(`{"text":"x"}`)}, nil},
+		{"subheader keeps only conditions", FormFieldInput{Type: "subheader", Metadata: str(`{"text":"x",` + conds + `}`)}, str(`{` + conds + `}`)},
+		{"divider keeps conditions", FormFieldInput{Type: "divider", Metadata: str(`{` + conds + `}`)}, str(`{` + conds + `}`)},
+		{"paragraph unchanged", FormFieldInput{Type: "paragraph", Metadata: str(`{"text":"x",` + conds + `}`)}, str(`{"text":"x",` + conds + `}`)},
+		{"nil metadata", FormFieldInput{Type: "subheader"}, nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := normalizeFieldInput(tt.in)
+			if (got.Metadata == nil) != (tt.wantMetadata == nil) || (got.Metadata != nil && *got.Metadata != *tt.wantMetadata) {
+				t.Fatalf("metadata = %v, want %v", got.Metadata, tt.wantMetadata)
+			}
+			if isContentField(tt.in.Type) && (got.Required || got.Validation != nil) {
+				t.Fatalf("content field should not be required or validated: %+v", got)
 			}
 		})
 	}
