@@ -27,8 +27,7 @@ WORKDIR /app
 RUN apk -U upgrade && apk add --no-cache libc6-compat
 
 # Install PNPM
-RUN corepack enable
-RUN corepack prepare pnpm@12.4.1 --activate
+RUN npm install -g pnpm@12.10.1
 
 ENTRYPOINT ["/app/fe-entrypoint.sh"]
 
@@ -53,8 +52,7 @@ WORKDIR /app
 RUN apk -U upgrade && apk add --no-cache libc6-compat
 
 # Install PNPM
-RUN corepack enable
-RUN corepack prepare pnpm@12.4.1 --activate
+RUN npm install -g pnpm@12.4.1
 
 # Build the frontend
 RUN pnpm install --frozen-lockfile
