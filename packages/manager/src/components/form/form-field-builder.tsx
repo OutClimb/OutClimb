@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -9,8 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ChevronUp, ChevronDown, Pencil, Trash2, Plus } from 'lucide-react'
-import { CONTENT_FIELD_TYPES } from '@/lib/form-field'
-import type { FormField } from '@/types/form'
+import { FieldConditionsEditor } from '@/components/form/field-conditions-editor'
+import {
+  CONTENT_FIELD_TYPES,
+  conditionOperatorsFor,
+  fieldConditions,
+  fieldOptions,
+  isBoolField,
+  isChoiceField,
+} from '@/lib/form-field'
+import type { FieldConditions, FormField } from '@/types/form'
 
 const FIELD_TYPES = [
   { value: 'checkboxes', label: 'Checkboxes' },
@@ -54,6 +62,7 @@ interface ParsedMetadata {
   lastNameFieldSlug: string
   emailFieldSlug: string
   content: string
+  conditions: FieldConditions | null
 }
 
 const emptyMetadata: ParsedMetadata = {
@@ -63,6 +72,7 @@ const emptyMetadata: ParsedMetadata = {
   lastNameFieldSlug: '',
   emailFieldSlug: '',
   content: '',
+  conditions: null,
 }
 
 function parseMetadata(metadata: string | null): ParsedMetadata {
@@ -76,6 +86,7 @@ function parseMetadata(metadata: string | null): ParsedMetadata {
       lastNameFieldSlug: typeof meta?.lastNameFieldSlug === 'string' ? meta.lastNameFieldSlug : '',
       emailFieldSlug: typeof meta?.emailFieldSlug === 'string' ? meta.emailFieldSlug : '',
       content: typeof meta?.content === 'string' ? meta.content : '',
+      conditions: fieldConditions(metadata),
     }
   } catch {
     return emptyMetadata
@@ -91,6 +102,7 @@ function buildMetadata(dialog: DialogState): string | null {
     lastNameFieldSlug?: string
     emailFieldSlug?: string
     content?: string
+    conditions?: FieldConditions
   } = {}
   if (TYPES_WITH_OPTIONS.has(type)) {
     const optionList = options
@@ -110,6 +122,7 @@ function buildMetadata(dialog: DialogState): string | null {
     if (dialog.lastNameFieldSlug) meta.lastNameFieldSlug = dialog.lastNameFieldSlug
     if (dialog.emailFieldSlug) meta.emailFieldSlug = dialog.emailFieldSlug
   }
+  if (dialog.conditions) meta.conditions = dialog.conditions
   return Object.keys(meta).length ? JSON.stringify(meta) : null
 }
 
@@ -126,6 +139,7 @@ interface DialogState {
   lastNameFieldSlug: string
   emailFieldSlug: string
   content: string
+  conditions: FieldConditions | null
 }
 
 interface DialogErrors {
@@ -134,6 +148,7 @@ interface DialogErrors {
   options: string
   emailFieldSlug: string
   content: string
+  conditions: string
 }
 
 const emptyDialog: DialogState = {
@@ -149,9 +164,17 @@ const emptyDialog: DialogState = {
   lastNameFieldSlug: '',
   emailFieldSlug: '',
   content: '',
+  conditions: null,
 }
 
-const emptyErrors: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '', content: '' }
+const emptyErrors: DialogErrors = {
+  name: '',
+  slug: '',
+  options: '',
+  emailFieldSlug: '',
+  content: '',
+  conditions: '',
+}
 
 export interface FormFieldBuilderProps {
   fields: Array<FormField>
@@ -216,6 +239,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
         lastNameFieldSlug: meta.lastNameFieldSlug,
         emailFieldSlug: meta.emailFieldSlug,
         content: meta.content,
+        conditions: meta.conditions,
       })
       setErrors(emptyErrors)
       setDialogOpen(true)
@@ -295,8 +319,20 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
     [fields, editingIndex],
   )
 
+  const conditionSources = useMemo(
+    () =>
+      fields.filter((f, i) => i !== editingIndex && !CONTENT_FIELD_TYPES.has(f.type) && !fieldConditions(f.metadata)),
+    [fields, editingIndex],
+  )
+
+  const usedAsSource = useMemo(() => {
+    if (editingIndex === null) return false
+    const slug = fields[editingIndex].slug
+    return fields.some((f, i) => i !== editingIndex && fieldConditions(f.metadata)?.rules.some((r) => r.field === slug))
+  }, [fields, editingIndex])
+
   const handleSave = useCallback(() => {
-    const errs: DialogErrors = { name: '', slug: '', options: '', emailFieldSlug: '', content: '' }
+    const errs: DialogErrors = { ...emptyErrors }
     let hasError = false
     const isContent = CONTENT_FIELD_TYPES.has(dialog.type)
 
@@ -337,6 +373,21 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       hasError = true
     }
 
+    if (dialog.conditions) {
+      const sourceBySlug = new Map(conditionSources.map((f) => [f.slug, f]))
+      const valid = dialog.conditions.rules.every((rule) => {
+        const source = sourceBySlug.get(rule.field)
+        if (!source || !conditionOperatorsFor(source.type).includes(rule.operator)) return false
+        if (isBoolField(source.type)) return rule.value === 'true' || rule.value === 'false'
+        if (isChoiceField(source.type)) return fieldOptions(source.metadata).includes(rule.value)
+        return true
+      })
+      if (!valid) {
+        errs.conditions = 'Please complete every rule'
+        hasError = true
+      }
+    }
+
     setErrors(errs)
     if (hasError) return
 
@@ -355,7 +406,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
     onChange(next.map((f, i) => ({ ...f, order: i })))
     setDialogOpen(false)
-  }, [dialog, fields, editingIndex, onChange])
+  }, [dialog, fields, editingIndex, conditionSources, onChange])
 
   return (
     <div className="flex flex-col gap-4">
@@ -401,6 +452,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                   {!CONTENT_FIELD_TYPES.has(field.type) && field.required && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary">
                       Required
+                    </span>
+                  )}
+                  {fieldConditions(field.metadata) && (
+                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
+                      Conditional
                     </span>
                   )}
                 </span>
@@ -639,6 +695,14 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
                   </Field>
                 </>
               )}
+
+              <FieldConditionsEditor
+                conditions={dialog.conditions}
+                sources={conditionSources}
+                usedAsSource={usedAsSource}
+                error={errors.conditions}
+                onChange={(conditions) => setDialog((prev) => ({ ...prev, conditions }))}
+              />
             </FieldGroup>
           </div>
 

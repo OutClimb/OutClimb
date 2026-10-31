@@ -2,6 +2,19 @@ export type CreateFormResponse = Form
 export type GetFormsResponse = Array<Form>
 export type UpdateFormResponse = Form
 
+export type ConditionOperator = 'equals' | 'notEquals' | 'includes' | 'excludes'
+
+export interface ConditionRule {
+  field: string
+  operator: ConditionOperator
+  value: string
+}
+
+export interface FieldConditions {
+  match: 'all' | 'any'
+  rules: Array<ConditionRule>
+}
+
 export interface FormField {
   id: number
   name: string
