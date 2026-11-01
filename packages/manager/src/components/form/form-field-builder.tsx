@@ -2,14 +2,22 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ChevronUp, ChevronDown, Pencil, Trash2, Plus } from 'lucide-react'
+import { ChevronUp, ChevronDown, Pencil, Trash2, Plus, TriangleAlert } from 'lucide-react'
 import { FieldConditionsEditor } from '@/components/form/field-conditions-editor'
+import { findBrokenDependents, renameConditionSource, stripBrokenRules } from '@/lib/conditions'
 import {
   CONTENT_FIELD_TYPES,
   conditionOperatorsFor,
@@ -181,11 +189,44 @@ export interface FormFieldBuilderProps {
   onChange: (fields: Array<FormField>) => void
 }
 
+// A change that would leave other fields with rules pointing at something that no longer exists, held until the user confirms.
+interface PendingChange {
+  fields: Array<FormField>
+  affected: Array<FormField>
+  closesEditor: boolean
+}
+
+function reorder(fields: Array<FormField>): Array<FormField> {
+  return fields.map((f, i) => ({ ...f, order: i }))
+}
+
 export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [dialog, setDialog] = useState<DialogState>(emptyDialog)
   const [errors, setErrors] = useState<DialogErrors>(emptyErrors)
+  const [pending, setPending] = useState<PendingChange | null>(null)
+
+  // Applies the new field list, or asks first when it would break other fields' conditions.
+  const applyChange = useCallback(
+    (next: Array<FormField>, closesEditor: boolean) => {
+      const affected = findBrokenDependents(next)
+      if (affected.length) {
+        setPending({ fields: next, affected, closesEditor })
+        return
+      }
+      onChange(reorder(next))
+      if (closesEditor) setDialogOpen(false)
+    },
+    [onChange],
+  )
+
+  const confirmPending = useCallback(() => {
+    if (!pending) return
+    onChange(reorder(stripBrokenRules(pending.fields)))
+    if (pending.closesEditor) setDialogOpen(false)
+    setPending(null)
+  }, [pending, onChange])
 
   const moveUp = useCallback(
     (index: number) => {
@@ -209,9 +250,12 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
   const deleteField = useCallback(
     (index: number) => {
-      onChange(fields.filter((_, i) => i !== index).map((f, i) => ({ ...f, order: i })))
+      applyChange(
+        fields.filter((_, i) => i !== index),
+        false,
+      )
     },
-    [fields, onChange],
+    [fields, applyChange],
   )
 
   const openAdd = useCallback(() => {
@@ -402,11 +446,11 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
       order: editingIndex !== null ? fields[editingIndex].order : fields.length,
     }
 
-    const next = editingIndex !== null ? fields.map((f, i) => (i === editingIndex ? field : f)) : [...fields, field]
+    let next = editingIndex !== null ? fields.map((f, i) => (i === editingIndex ? field : f)) : [...fields, field]
+    if (editingIndex !== null) next = renameConditionSource(next, fields[editingIndex].slug, field.slug)
 
-    onChange(next.map((f, i) => ({ ...f, order: i })))
-    setDialogOpen(false)
-  }, [dialog, fields, editingIndex, conditionSources, onChange])
+    applyChange(next, true)
+  }, [dialog, fields, editingIndex, conditionSources, applyChange])
 
   return (
     <div className="flex flex-col gap-4">
@@ -712,6 +756,35 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
             </Button>
             <Button variant="default" type="button" onClick={handleSave}>
               {editingIndex !== null ? 'Save Changes' : 'Add Field'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pending} onOpenChange={(open) => !open && setPending(null)}>
+        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+          <div className="flex items-start gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <TriangleAlert className="size-5" />
+            </div>
+            <DialogHeader className="pt-2 pr-0">
+              <DialogTitle>Remove broken conditions?</DialogTitle>
+              <DialogDescription>
+                This change breaks conditions on the fields below. The affected rules will be removed.
+              </DialogDescription>
+              <ul className="list-disc pl-5 text-sm">
+                {pending?.affected.map((f) => (
+                  <li key={f.slug}>{f.name}</li>
+                ))}
+              </ul>
+            </DialogHeader>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" type="button" onClick={() => setPending(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" type="button" onClick={confirmPending}>
+              Remove rules
             </Button>
           </DialogFooter>
         </DialogContent>
