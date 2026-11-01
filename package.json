@@ -29,7 +29,8 @@
     "preview": "pnpm run -r -F !@outclimb/root preview",
     "preview:form": "pnpm run -r -F @outclimb/form preview",
     "preview:manager": "pnpm run -r -F @outclimb/manager preview",
-    "test": "pnpm run -r -F !@outclimb/root test"
+    "test": "pnpm run -r -F !@outclimb/root test",
+    "typecheck": "pnpm run -r -F !@outclimb/root typecheck"
   },
   "devDependencies": {
     "@babel/core": "8.0.9",
