@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Content } from '@/components/content'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { DeleteDialog } from '@/components/delete-dialog'
 import { downloadCsv } from '@/lib/csv'
 import { Download, FileText, Inbox, Pencil } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { fetchForm, fetchSubmissions } from '@/api/form'
+import { fetchForm, fetchSubmissions, removeSubmission } from '@/api/form'
 import { isContentField } from '@/lib/form-field'
 import { formatDateTime } from '@/lib/timezone'
 import { FormViewersCard } from '@/components/form/form-viewers-card'
@@ -19,6 +20,7 @@ import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
 import { SubmissionsTable } from '@/components/form/submissions-table'
 import { UnauthorizedError } from '@/errors/unauthorized'
+import { useCrudDialogs } from '@/lib/use-crud-dialogs'
 import { useEffect, useState, type ReactNode } from 'react'
 import useFormStore from '@/stores/form'
 import useSelfStore, { READ_PERMISSION, WRITE_PERMISSION } from '@/stores/self'
@@ -52,6 +54,8 @@ function FormDetails() {
   const [submissions, setSubmissions] = useState<Array<Submission>>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+
+  const { selectedId, isDeleteDialogOpen, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   const canEdit = hasPermission('form', WRITE_PERMISSION)
 
@@ -92,6 +96,10 @@ function FormDetails() {
         ...fields.map((field) => getSubmissionValue(submission, field)),
       ]),
     ])
+  }
+
+  const removeSubmissionFromList = (id: number) => {
+    setSubmissions((current) => current.filter((submission) => submission.id !== id))
   }
 
   const handleViewersSave = (updated: Form) => {
@@ -198,13 +206,24 @@ function FormDetails() {
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <SubmissionsTable fields={fields} data={submissions} />
+                  <SubmissionsTable fields={fields} data={submissions} canEdit={canEdit} onDelete={handleDelete} />
                 )}
               </CardContent>
             </Card>
           </>
         )}
       </Content>
+
+      {canEdit && (
+        <DeleteDialog
+          id={selectedId}
+          open={isDeleteDialogOpen}
+          onOpenChange={handleDeleteDialogOpenChange}
+          label="submission"
+          deleteFn={removeSubmission}
+          removeFromStore={removeSubmissionFromList}
+        />
+      )}
     </>
   )
 }

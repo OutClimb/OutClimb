@@ -1,11 +1,24 @@
 'use client'
 
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { FormField, Submission } from '@/types/form'
 import { formatDateTime } from '@/lib/timezone'
 import { getSubmissionValue } from '@/lib/submission'
+import { Trash2 } from 'lucide-react'
+import { RowActions } from '@/components/row-actions'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-export function SubmissionsTable({ fields, data }: { fields: Array<FormField>; data: Array<Submission> }) {
+export function SubmissionsTable({
+  fields,
+  data,
+  canEdit,
+  onDelete,
+}: {
+  fields: Array<FormField>
+  data: Array<Submission>
+  canEdit: boolean
+  onDelete: (id: number) => void
+}) {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -15,6 +28,11 @@ export function SubmissionsTable({ fields, data }: { fields: Array<FormField>; d
             {fields.map((field) => (
               <TableHead key={field.id}>{field.name}</TableHead>
             ))}
+            {canEdit && (
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -26,6 +44,16 @@ export function SubmissionsTable({ fields, data }: { fields: Array<FormField>; d
                   {getSubmissionValue(submission, field) || '-'}
                 </TableCell>
               ))}
+              {canEdit && (
+                <TableCell>
+                  <RowActions label={`submission from ${formatDateTime(submission.submittedOn)}`}>
+                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(submission.id)}>
+                      <Trash2 />
+                      Delete
+                    </DropdownMenuItem>
+                  </RowActions>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
