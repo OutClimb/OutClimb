@@ -33,7 +33,7 @@
     "typecheck": "pnpm run -r -F !@outclimb/root typecheck"
   },
   "devDependencies": {
-    "@babel/core": "8.0.9",
+    "@babel/core": "8.0.10",
     "@rolldown/plugin-babel": "^0.2.4",
     "@tanstack/eslint-plugin-query": "^5.105.0",
     "@tanstack/router-plugin": "^1.168.48",
