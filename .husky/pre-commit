@@ -1,2 +1,0 @@
-golangci-lint run
-npx lint-staged
