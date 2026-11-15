@@ -1,0 +1,5 @@
+{
+  "packages/*/src/**/*.{ts,tsx}": ["oxfmt", "oxlint --fix"],
+  "packages/*/src/**/*.css": "oxfmt",
+  "*.go": "gofmt -w"
+}
