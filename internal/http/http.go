@@ -165,6 +165,9 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		}
 		api.POST("/submission/:slug", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createSubmission)
 
+		api.POST("/donation/checkout", middleware.Domain(h.config.DonateDomain), middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createDonationCheckout)
+		api.POST("/stripe/webhook", middleware.Domain(h.config.DonateDomain), middleware.RequestBodyLimit(h.config.MaxJsonBodySize), h.handleStripeWebhook)
+
 		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
 		if err != nil {
 			slog.Error(
@@ -239,6 +242,11 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			authFormApi.GET("/form-viewer", h.getFormViewers)
 			authFormApi.GET("/submission", h.getSubmissions)
 			authFormApi.DELETE("/submission/:id", h.deleteSubmission)
+		}
+
+		donationApi := api.Group("/donation").Use(middleware.Auth(h.config, false, false)).Use(middleware.Permission("donation"))
+		{
+			donationApi.GET("", h.getDonations)
 		}
 
 		emailApi := api.Group("/email").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false, false)).Use(middleware.Permission("email"))

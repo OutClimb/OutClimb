@@ -20,6 +20,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/stripe/stripe-go/v87"
 )
 
@@ -145,6 +146,19 @@ func (a *appLayer) buildDonationCheckoutParams(amountCents int64) *stripe.Checko
 			},
 		},
 	}
+}
+
+func (a *appLayer) GetAllDonations() (*[]models.DonationInternal, error) {
+	donations, err := a.store.GetAllDonations()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.DonationInternal, len(*donations))
+	for i := range *donations {
+		result[i].Internalize(&(*donations)[i])
+	}
+	return &result, nil
 }
 
 func (a *appLayer) HandleStripeWebhook(payload []byte, signature string) error {
