@@ -61,8 +61,14 @@
       "gofmt -w"
     ]
   },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "lts",
+      "onFail": "download"
+    }
+  },
   "engines": {
-    "node": "26.13.0",
     "pnpm": "12.10.1"
   },
   "packageManager": "pnpm@12.18.0"
