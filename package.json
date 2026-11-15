@@ -18,6 +18,7 @@
     "build:form": "pnpm run -r -F @outclimb/form build",
     "build:manager": "pnpm run -r -F @outclimb/manager build",
     "build:watch": "pnpm run -r -F !@outclimb/root build:watch",
+    "commitlint": "commitlint",
     "dev": "pnpm run -r -F !@outclimb/root dev",
     "dev:form": "pnpm run -r -F @outclimb/form dev",
     "dev:manager": "pnpm run -r -F @outclimb/manager dev",
@@ -34,6 +35,8 @@
   },
   "devDependencies": {
     "@babel/core": "8.1.0",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@rolldown/plugin-babel": "^0.3.0",
     "@tanstack/eslint-plugin-query": "^5.107.1",
     "@tanstack/router-plugin": "^1.169.0",
