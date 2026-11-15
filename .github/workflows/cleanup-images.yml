@@ -1,0 +1,22 @@
+name: Clean up images
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  cleanup:
+    name: cleanup
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old untagged images
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: outclimb
+          delete-untagged: true
+          older-than: 2 weeks
