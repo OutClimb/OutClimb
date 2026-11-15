@@ -34,7 +34,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role"}
+var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role", "donation"}
 
 //go:embed migrations/*.sql
 var migrations embed.FS
@@ -70,6 +70,7 @@ type StoreLayer interface {
 	EnableTotp(id uint, step int64, updatedBy string) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	GetAllEvents() (*EventFeed, error)
+	GetAllDonations() (*[]Donation, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
 	GetAllEmails() (*[]Email, error)
@@ -117,6 +118,7 @@ type StoreLayer interface {
 	UpdateSubmissionValue(id uint, value string) (*SubmissionValue, error)
 	UpdateTotpLastStep(id uint, step int64) (bool, error)
 	UpdateUser(id uint, updatedBy string, disabled bool, email, name, password string, requirePasswordReset, resetTwoFactor bool, username string, roleId uint) (*User, error)
+	UpsertDonationBySessionId(stripeCheckoutSessionId, stripePaymentIntentId string, amountCents int64, currency, donorName, donorEmail, status string, completedAt *time.Time) (*Donation, error)
 	WithTransaction(fn func(StoreLayer) error) error
 }
 
