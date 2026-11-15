@@ -33,6 +33,7 @@ type AppConfig struct {
 	AltchaHmacKeyFile            string `mapstructure:"OC_ALTCHA_HMAC_KEY_FILE"`
 	ConfirmationEmailLimit       int    `mapstructure:"OC_CONFIRMATION_EMAIL_LIMIT"`
 	ConfirmationEmailLimitWindow string `mapstructure:"OC_CONFIRMATION_EMAIL_LIMIT_WINDOW"`
+	DonateDomain                 string `mapstructure:"OC_DONATE_DOMAIN"`
 	EmailFromAddress             string `mapstructure:"OC_EMAIL_FROM_ADDRESS"`
 	MailerLiteApiKey             string `mapstructure:"OC_MAILERLITE_API_KEY"`
 	MailerLiteApiKeyFile         string `mapstructure:"OC_MAILERLITE_API_KEY_FILE"`
@@ -230,7 +231,7 @@ func (c *Config) Validate() error {
 		return errors.New("no domain for default redirect URL provided")
 	}
 
-	if len(c.Http.DonateDomain) == 0 {
+	if len(c.Http.DonateDomain) == 0 || len(c.App.DonateDomain) == 0 {
 		return errors.New("no domain for donate provided")
 	}
 

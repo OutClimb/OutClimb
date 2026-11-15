@@ -37,6 +37,7 @@ type AppLayer interface {
 	ConfirmTotpSetup(user *models.UserInternal, code string) error
 	CreateCaptchaChallenge() (*altcha.Challenge, error)
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
+	CreateDonationCheckout(amountCents int64) (string, error)
 	CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
@@ -91,6 +92,7 @@ type appLayer struct {
 	dummyHash    []byte
 	usedCaptchas *usedCaptchas
 	totpCipher   cipher.AEAD
+	checkout     checkoutSessionCreator
 
 	confirmationEmailLimiter *recipientLimiter
 }
@@ -116,6 +118,7 @@ func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 		dummyHash:    dummyHash,
 		usedCaptchas: newUsedCaptchas(),
 		totpCipher:   totpCipher,
+		checkout:     newStripeCheckoutClient(config.StripeSecretKey),
 
 		confirmationEmailLimiter: newRecipientLimiter(config.ConfirmationEmailLimit, config.ConfirmationEmailLimitWindow),
 	}
