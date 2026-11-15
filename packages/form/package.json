@@ -18,12 +18,7 @@
     "build": "tsc -b && vite build",
     "build:watch": "tsc -b && vite build --watch --mode dev",
     "dev": "vite",
-    "format": "oxfmt --check ./src",
-    "format:fix": "oxfmt ./src",
-    "lint": "oxlint ./src",
-    "lint:fix": "oxlint --fix ./src",
     "preview": "vite preview",
-    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -b"
   },
   "dependencies": {

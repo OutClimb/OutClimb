@@ -3,6 +3,14 @@ web/form/
 web/manager/
 /llm_*
 
+# vite.gitignore
+
+dist
+dist-ssr
+*.local
+.vscode/*
+!.vscode/extensions.json
+
 # macOS.gitignore (https://github.com/github/gitignore/blob/main/Global/macOS.gitignore)
 
 ## General
@@ -119,6 +127,7 @@ go.work.sum
 logs
 *.log
 npm-debug.log*
+pnpm-debug.log*
 
 ## Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

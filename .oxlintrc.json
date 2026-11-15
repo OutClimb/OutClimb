@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": [],
   "jsPlugins": [
     { "name": "tanstack-query-js", "specifier": "@tanstack/eslint-plugin-query" },
@@ -139,7 +139,7 @@
     },
     {
       "files": [
-        "src/routes/**"
+        "packages/*/src/routes/**"
       ],
       "plugins": [
         "react"
