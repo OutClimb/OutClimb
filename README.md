@@ -54,3 +54,20 @@ However you will need an account, which can be created with the following comman
 ```
 docker compose exec be-builder go run ./main.go create-user -u test-user -p password -n Test -r Admin -e foo@example.com
 ```
+
+## Contributing
+
+### Commit messages
+
+Commits must follow the [Conventional Commits](https://www.conventionalcommits.org) standard. A local Husky `commit-msg` hook and a CI check on pull requests both enforce this.
+
+### Releases
+
+The whole repository shares one version, which is set by the commit messages on `main`. When CI passes on a push to `main`, [semantic-release](https://semantic-release.gitbook.io) tags the version and publishes a GitHub Release with generated notes. The Docker image is tagged with that version as well as `latest`.
+
+- `feat` produces a minor release.
+- `fix` and `perf` produce a patch release.
+- `!` after the type, or a `BREAKING CHANGE` footer, produces a major release.
+- Other types, such as `chore`, `docs` and `ci`, do not produce a release.
+
+Release notes are on the GitHub Releases page.
