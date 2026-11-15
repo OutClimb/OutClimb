@@ -55,7 +55,7 @@ RUN apk -U upgrade && apk add --no-cache libc6-compat
 RUN npm install -g pnpm@12.4.1
 
 # Build the frontend
-RUN pnpm install --frozen-lockfile
+RUN HUSKY=0 pnpm install --frozen-lockfile
 RUN pnpm run build
 
 FROM alpine:latest AS outclimb

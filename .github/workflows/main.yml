@@ -113,9 +113,46 @@ jobs:
           --to ${{ github.event.pull_request.head.sha }}
           --verbose
 
+  release:
+    name: release
+    if: github.event_name == 'push'
+    needs: [editorconfig_lint, golangci, go_test, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      version: ${{ steps.read_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Reads the pnpm version from "packageManager" in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create release
+        run: pnpm release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Empty when semantic-release found nothing to release, since HEAD is untagged.
+      - name: Read released version
+        id: read_version
+        run: |
+          tag=$(git describe --tags --exact-match HEAD 2>/dev/null || true)
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
   build:
     name: build
-    needs: [editorconfig_lint, golangci, go_test, frontend]
+    needs: [editorconfig_lint, golangci, go_test, frontend, release]
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -134,13 +171,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # Version tags are only produced when this push cut a release.
+      - name: Generate image tags
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/outclimb/outclimb
+          tags: |
+            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.version }},enable=${{ needs.release.outputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.version }},enable=${{ needs.release.outputs.version != '' }}
+            type=semver,pattern={{major}},value=${{ needs.release.outputs.version }},enable=${{ needs.release.outputs.version != '' }}
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           file: Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name == 'push' }}
-          tags: ghcr.io/outclimb/outclimb:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           target: outclimb
           cache-from: type=gha
           cache-to: type=gha,mode=max
