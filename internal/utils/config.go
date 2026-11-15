@@ -39,6 +39,10 @@ type AppConfig struct {
 	PasswordCost                 int    `mapstructure:"OC_PASSWORD_COST"`
 	ResendApiKey                 string `mapstructure:"OC_RESEND_API_KEY"`
 	ResendApiKeyFile             string `mapstructure:"OC_RESEND_API_KEY_FILE"`
+	StripeSecretKey              string `mapstructure:"OC_STRIPE_SECRET_KEY"`
+	StripeSecretKeyFile          string `mapstructure:"OC_STRIPE_SECRET_KEY_FILE"`
+	StripeWebhookSecret          string `mapstructure:"OC_STRIPE_WEBHOOK_SECRET"`
+	StripeWebhookSecretFile      string `mapstructure:"OC_STRIPE_WEBHOOK_SECRET_FILE"`
 	TotpEncryptionKey            string `mapstructure:"OC_TOTP_ENCRYPTION_KEY"`
 	TotpEncryptionKeyFile        string `mapstructure:"OC_TOTP_ENCRYPTION_KEY_FILE"`
 }
@@ -57,6 +61,7 @@ type HttpConfig struct {
 	AssetsDomain              string    `mapstructure:"OC_ASSETS_DOMAIN"`
 	BehindTLS                 bool      `mapstructure:"OC_BEHIND_TLS"`
 	DefaultRedirectURL        string    `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
+	DonateDomain              string    `mapstructure:"OC_DONATE_DOMAIN"`
 	FormRateLimit             int       `mapstructure:"OC_FORM_RATE_LIMIT"`
 	FormRateLimitWindow       string    `mapstructure:"OC_FORM_RATE_LIMIT_WINDOW"`
 	Jwt                       JwtConfig `mapstructure:",squash"`
@@ -130,6 +135,8 @@ func LoadConfig(env string) (Config, error) {
 	loadSecretFromFile(&config.Http.Jwt.Secret, config.Http.Jwt.SecretFile, "JWT Secret", env)
 	loadSecretFromFile(&config.Storage.SecretKey, config.Storage.SecretKeyFile, "Storage Secret Key", env)
 	loadSecretFromFile(&config.App.ResendApiKey, config.App.ResendApiKeyFile, "Resend API Key", env)
+	loadSecretFromFile(&config.App.StripeSecretKey, config.App.StripeSecretKeyFile, "Stripe Secret Key", env)
+	loadSecretFromFile(&config.App.StripeWebhookSecret, config.App.StripeWebhookSecretFile, "Stripe Webhook Secret", env)
 	loadSecretFromFile(&config.App.TotpEncryptionKey, config.App.TotpEncryptionKeyFile, "TOTP Encryption Key", env)
 
 	return config, nil
@@ -221,6 +228,18 @@ func (c *Config) Validate() error {
 
 	if len(c.Http.DefaultRedirectURL) == 0 {
 		return errors.New("no domain for default redirect URL provided")
+	}
+
+	if len(c.Http.DonateDomain) == 0 {
+		return errors.New("no domain for donate provided")
+	}
+
+	if len(c.App.StripeSecretKey) == 0 {
+		return errors.New("no stripe secret key provided")
+	}
+
+	if len(c.App.StripeWebhookSecret) == 0 {
+		return errors.New("no stripe webhook secret provided")
 	}
 
 	if len(c.Http.Jwt.Secret) == 0 {
