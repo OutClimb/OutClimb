@@ -73,6 +73,7 @@ type AppLayer interface {
 	GetRole(id uint) (*models.RoleInternal, error)
 	GetSubmissionsForForm(user *models.UserInternal, formId uint) (*[]models.SubmissionInternal, error)
 	GetUser(userId uint) (*models.UserInternal, error)
+	HandleStripeWebhook(payload []byte, signature string) error
 	UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error)
 	UpdateEmail(user *models.UserInternal, id uint, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
@@ -93,6 +94,7 @@ type appLayer struct {
 	usedCaptchas *usedCaptchas
 	totpCipher   cipher.AEAD
 	checkout     checkoutSessionCreator
+	webhook      checkoutWebhookClient
 
 	confirmationEmailLimiter *recipientLimiter
 }
@@ -112,13 +114,16 @@ func New(storeLayer store.StoreLayer, config *utils.AppConfig) *appLayer {
 		return nil
 	}
 
+	stripeClient := newStripeCheckoutClient(config.StripeSecretKey)
+
 	return &appLayer{
 		config:       config,
 		store:        storeLayer,
 		dummyHash:    dummyHash,
 		usedCaptchas: newUsedCaptchas(),
 		totpCipher:   totpCipher,
-		checkout:     newStripeCheckoutClient(config.StripeSecretKey),
+		checkout:     stripeClient,
+		webhook:      stripeClient,
 
 		confirmationEmailLimiter: newRecipientLimiter(config.ConfirmationEmailLimit, config.ConfirmationEmailLimitWindow),
 	}

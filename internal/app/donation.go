@@ -35,7 +35,30 @@ const (
 	stripeRequestTimeout  = 15 * time.Second
 )
 
-var ErrInvalidDonationAmount = errors.New("invalid donation amount")
+const (
+	eventCheckoutSessionCompleted             = "v1.checkout.session.completed"
+	eventCheckoutSessionAsyncPaymentSucceeded = "v1.checkout.session.async_payment_succeeded"
+	eventCheckoutSessionAsyncPaymentFailed    = "v1.checkout.session.async_payment_failed"
+
+	donationStatusPaid   = "paid"
+	donationStatusFailed = "failed"
+)
+
+var (
+	ErrInvalidDonationAmount   = errors.New("invalid donation amount")
+	ErrInvalidWebhookSignature = errors.New("invalid webhook signature")
+)
+
+type webhookNotification struct {
+	EventType         string
+	CheckoutSessionId string
+	CreatedAt         time.Time
+}
+
+type checkoutWebhookClient interface {
+	ParseWebhookNotification(payload []byte, signature, secret string) (*webhookNotification, error)
+	GetCheckoutSession(ctx context.Context, id string) (*stripe.CheckoutSession, error)
+}
 
 type checkoutSessionCreator interface {
 	CreateCheckoutSession(ctx context.Context, params *stripe.CheckoutSessionCreateParams) (*stripe.CheckoutSession, error)
@@ -51,6 +74,33 @@ func newStripeCheckoutClient(secretKey string) *stripeCheckoutClient {
 
 func (s *stripeCheckoutClient) CreateCheckoutSession(ctx context.Context, params *stripe.CheckoutSessionCreateParams) (*stripe.CheckoutSession, error) {
 	return s.client.V1CheckoutSessions.Create(ctx, params)
+}
+
+func (s *stripeCheckoutClient) GetCheckoutSession(ctx context.Context, id string) (*stripe.CheckoutSession, error) {
+	return s.client.V1CheckoutSessions.Retrieve(ctx, id, nil)
+}
+
+func (s *stripeCheckoutClient) ParseWebhookNotification(payload []byte, signature, secret string) (*webhookNotification, error) {
+	container, err := s.client.ParseEventNotification(payload, signature, secret)
+	if err != nil {
+		return nil, err
+	}
+
+	eventNotification := container.GetEventNotification()
+	notification := &webhookNotification{
+		EventType: eventNotification.Type,
+		CreatedAt: eventNotification.Created,
+	}
+	switch event := container.(type) {
+	case *stripe.V1CheckoutSessionCompletedEventNotification:
+		notification.CheckoutSessionId = event.RelatedObject.ID
+	case *stripe.V1CheckoutSessionAsyncPaymentSucceededEventNotification:
+		notification.CheckoutSessionId = event.RelatedObject.ID
+	case *stripe.V1CheckoutSessionAsyncPaymentFailedEventNotification:
+		notification.CheckoutSessionId = event.RelatedObject.ID
+	}
+
+	return notification, nil
 }
 
 func (a *appLayer) CreateDonationCheckout(amountCents int64) (string, error) {
@@ -95,4 +145,87 @@ func (a *appLayer) buildDonationCheckoutParams(amountCents int64) *stripe.Checko
 			},
 		},
 	}
+}
+
+func (a *appLayer) HandleStripeWebhook(payload []byte, signature string) error {
+	notification, err := a.webhook.ParseWebhookNotification(payload, signature, a.config.StripeWebhookSecret)
+	if err != nil {
+		if isSignatureError(err) {
+			return ErrInvalidWebhookSignature
+		}
+		return err
+	}
+
+	switch notification.EventType {
+	case eventCheckoutSessionCompleted, eventCheckoutSessionAsyncPaymentSucceeded:
+		return a.recordCheckoutSession(notification, true)
+	case eventCheckoutSessionAsyncPaymentFailed:
+		return a.recordCheckoutSession(notification, false)
+	}
+
+	return nil
+}
+
+func (a *appLayer) recordCheckoutSession(notification *webhookNotification, expectPaid bool) error {
+	ctx, cancel := context.WithTimeout(context.Background(), stripeRequestTimeout)
+	defer cancel()
+
+	session, err := a.webhook.GetCheckoutSession(ctx, notification.CheckoutSessionId)
+	if err != nil {
+		return err
+	}
+
+	status := donationStatusFailed
+	var completedAt *time.Time
+	if expectPaid {
+		if session.PaymentStatus != stripe.CheckoutSessionPaymentStatusPaid {
+			return nil
+		}
+		status = donationStatusPaid
+		completedAt = &notification.CreatedAt
+	}
+
+	_, err = a.store.UpsertDonationBySessionId(
+		session.ID,
+		paymentIntentId(session),
+		session.AmountTotal,
+		string(session.Currency),
+		donorName(session),
+		donorEmail(session),
+		status,
+		completedAt,
+	)
+	return err
+}
+
+func isSignatureError(err error) bool {
+	return errors.Is(err, stripe.ErrWebhookEmptySecret) ||
+		errors.Is(err, stripe.ErrWebhookInvalidHeader) ||
+		errors.Is(err, stripe.ErrWebhookNoValidSignature) ||
+		errors.Is(err, stripe.ErrWebhookNotSigned) ||
+		errors.Is(err, stripe.ErrWebhookTooOld)
+}
+
+func paymentIntentId(session *stripe.CheckoutSession) string {
+	if session.PaymentIntent == nil {
+		return ""
+	}
+	return session.PaymentIntent.ID
+}
+
+func donorName(session *stripe.CheckoutSession) string {
+	if session.CustomerDetails == nil {
+		return ""
+	}
+	if session.CustomerDetails.IndividualName != "" {
+		return session.CustomerDetails.IndividualName
+	}
+	return session.CustomerDetails.Name
+}
+
+func donorEmail(session *stripe.CheckoutSession) string {
+	if session.CustomerDetails == nil {
+		return ""
+	}
+	return session.CustomerDetails.Email
 }

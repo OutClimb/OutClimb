@@ -19,7 +19,9 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
+	"github.com/OutClimb/OutClimb/internal/store"
 	"github.com/OutClimb/OutClimb/internal/utils"
 	"github.com/stripe/stripe-go/v87"
 )
@@ -141,5 +143,200 @@ func TestCreateDonationCheckoutSendsExpectedSessionParams(t *testing.T) {
 	}
 	if got := *item.PriceData.ProductData.Name; got != "Donation to OutClimb" {
 		t.Errorf("product name = %q", got)
+	}
+}
+
+type fakeWebhookClient struct {
+	notification *webhookNotification
+	parseErr     error
+	session      *stripe.CheckoutSession
+	fetchErr     error
+	fetchedIds   []string
+}
+
+func (f *fakeWebhookClient) ParseWebhookNotification(_ []byte, _, _ string) (*webhookNotification, error) {
+	return f.notification, f.parseErr
+}
+
+func (f *fakeWebhookClient) GetCheckoutSession(_ context.Context, id string) (*stripe.CheckoutSession, error) {
+	f.fetchedIds = append(f.fetchedIds, id)
+	return f.session, f.fetchErr
+}
+
+type fakeDonationStore struct {
+	store.StoreLayer
+	donationsBySessionId map[string]store.Donation
+	upsertCount          int
+}
+
+func (f *fakeDonationStore) UpsertDonationBySessionId(sessionId, paymentIntentId string, amountCents int64, currency, donorName, donorEmail, status string, completedAt *time.Time) (*store.Donation, error) {
+	f.upsertCount++
+	donation := store.Donation{
+		StripeCheckoutSessionId: sessionId,
+		StripePaymentIntentId:   paymentIntentId,
+		AmountCents:             amountCents,
+		Currency:                currency,
+		DonorName:               donorName,
+		DonorEmail:              donorEmail,
+		Status:                  status,
+		CompletedAt:             completedAt,
+	}
+	f.donationsBySessionId[sessionId] = donation
+	return &donation, nil
+}
+
+func newWebhookTestApp(webhook *fakeWebhookClient) (*appLayer, *fakeDonationStore) {
+	donationStore := &fakeDonationStore{donationsBySessionId: map[string]store.Donation{}}
+	return &appLayer{
+		webhook: webhook,
+		store:   donationStore,
+		config:  &utils.AppConfig{StripeWebhookSecret: "whsec_test"},
+	}, donationStore
+}
+
+func newPaidSession() *stripe.CheckoutSession {
+	return &stripe.CheckoutSession{
+		ID:            "cs_test_1",
+		PaymentStatus: stripe.CheckoutSessionPaymentStatusPaid,
+		AmountTotal:   2500,
+		Currency:      stripe.CurrencyUSD,
+		PaymentIntent: &stripe.PaymentIntent{ID: "pi_test_1"},
+		CustomerDetails: &stripe.CheckoutSessionCustomerDetails{
+			IndividualName: "Sam Climber",
+			Email:          "sam@example.test",
+		},
+	}
+}
+
+func TestHandleStripeWebhookRejectsBadSignature(t *testing.T) {
+	signatureErrors := []error{
+		stripe.ErrWebhookNoValidSignature,
+		stripe.ErrWebhookNotSigned,
+		stripe.ErrWebhookInvalidHeader,
+		stripe.ErrWebhookTooOld,
+	}
+
+	for _, signatureErr := range signatureErrors {
+		webhook := &fakeWebhookClient{parseErr: signatureErr}
+		app, donationStore := newWebhookTestApp(webhook)
+
+		err := app.HandleStripeWebhook([]byte("{}"), "bad")
+
+		if !errors.Is(err, ErrInvalidWebhookSignature) {
+			t.Fatalf("got error %v, want ErrInvalidWebhookSignature", err)
+		}
+		if donationStore.upsertCount != 0 || len(webhook.fetchedIds) != 0 {
+			t.Fatal("event was processed despite bad signature")
+		}
+	}
+}
+
+func TestHandleStripeWebhookRecordsPaidSessionFetchedFromStripe(t *testing.T) {
+	for _, eventType := range []string{eventCheckoutSessionCompleted, eventCheckoutSessionAsyncPaymentSucceeded} {
+		webhook := &fakeWebhookClient{
+			notification: &webhookNotification{EventType: eventType, CheckoutSessionId: "cs_test_1"},
+			session:      newPaidSession(),
+		}
+		app, donationStore := newWebhookTestApp(webhook)
+
+		if err := app.HandleStripeWebhook([]byte("{}"), "sig"); err != nil {
+			t.Fatalf("%s: unexpected error %v", eventType, err)
+		}
+
+		if len(webhook.fetchedIds) != 1 || webhook.fetchedIds[0] != "cs_test_1" {
+			t.Fatalf("%s: fetched sessions %v, want [cs_test_1]", eventType, webhook.fetchedIds)
+		}
+		donation := donationStore.donationsBySessionId["cs_test_1"]
+		if donation.Status != "paid" || donation.CompletedAt == nil {
+			t.Errorf("%s: status %q completedAt %v, want paid with completion time", eventType, donation.Status, donation.CompletedAt)
+		}
+		if donation.AmountCents != 2500 || donation.Currency != "usd" || donation.StripePaymentIntentId != "pi_test_1" {
+			t.Errorf("%s: unexpected donation %+v", eventType, donation)
+		}
+		if donation.DonorName != "Sam Climber" || donation.DonorEmail != "sam@example.test" {
+			t.Errorf("%s: unexpected donor %q %q", eventType, donation.DonorName, donation.DonorEmail)
+		}
+	}
+}
+
+func TestHandleStripeWebhookResendKeepsOriginalCompletionTime(t *testing.T) {
+	eventCreatedAt := time.Date(2026, 11, 1, 12, 0, 0, 0, time.UTC)
+	webhook := &fakeWebhookClient{
+		notification: &webhookNotification{EventType: eventCheckoutSessionCompleted, CheckoutSessionId: "cs_test_1", CreatedAt: eventCreatedAt},
+		session:      newPaidSession(),
+	}
+	app, donationStore := newWebhookTestApp(webhook)
+
+	for range 2 {
+		if err := app.HandleStripeWebhook([]byte("{}"), "sig"); err != nil {
+			t.Fatalf("unexpected error %v", err)
+		}
+		completedAt := donationStore.donationsBySessionId["cs_test_1"].CompletedAt
+		if completedAt == nil || !completedAt.Equal(eventCreatedAt) {
+			t.Fatalf("completedAt = %v, want %v", completedAt, eventCreatedAt)
+		}
+	}
+}
+
+func TestHandleStripeWebhookDoesNotRecordUnpaidSessionAsPaid(t *testing.T) {
+	session := newPaidSession()
+	session.PaymentStatus = stripe.CheckoutSessionPaymentStatusUnpaid
+	webhook := &fakeWebhookClient{
+		notification: &webhookNotification{EventType: eventCheckoutSessionCompleted, CheckoutSessionId: "cs_test_1"},
+		session:      session,
+	}
+	app, donationStore := newWebhookTestApp(webhook)
+
+	if err := app.HandleStripeWebhook([]byte("{}"), "sig"); err != nil {
+		t.Fatalf("unexpected error %v", err)
+	}
+
+	if donationStore.upsertCount != 0 {
+		t.Fatal("unpaid session was recorded")
+	}
+}
+
+func TestHandleStripeWebhookRecordsAsyncFailure(t *testing.T) {
+	session := newPaidSession()
+	session.PaymentStatus = stripe.CheckoutSessionPaymentStatusUnpaid
+	webhook := &fakeWebhookClient{
+		notification: &webhookNotification{EventType: eventCheckoutSessionAsyncPaymentFailed, CheckoutSessionId: "cs_test_1"},
+		session:      session,
+	}
+	app, donationStore := newWebhookTestApp(webhook)
+
+	if err := app.HandleStripeWebhook([]byte("{}"), "sig"); err != nil {
+		t.Fatalf("unexpected error %v", err)
+	}
+
+	donation := donationStore.donationsBySessionId["cs_test_1"]
+	if donation.Status != "failed" || donation.CompletedAt != nil {
+		t.Errorf("status %q completedAt %v, want failed without completion time", donation.Status, donation.CompletedAt)
+	}
+}
+
+func TestHandleStripeWebhookIgnoresOtherEventTypes(t *testing.T) {
+	webhook := &fakeWebhookClient{notification: &webhookNotification{EventType: "v1.charge.refunded"}}
+	app, donationStore := newWebhookTestApp(webhook)
+
+	if err := app.HandleStripeWebhook([]byte("{}"), "sig"); err != nil {
+		t.Fatalf("unexpected error %v", err)
+	}
+
+	if donationStore.upsertCount != 0 || len(webhook.fetchedIds) != 0 {
+		t.Fatal("ignored event type touched Stripe or the store")
+	}
+}
+
+func TestHandleStripeWebhookPropagatesFetchError(t *testing.T) {
+	fetchErr := errors.New("stripe down")
+	webhook := &fakeWebhookClient{
+		notification: &webhookNotification{EventType: eventCheckoutSessionCompleted, CheckoutSessionId: "cs_test_1"},
+		fetchErr:     fetchErr,
+	}
+	app, _ := newWebhookTestApp(webhook)
+
+	if err := app.HandleStripeWebhook([]byte("{}"), "sig"); !errors.Is(err, fetchErr) {
+		t.Fatalf("got error %v, want %v", err, fetchErr)
 	}
 }
