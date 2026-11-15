@@ -26,8 +26,9 @@ WORKDIR /app
 # Ensure all packages are up to date
 RUN apk -U upgrade && apk add --no-cache libc6-compat
 
-# Install PNPM
-RUN npm install -g pnpm@12.10.1
+# Install PNPM at the version pinned by packageManager in package.json
+COPY package.json /app/package.json
+RUN npm install -g corepack && corepack enable && corepack install
 
 ENTRYPOINT ["/app/fe-entrypoint.sh"]
 
@@ -51,8 +52,8 @@ WORKDIR /app
 # Ensure all packages are up to date
 RUN apk -U upgrade && apk add --no-cache libc6-compat
 
-# Install PNPM
-RUN npm install -g pnpm@12.4.1
+# Install PNPM at the version pinned by packageManager in package.json
+RUN npm install -g corepack && corepack enable && corepack install
 
 # Build the frontend
 RUN HUSKY=0 pnpm install --frozen-lockfile
