@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/altcha-org/altcha-lib-go/v2 v2.4.1
 	github.com/aws/aws-sdk-go-v2 v1.48.0
-	github.com/aws/aws-sdk-go-v2/config v1.33.16
+	github.com/aws/aws-sdk-go-v2/config v1.33.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.114.9
 	github.com/dlclark/regexp2 v1.12.0
