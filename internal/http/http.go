@@ -21,6 +21,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -29,6 +30,11 @@ import (
 	"github.com/OutClimb/OutClimb/internal/utils"
 	ginSlog "github.com/gin-contrib/slog"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	donateFrontendDirectory = "./web/donate"
+	donateIndexPath         = "/index.html"
 )
 
 type httpLayer struct {
@@ -105,10 +111,52 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 			return
 		}
 
+		if c.Request.Host == config.DonateDomain {
+			h.serveDonateFrontend(c)
+			return
+		}
+
 		c.Redirect(http.StatusTemporaryRedirect, config.DefaultRedirectURL)
 	})
 
 	return h
+}
+
+func (h *httpLayer) serveDonateFrontend(c *gin.Context) {
+	donateFiles := http.Dir(donateFrontendDirectory)
+
+	cleanedPath := path.Clean("/" + c.Request.URL.Path)
+	file, fileInfo := openRegularFile(donateFiles, cleanedPath)
+	if file == nil {
+		file, fileInfo = openRegularFile(donateFiles, donateIndexPath)
+	}
+	if file == nil {
+		slog.Error(
+			"Unable to read donate index file",
+			"layer", "http",
+			"entity", "http",
+		)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	http.ServeContent(c.Writer, c.Request, fileInfo.Name(), fileInfo.ModTime(), file)
+}
+
+func openRegularFile(fileSystem http.FileSystem, filePath string) (http.File, os.FileInfo) {
+	file, err := fileSystem.Open(filePath)
+	if err != nil {
+		return nil, nil
+	}
+
+	fileInfo, err := file.Stat()
+	if err != nil || fileInfo.IsDir() {
+		_ = file.Close()
+		return nil, nil
+	}
+
+	return file, fileInfo
 }
 
 func (h *httpLayer) setupFrontendRoutes() {

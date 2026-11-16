@@ -27,6 +27,7 @@ Add the following entries to your hosts file (`/etc/hosts` on macOS/Linux, `C:\W
 127.0.0.1 outclimb.local
 127.0.0.1 assets.outclimb.local
 127.0.0.1 register.outclimb.local
+127.0.0.1 donate.outclimb.local
 ```
 
 Then from the root of the project directory run:
@@ -35,7 +36,7 @@ Then from the root of the project directory run:
 docker compose up -d
 ```
 
-This will start the backend, frontend, and PostgreSQL database. The backend and frontend will automatically rebuild on changes. Once running, the url shortner is available at `http://outclimb.local`, registration at `http://register.outclimb.local`, and assets at `http://assets.outclimb.local`. The management portal can be accessed via `/manage` on any domain.
+This will start the backend, frontend, and PostgreSQL database. The backend and frontend will automatically rebuild on changes. Once running, the url shortner is available at `http://outclimb.local`, registration at `http://register.outclimb.local`, donations at `http://donate.outclimb.local`, and assets at `http://assets.outclimb.local`. The management portal can be accessed via `/manage` on any domain.
 
 To follow logs:
 
