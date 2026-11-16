@@ -76,6 +76,7 @@ COPY --from=outclimb-builder /app/LICENSE.md /app/LICENSE.md
 COPY --from=outclimb-builder /app/README.md /app/README.md
 
 # Copy the frontend files
+COPY --from=outclimb-fe-builder /app/web/donate /app/web/donate
 COPY --from=outclimb-fe-builder /app/web/form /app/web/form
 COPY --from=outclimb-fe-builder /app/web/manager /app/web/manager
 
