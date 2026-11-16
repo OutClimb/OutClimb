@@ -13,7 +13,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/mailerlite/mailerlite-go v1.3.0
+	github.com/mailerlite/mailerlite-go v1.5.0
 	github.com/pquerna/otp v1.5.0
 	github.com/pressly/goose/v3 v3.30.1
 	github.com/resend/resend-go/v3 v3.17.0
