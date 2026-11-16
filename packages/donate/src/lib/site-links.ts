@@ -17,7 +17,7 @@ export const FOOTER_SOCIAL_LINKS = [
 
 export const HOME_URL = SITE_URL
 export const FINANCIAL_REPORT_URL = `${SITE_URL}/blog/2025-financial-report`
-export const PRIVACY_POLICY_URL = `${SITE_URL}/privacy`
+export const PRIVACY_POLICY_URL = `${SITE_URL}/privacy-policy`
 export const CONTACT_EMAIL = 'info@outclimb.gay'
 export const CONTACT_PHONE = '(612) 440-9209'
 export const CONTACT_PHONE_LINK = 'tel:+16124409209'
