@@ -33,6 +33,30 @@ export function formatCentsAsDollars(cents: number): string {
   }).format(cents / CENTS_PER_DOLLAR)
 }
 
+const INVALID_AMOUNT_ERROR = 'Please enter a valid dollar amount.'
+const BELOW_MINIMUM_ERROR = `The minimum donation is ${formatCentsAsDollars(MINIMUM_DONATION_CENTS)}.`
+const ABOVE_MAXIMUM_ERROR = `The maximum donation is ${formatCentsAsDollars(MAXIMUM_DONATION_CENTS)}.`
+const FEES_TOTAL_ERROR = `With fees included, the total can't be more than ${formatCentsAsDollars(MAXIMUM_DONATION_CENTS)}.`
+
+export function validateAmount(dollars: string, coverFees: boolean): { cents: number } | { error: string } {
+  const donationCents = dollarsToCents(dollars)
+  if (donationCents === null) {
+    return { error: INVALID_AMOUNT_ERROR }
+  }
+  if (donationCents < MINIMUM_DONATION_CENTS) {
+    return { error: BELOW_MINIMUM_ERROR }
+  }
+  if (donationCents > MAXIMUM_DONATION_CENTS) {
+    return { error: ABOVE_MAXIMUM_ERROR }
+  }
+
+  const totalCents = coverFees ? donationCents + calculateFeeCents(donationCents) : donationCents
+  if (totalCents > MAXIMUM_DONATION_CENTS) {
+    return { error: FEES_TOTAL_ERROR }
+  }
+  return { cents: totalCents }
+}
+
 export async function createDonationCheckout(body: CreateDonationCheckoutRequest): Promise<string> {
   const response = await apiFetch<CreateDonationCheckoutResponse>('POST', '/api/v1/donation/checkout', body)
   if (!response.url) {

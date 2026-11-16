@@ -11,7 +11,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       {
-        title: 'Donate to OutClimb',
+        title: 'Donate — OutClimb - Queer Climbing',
       },
     ],
   }),

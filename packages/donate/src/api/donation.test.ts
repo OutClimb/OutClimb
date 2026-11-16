@@ -6,6 +6,7 @@ import {
   formatCentsAsDollars,
   MAXIMUM_DONATION_CENTS,
   MINIMUM_DONATION_CENTS,
+  validateAmount,
 } from '@/api/donation'
 import { apiFetch } from '@/api/client'
 
@@ -135,5 +136,38 @@ describe('apiFetch', () => {
   it('reports an unparseable body generically', async () => {
     stubFetchResponse(200)
     await expect(apiFetch('GET', '/x')).rejects.toThrow('An error occurred. Please try again.')
+  })
+})
+
+describe('validateAmount', () => {
+  it('accepts the minimum and maximum donation without fees', () => {
+    expect(validateAmount('1', false)).toEqual({ cents: MINIMUM_DONATION_CENTS })
+    expect(validateAmount('500', false)).toEqual({ cents: MAXIMUM_DONATION_CENTS })
+  })
+
+  it('rejects amounts below the minimum and above the maximum', () => {
+    expect(validateAmount('0.99', false)).toEqual({ error: 'The minimum donation is $1.' })
+    expect(validateAmount('500.01', false)).toEqual({ error: 'The maximum donation is $500.' })
+  })
+
+  it('rejects empty and malformed input', () => {
+    const invalidAmountError = { error: 'Please enter a valid dollar amount.' }
+    expect(validateAmount('', false)).toEqual(invalidAmountError)
+    expect(validateAmount('abc', false)).toEqual(invalidAmountError)
+    expect(validateAmount('1.234', false)).toEqual(invalidAmountError)
+  })
+
+  it('adds the processing fee to the total when covering fees', () => {
+    expect(validateAmount('20', true)).toEqual({ cents: 2000 + calculateFeeCents(2000) })
+  })
+
+  it('accepts the largest donation whose total with fees still fits the maximum', () => {
+    expect(validateAmount('476.19', true)).toEqual({ cents: MAXIMUM_DONATION_CENTS })
+  })
+
+  it('rejects a donation whose total with fees exceeds the maximum', () => {
+    const feesTotalError = { error: "With fees included, the total can't be more than $500." }
+    expect(validateAmount('476.20', true)).toEqual(feesTotalError)
+    expect(validateAmount('500', true)).toEqual(feesTotalError)
   })
 })
