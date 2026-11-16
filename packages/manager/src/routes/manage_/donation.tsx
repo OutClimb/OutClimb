@@ -1,14 +1,18 @@
 'use client'
 
 import authGuard from '@/lib/auth-guard'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Content } from '@/components/content'
 import { DonationsTable } from '@/components/donation/donations-table'
+import { downloadCsv } from '@/lib/csv'
+import { Download, HandHeart } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchDonations } from '@/api/donation'
+import { formatDateTime } from '@/lib/timezone'
+import { formatDonationAmountPlain } from '@/lib/donation'
 import { Header } from '@/components/header'
-import { HandHeart } from 'lucide-react'
 import permissionGuard from '@/lib/permission-guard'
 import { Spinner } from '@/components/ui/spinner'
 import { UnauthorizedError } from '@/errors/unauthorized'
@@ -61,9 +65,32 @@ function Donations() {
 
   const donationsNewestFirst = list().sort((a, b) => b.createdAt - a.createdAt)
 
+  const handleExport = () => {
+    downloadCsv('donations.csv', [
+      ['Date', 'Donor', 'Email', 'Amount', 'Currency', 'Status'],
+      ...donationsNewestFirst.map((donation) => [
+        formatDateTime(donation.completedAt ?? donation.createdAt),
+        donation.donorName,
+        donation.donorEmail,
+        formatDonationAmountPlain(donation.amountCents),
+        donation.currency.toUpperCase(),
+        donation.status,
+      ]),
+    ])
+  }
+
   return (
     <>
-      <Header isLoading={isLoading}>Donations</Header>
+      <Header
+        isLoading={isLoading}
+        actions={
+          <Button variant="outline" onClick={handleExport} disabled={isLoading || isEmpty()}>
+            <Download />
+            Export CSV
+          </Button>
+        }>
+        Donations
+      </Header>
 
       <Content>
         <Card className="p-0">
