@@ -145,6 +145,7 @@
   }
   html {
     @apply font-sans;
+    background: linear-gradient(to bottom, var(--color-page) 50%, var(--color-footer) 50%) fixed;
   }
 }
 
