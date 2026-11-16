@@ -1,5 +1,5 @@
 # OutClimb
-Web service for OutClimb (queer/trans climbing non-profit). Monorepo: Go `backend` + React `packages/manager` and `packages/form`. See README for setup.
+Web service for OutClimb (queer/trans climbing non-profit). Monorepo: Go `backend` + React`packages/donate`, `packages/form` and `packages/manager`. See README for setup.
 
 ## Backend
 Entrypoint `main.go`; commands in `cmd/` (`create-user`, `migrate`, `service`).
@@ -14,4 +14,4 @@ Run everything with `docker compose up -d`. Ensure `configs/local.env` exists fi
 ## Frontend (manager, form)
 TypeScript, PNPM, Vite, React. Run from repo root:
 - `pnpm dev`, `pnpm build`, `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm typecheck`
-- Use `:form` or `:manager` suffixes to target one package (`pnpm dev:form`).
+- Use `:donate`, `:form` or `:manager` suffixes to target one package (`pnpm dev:form`).

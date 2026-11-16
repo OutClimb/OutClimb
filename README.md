@@ -14,7 +14,8 @@ This allows for a separation of concerns throughout the web application making s
 
 The frontends can be found in the `packages` folder:
 
-- `form` - This will be the frontend for the registration forms.
+- `donate` - This is the frontend for the donation form.
+- `form` - This is the frontend for the registration forms.
 - `manager` - This is the frontend for the management portal.
 
 ## Running locally
