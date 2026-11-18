@@ -126,10 +126,7 @@ func (h *httpLayer) serveDonateFrontend(c *gin.Context) {
 	donateFiles := http.Dir(donateFrontendDirectory)
 
 	cleanedPath := path.Clean("/" + c.Request.URL.Path)
-	file, fileInfo := openRegularFile(donateFiles, cleanedPath)
-	if file == nil {
-		file, fileInfo = openRegularFile(donateFiles, donateIndexPath)
-	}
+	file, fileInfo := openDonateFile(donateFiles, cleanedPath)
 	if file == nil {
 		slog.Error(
 			"Unable to read donate index file",
@@ -142,6 +139,23 @@ func (h *httpLayer) serveDonateFrontend(c *gin.Context) {
 	defer func() { _ = file.Close() }()
 
 	http.ServeContent(c.Writer, c.Request, fileInfo.Name(), fileInfo.ModTime(), file)
+}
+
+func openDonateFile(fileSystem http.FileSystem, cleanedPath string) (http.File, os.FileInfo) {
+	candidatePaths := []string{
+		cleanedPath,
+		path.Join(cleanedPath, donateIndexPath),
+		donateIndexPath,
+	}
+
+	for _, candidatePath := range candidatePaths {
+		file, fileInfo := openRegularFile(fileSystem, candidatePath)
+		if file != nil {
+			return file, fileInfo
+		}
+	}
+
+	return nil, nil
 }
 
 func openRegularFile(fileSystem http.FileSystem, filePath string) (http.File, os.FileInfo) {
