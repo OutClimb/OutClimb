@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
+import { staticPageMeta } from './vite/static-page-meta.ts'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 // https://vite.dev/config/
@@ -20,7 +21,8 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     react(),
-    babel({ presets: [reactCompilerPreset()] })
+    babel({ presets: [reactCompilerPreset()] }),
+    staticPageMeta(),
   ],
   resolve: {
     alias: {

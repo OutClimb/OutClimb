@@ -1,5 +1,5 @@
 {
-  "packages/*/src/**/*.{ts,tsx}": ["oxfmt", "oxlint --fix"],
-  "packages/*/src/**/*.css": "oxfmt",
+  "packages/*/{src,vite}/**/*.{ts,tsx}": ["oxfmt", "oxlint --fix"],
+  "packages/*/{src,vite}/**/*.css": "oxfmt",
   "*.go": "gofmt -w"
 }
