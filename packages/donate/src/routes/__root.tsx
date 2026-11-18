@@ -8,11 +8,4 @@ const RootLayout = () => {
 
 export const Route = createRootRoute({
   component: RootLayout,
-  head: () => ({
-    meta: [
-      {
-        title: 'Donate — OutClimb - Queer Climbing',
-      },
-    ],
-  }),
 })
