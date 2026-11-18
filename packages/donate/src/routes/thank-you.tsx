@@ -3,30 +3,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DonateMessageCard } from '@/components/donate-message-card'
 import { DonatePageLayout } from '@/components/donate-page-layout'
+import { buildPageMeta, DONATE_PAGES } from '@/lib/page-meta'
 
 export const Route = createFileRoute('/thank-you')({
   component: ThankYouPage,
-  head: () => {
-    const site = 'OutClimb - Queer Climbing'
-    const title = `Thank you — ${site}`
-    const excerpt =
-      'Help us make climbing accessible. We are a nonprofit working to make climbing accessible to as many trans and queer people as possible.'
-
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: excerpt },
-        { property: 'og:site_name', content: site },
-        { property: 'og:title', content: title },
-        { property: 'og:url', content: 'https://donate.outclimb.gay/thank-you' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:description', content: excerpt },
-        { property: 'og:image', content: 'https://donate.outclimb.gay/images/hero.jpg' },
-        { property: 'og:image:width', content: '648' },
-        { property: 'og:image:height', content: '320' },
-      ],
-    }
-  },
+  head: () => ({ meta: buildPageMeta(DONATE_PAGES.thankYou) }),
 })
 
 function ThankYouPage() {
