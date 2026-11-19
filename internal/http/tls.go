@@ -25,8 +25,20 @@ import (
 	"os"
 )
 
-func buildTlsConfig(clientCaFile string) (*tls.Config, error) {
+func buildTlsConfig(certFiles []string, keyFiles []string, clientCaFile string) (*tls.Config, error) {
+	if len(certFiles) != len(keyFiles) {
+		return nil, errors.New("cert files and key files must have the same number of entries")
+	}
+
 	config := &tls.Config{MinVersion: tls.VersionTLS13}
+
+	for i := range certFiles {
+		certificate, err := tls.LoadX509KeyPair(certFiles[i], keyFiles[i])
+		if err != nil {
+			return nil, fmt.Errorf("load key pair %s: %w", certFiles[i], err)
+		}
+		config.Certificates = append(config.Certificates, certificate)
+	}
 
 	if len(clientCaFile) == 0 {
 		return config, nil

@@ -338,12 +338,12 @@ func (h *httpLayer) Run() {
 	}
 
 	var err error
-	if len(h.config.TlsCertFile) == 0 {
+	if len(h.config.TlsCertFiles) == 0 {
 		err = server.ListenAndServe()
 	} else {
-		server.TLSConfig, err = buildTlsConfig(h.config.TlsClientCaFile)
+		server.TLSConfig, err = buildTlsConfig(h.config.TlsCertFiles, h.config.TlsKeyFiles, h.config.TlsClientCaFile)
 		if err == nil {
-			err = server.ListenAndServeTLS(h.config.TlsCertFile, h.config.TlsKeyFile)
+			err = server.ListenAndServeTLS("", "")
 		}
 	}
 

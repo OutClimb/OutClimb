@@ -76,9 +76,9 @@ type HttpConfig struct {
 	RegisterDomain            string    `mapstructure:"OC_REGISTER_DOMAIN"`
 	SubmissionRateLimit       int       `mapstructure:"OC_SUBMISSION_RATE_LIMIT"`
 	SubmissionRateLimitWindow string    `mapstructure:"OC_SUBMISSION_RATE_LIMIT_WINDOW"`
-	TlsCertFile               string    `mapstructure:"OC_TLS_CERT_FILE"`
+	TlsCertFiles              []string  `mapstructure:"OC_TLS_CERT_FILES"`
 	TlsClientCaFile           string    `mapstructure:"OC_TLS_CLIENT_CA_FILE"`
-	TlsKeyFile                string    `mapstructure:"OC_TLS_KEY_FILE"`
+	TlsKeyFiles               []string  `mapstructure:"OC_TLS_KEY_FILES"`
 	TrustedProxies            []string  `mapstructure:"OC_TRUSTED_PROXIES"`
 }
 
@@ -263,12 +263,12 @@ func (c *Config) Validate() error {
 		return errors.New("no domain for register provided")
 	}
 
-	if (len(c.Http.TlsCertFile) == 0) != (len(c.Http.TlsKeyFile) == 0) {
-		return errors.New("tls cert file and tls key file must be provided together")
+	if len(c.Http.TlsCertFiles) != len(c.Http.TlsKeyFiles) {
+		return errors.New("tls cert files and tls key files must have the same number of entries")
 	}
 
-	if len(c.Http.TlsClientCaFile) != 0 && len(c.Http.TlsCertFile) == 0 {
-		return errors.New("tls client ca file requires a tls cert file and tls key file")
+	if len(c.Http.TlsClientCaFile) != 0 && len(c.Http.TlsCertFiles) == 0 {
+		return errors.New("tls client ca file requires tls cert files and tls key files")
 	}
 
 	if len(c.Storage.AccessKey) == 0 {
