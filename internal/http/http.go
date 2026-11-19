@@ -59,6 +59,7 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 	h.engine.Use(gin.Recovery())
 	h.engine.Use(ginSlog.SetLogger())
 	h.engine.Use(middleware.SecurityHeaders(config.BehindTLS))
+	h.engine.Use(middleware.RedirectWwwToApex())
 
 	if len(config.TrustedProxies) > 0 {
 		err := h.engine.SetTrustedProxies(config.TrustedProxies)
@@ -71,6 +72,10 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 				"error", err,
 			)
 		}
+	}
+
+	if config.BehindCloudflare {
+		h.engine.TrustedPlatform = gin.PlatformCloudflare
 	}
 
 	h.setupFrontendRoutes()
@@ -213,8 +218,8 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			formRateLimitWindow = time.Minute
 		}
-		api.GET("/form/:slug", middleware.OptionalAuth(h.config), middleware.UnauthenticatedRateLimit(h.config.FormRateLimit, formRateLimitWindow, h.config.TrustedProxies), h.getForm)
-		api.GET("/captcha", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.config.TrustedProxies), h.getCaptcha)
+		api.GET("/form/:slug", middleware.OptionalAuth(h.config), middleware.UnauthenticatedRateLimit(h.config.FormRateLimit, formRateLimitWindow, h.useClientIP()), h.getForm)
+		api.GET("/captcha", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.useClientIP()), h.getCaptcha)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {
@@ -225,9 +230,9 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			submissionRateLimitWindow = time.Minute
 		}
-		api.POST("/submission/:slug", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createSubmission)
+		api.POST("/submission/:slug", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.useClientIP()), h.createSubmission)
 
-		api.POST("/donation/checkout", middleware.Domain(h.config.DonateDomain), middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.config.TrustedProxies), h.createDonationCheckout)
+		api.POST("/donation/checkout", middleware.Domain(h.config.DonateDomain), middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.SubmissionRateLimit, submissionRateLimitWindow, h.useClientIP()), h.createDonationCheckout)
 		api.POST("/stripe/webhook", middleware.Domain(h.config.DonateDomain), middleware.RequestBodyLimit(h.config.MaxJsonBodySize), h.handleStripeWebhook)
 
 		loginRateLimitWindow, err := time.ParseDuration(h.config.LoginRateLimitWindow)
@@ -239,7 +244,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			)
 			loginRateLimitWindow = time.Minute
 		}
-		api.POST("/token", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow, h.config.TrustedProxies), h.createToken)
+		api.POST("/token", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.RateLimit(h.config.LoginRateLimit, loginRateLimitWindow, h.useClientIP()), h.createToken)
 
 		api.PUT("/password", middleware.RequestBodyLimit(h.config.MaxJsonBodySize), middleware.Auth(h.config, true, true), h.updatePassword)
 
@@ -322,11 +327,29 @@ func (h *httpLayer) setupV1ApiRoutes() {
 	}
 }
 
+func (h *httpLayer) useClientIP() bool {
+	return h.config.BehindCloudflare || len(h.config.TrustedProxies) > 0
+}
+
 func (h *httpLayer) Run() {
-	err := h.engine.Run(h.config.ListeningAddress)
+	server := &http.Server{
+		Addr:    h.config.ListeningAddress,
+		Handler: h.engine,
+	}
+
+	var err error
+	if len(h.config.TlsCertFile) == 0 {
+		err = server.ListenAndServe()
+	} else {
+		server.TLSConfig, err = buildTlsConfig(h.config.TlsClientCaFile)
+		if err == nil {
+			err = server.ListenAndServeTLS(h.config.TlsCertFile, h.config.TlsKeyFile)
+		}
+	}
+
 	if err != nil {
 		slog.Error(
-			"Issue while running Gin",
+			"Issue while running HTTP server",
 			"layer", "http",
 			"entity", "http",
 			"listeningAddress", h.config.ListeningAddress,

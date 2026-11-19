@@ -60,6 +60,7 @@ type DatabaseConfig struct {
 
 type HttpConfig struct {
 	AssetsDomain              string    `mapstructure:"OC_ASSETS_DOMAIN"`
+	BehindCloudflare          bool      `mapstructure:"OC_BEHIND_CLOUDFLARE"`
 	BehindTLS                 bool      `mapstructure:"OC_BEHIND_TLS"`
 	DefaultRedirectURL        string    `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	DonateDomain              string    `mapstructure:"OC_DONATE_DOMAIN"`
@@ -75,6 +76,9 @@ type HttpConfig struct {
 	RegisterDomain            string    `mapstructure:"OC_REGISTER_DOMAIN"`
 	SubmissionRateLimit       int       `mapstructure:"OC_SUBMISSION_RATE_LIMIT"`
 	SubmissionRateLimitWindow string    `mapstructure:"OC_SUBMISSION_RATE_LIMIT_WINDOW"`
+	TlsCertFile               string    `mapstructure:"OC_TLS_CERT_FILE"`
+	TlsClientCaFile           string    `mapstructure:"OC_TLS_CLIENT_CA_FILE"`
+	TlsKeyFile                string    `mapstructure:"OC_TLS_KEY_FILE"`
 	TrustedProxies            []string  `mapstructure:"OC_TRUSTED_PROXIES"`
 }
 
@@ -257,6 +261,14 @@ func (c *Config) Validate() error {
 
 	if len(c.Http.RegisterDomain) == 0 {
 		return errors.New("no domain for register provided")
+	}
+
+	if (len(c.Http.TlsCertFile) == 0) != (len(c.Http.TlsKeyFile) == 0) {
+		return errors.New("tls cert file and tls key file must be provided together")
+	}
+
+	if len(c.Http.TlsClientCaFile) != 0 && len(c.Http.TlsCertFile) == 0 {
+		return errors.New("tls client ca file requires a tls cert file and tls key file")
 	}
 
 	if len(c.Storage.AccessKey) == 0 {
