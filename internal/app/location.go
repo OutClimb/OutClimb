@@ -23,12 +23,12 @@ import (
 	"github.com/OutClimb/OutClimb/internal/app/models"
 )
 
-func (a *appLayer) CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*models.LocationInternal, error) {
+func (a *appLayer) CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*models.LocationInternal, error) {
 	if len(name) == 0 || len(mainImageName) == 0 || len(individualImageName) == 0 || len(backgroundImagePath) == 0 || len(color) == 0 || len(address) == 0 || len(city) == 0 || len(state) == 0 || len(zip) == 0 || len(startTime) == 0 || len(endTime) == 0 || len(description) == 0 {
 		return &models.LocationInternal{}, errors.New("bad request")
 	}
 
-	if location, err := a.store.CreateLocation(user.Username, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description); err != nil {
+	if location, err := a.store.CreateLocation(user.Username, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription); err != nil {
 		return &models.LocationInternal{}, err
 	} else {
 		locationInternal := models.LocationInternal{}
@@ -70,12 +70,12 @@ func (a *appLayer) GetAllLocations() (*[]models.LocationInternal, error) {
 	}
 }
 
-func (a *appLayer) UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*models.LocationInternal, error) {
+func (a *appLayer) UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*models.LocationInternal, error) {
 	if len(name) == 0 || len(mainImageName) == 0 || len(individualImageName) == 0 || len(backgroundImagePath) == 0 || len(color) == 0 || len(address) == 0 || len(city) == 0 || len(state) == 0 || len(zip) == 0 || len(startTime) == 0 || len(endTime) == 0 || len(description) == 0 {
 		return &models.LocationInternal{}, errors.New("bad request")
 	}
 
-	if location, err := a.store.UpdateLocation(id, user.Username, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description); err != nil {
+	if location, err := a.store.UpdateLocation(id, user.Username, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription); err != nil {
 		return &models.LocationInternal{}, err
 	} else {
 		locationInternal := models.LocationInternal{}

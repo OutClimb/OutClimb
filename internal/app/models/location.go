@@ -35,6 +35,8 @@ type LocationInternal struct {
 	StartTime           string
 	EndTime             string
 	Description         string
+	Excerpt             string
+	LongDescription     string
 }
 
 func (l *LocationInternal) Internalize(location *store.Location) {
@@ -51,4 +53,6 @@ func (l *LocationInternal) Internalize(location *store.Location) {
 	l.StartTime = location.StartTime
 	l.EndTime = location.EndTime
 	l.Description = location.Description
+	l.Excerpt = location.Excerpt
+	l.LongDescription = location.LongDescription
 }

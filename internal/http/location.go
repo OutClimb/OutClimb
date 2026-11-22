@@ -50,7 +50,7 @@ func (h *httpLayer) createLocation(c *gin.Context) {
 		return
 	}
 
-	if location, err := h.app.CreateLocation(user, body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.City, body.State, body.Zip, body.StartTime, body.EndTime, body.Description); err != nil {
+	if location, err := h.app.CreateLocation(user, body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.City, body.State, body.Zip, body.StartTime, body.EndTime, body.Description, body.Excerpt, body.LongDescription); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create location"})
 	} else {
 		locationPublic := responses.LocationPublic{}
@@ -138,7 +138,7 @@ func (h *httpLayer) updateLocation(c *gin.Context) {
 		return
 	}
 
-	if location, err := h.app.UpdateLocation(user, uint(id), body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.City, body.State, body.Zip, body.StartTime, body.EndTime, body.Description); err != nil {
+	if location, err := h.app.UpdateLocation(user, uint(id), body.Name, body.MainImageName, body.IndividualImageName, body.BackgroundImagePath, body.Color, body.Address, body.City, body.State, body.Zip, body.StartTime, body.EndTime, body.Description, body.Excerpt, body.LongDescription); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update location"})
 	} else {
 		locationPublic := responses.LocationPublic{}

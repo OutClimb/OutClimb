@@ -31,9 +31,11 @@ type Location struct {
 	StartTime           string
 	EndTime             string
 	Description         string
+	Excerpt             string
+	LongDescription     string
 }
 
-func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error) {
+func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*Location, error) {
 	location := Location{
 		Name:                name,
 		MainImageName:       mainImageName,
@@ -47,6 +49,8 @@ func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualIm
 		StartTime:           startTime,
 		EndTime:             endTime,
 		Description:         description,
+		Excerpt:             excerpt,
+		LongDescription:     longDescription,
 	}
 
 	location.CreatedBy = createdBy
@@ -87,7 +91,7 @@ func (s *storeLayer) GetLocation(id uint) (*Location, error) {
 	return &location, nil
 }
 
-func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error) {
+func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*Location, error) {
 	location, err := s.GetLocation(id)
 	if err != nil {
 		return nil, err
@@ -106,6 +110,8 @@ func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, ind
 	location.StartTime = startTime
 	location.EndTime = endTime
 	location.Description = description
+	location.Excerpt = excerpt
+	location.LongDescription = longDescription
 
 	if result := s.db.Save(&location); result.Error != nil {
 		return nil, result.Error

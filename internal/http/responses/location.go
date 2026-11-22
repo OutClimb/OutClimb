@@ -33,6 +33,8 @@ type LocationPublic struct {
 	StartTime           string `json:"startTime"`
 	EndTime             string `json:"endTime"`
 	Description         string `json:"description"`
+	Excerpt             string `json:"excerpt"`
+	LongDescription     string `json:"longDescription"`
 }
 
 func (l *LocationPublic) Publicize(location *models.LocationInternal) {
@@ -49,4 +51,6 @@ func (l *LocationPublic) Publicize(location *models.LocationInternal) {
 	l.StartTime = location.StartTime
 	l.EndTime = location.EndTime
 	l.Description = location.Description
+	l.Excerpt = location.Excerpt
+	l.LongDescription = location.LongDescription
 }
