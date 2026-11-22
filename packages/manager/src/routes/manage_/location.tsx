@@ -4,9 +4,8 @@ import authGuard from '@/lib/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
-import { LocationEditorDialog } from '@/components/location/location-editor-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { fetchLocations, removeLocation } from '@/api/location'
 import { Header } from '@/components/header'
@@ -36,20 +35,11 @@ export const Route = createFileRoute('/manage_/location')({
 function Locations() {
   const navigate = useNavigate()
   const { hasPermission, token } = useSelfStore()
-  const { data, isEmpty, list, populate, remove } = useLocationStore()
+  const { isEmpty, list, populate, remove } = useLocationStore()
 
   const [isHydrated, setIsHydrated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const {
-    selectedId,
-    isEditorOpen,
-    handleEditorOpenChange,
-    isDeleteDialogOpen,
-    handleCreate,
-    handleEdit,
-    handleDelete,
-    handleDeleteDialogOpenChange,
-  } = useCrudDialogs()
+  const { selectedId, isDeleteDialogOpen, handleDelete, handleDeleteDialogOpenChange } = useCrudDialogs()
 
   useEffect(() => {
     const fetchLocationsFromApi = async () => {
@@ -81,9 +71,11 @@ function Locations() {
         isLoading={isLoading}
         actions={
           hasPermission('location', WRITE_PERMISSION) && (
-            <Button onClick={handleCreate} disabled={isLoading}>
-              <Plus />
-              Create Location
+            <Button asChild disabled={isLoading}>
+              <Link to="/manage/location/create">
+                <Plus />
+                Create Location
+              </Link>
             </Button>
           )
         }>
@@ -119,7 +111,6 @@ function Locations() {
               <LocationsTable
                 data={list()}
                 canEdit={hasPermission('location', WRITE_PERMISSION)}
-                onEdit={handleEdit}
                 onDelete={handleDelete}
               />
             )}
@@ -128,21 +119,14 @@ function Locations() {
       </Content>
 
       {hasPermission('location', WRITE_PERMISSION) && (
-        <>
-          <LocationEditorDialog
-            open={isEditorOpen}
-            onOpenChange={handleEditorOpenChange}
-            initialLocation={selectedId != null ? data[selectedId] : undefined}
-          />
-          <DeleteDialog
-            id={selectedId}
-            open={isDeleteDialogOpen}
-            onOpenChange={handleDeleteDialogOpenChange}
-            label="location"
-            deleteFn={removeLocation}
-            removeFromStore={remove}
-          />
-        </>
+        <DeleteDialog
+          id={selectedId}
+          open={isDeleteDialogOpen}
+          onOpenChange={handleDeleteDialogOpenChange}
+          label="location"
+          deleteFn={removeLocation}
+          removeFromStore={remove}
+        />
       )}
     </>
   )

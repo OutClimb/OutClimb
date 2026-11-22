@@ -23,6 +23,7 @@ import { Route as ManageTwoFactorRouteImport } from './routes/manage_/two-factor
 import { Route as ManageUsersRouteImport } from './routes/manage_/users'
 import { Route as ManageEmailCreateRouteImport } from './routes/manage_/email_/create'
 import { Route as ManageFormCreateRouteImport } from './routes/manage_/form_/create'
+import { Route as ManageLocationCreateRouteImport } from './routes/manage_/location_/create'
 import { Route as ManageSocialImagesIndexRouteImport } from './routes/manage_/social-images/index'
 import { Route as ManageSocialImagesMonthlyRouteImport } from './routes/manage_/social-images/monthly'
 import { Route as ManageSocialImagesQtbipocRouteImport } from './routes/manage_/social-images/qtbipoc'
@@ -30,6 +31,7 @@ import { Route as ManageEmailIdEditRouteImport } from './routes/manage_/email_/$
 import { Route as ManageFormIdIndexRouteImport } from './routes/manage_/form_/$id/index'
 import { Route as ManageFormIdDuplicateRouteImport } from './routes/manage_/form_/$id/duplicate'
 import { Route as ManageFormIdEditRouteImport } from './routes/manage_/form_/$id/edit'
+import { Route as ManageLocationIdEditRouteImport } from './routes/manage_/location_/$id/edit'
 
 const ManageIndexRoute = ManageIndexRouteImport.update({
   id: '/manage_/',
@@ -101,6 +103,11 @@ const ManageFormCreateRoute = ManageFormCreateRouteImport.update({
   path: '/manage/form/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageLocationCreateRoute = ManageLocationCreateRouteImport.update({
+  id: '/manage_/location_/create',
+  path: '/manage/location/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageSocialImagesIndexRoute = ManageSocialImagesIndexRouteImport.update({
   id: '/manage_/social-images/',
   path: '/manage/social-images/',
@@ -138,6 +145,11 @@ const ManageFormIdEditRoute = ManageFormIdEditRouteImport.update({
   path: '/manage/form/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageLocationIdEditRoute = ManageLocationIdEditRouteImport.update({
+  id: '/manage_/location_/$id/edit',
+  path: '/manage/location/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/manage/asset': typeof ManageAssetRoute
@@ -154,12 +166,14 @@ export interface FileRoutesByFullPath {
   '/manage/': typeof ManageIndexRoute
   '/manage/email/create': typeof ManageEmailCreateRoute
   '/manage/form/create': typeof ManageFormCreateRoute
+  '/manage/location/create': typeof ManageLocationCreateRoute
   '/manage/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
   '/manage/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage/social-images/': typeof ManageSocialImagesIndexRoute
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
   '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
+  '/manage/location/$id/edit': typeof ManageLocationIdEditRoute
   '/manage/form/$id/': typeof ManageFormIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -177,12 +191,14 @@ export interface FileRoutesByTo {
   '/manage': typeof ManageIndexRoute
   '/manage/email/create': typeof ManageEmailCreateRoute
   '/manage/form/create': typeof ManageFormCreateRoute
+  '/manage/location/create': typeof ManageLocationCreateRoute
   '/manage/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
   '/manage/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage/social-images': typeof ManageSocialImagesIndexRoute
   '/manage/email/$id/edit': typeof ManageEmailIdEditRoute
   '/manage/form/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage/form/$id/edit': typeof ManageFormIdEditRoute
+  '/manage/location/$id/edit': typeof ManageLocationIdEditRoute
   '/manage/form/$id': typeof ManageFormIdIndexRoute
 }
 export interface FileRoutesById {
@@ -201,12 +217,14 @@ export interface FileRoutesById {
   '/manage_/': typeof ManageIndexRoute
   '/manage_/email_/create': typeof ManageEmailCreateRoute
   '/manage_/form_/create': typeof ManageFormCreateRoute
+  '/manage_/location_/create': typeof ManageLocationCreateRoute
   '/manage_/social-images/monthly': typeof ManageSocialImagesMonthlyRoute
   '/manage_/social-images/qtbipoc': typeof ManageSocialImagesQtbipocRoute
   '/manage_/social-images/': typeof ManageSocialImagesIndexRoute
   '/manage_/email_/$id/edit': typeof ManageEmailIdEditRoute
   '/manage_/form_/$id/duplicate': typeof ManageFormIdDuplicateRoute
   '/manage_/form_/$id/edit': typeof ManageFormIdEditRoute
+  '/manage_/location_/$id/edit': typeof ManageLocationIdEditRoute
   '/manage_/form_/$id/': typeof ManageFormIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -226,12 +244,14 @@ export interface FileRouteTypes {
     | '/manage/'
     | '/manage/email/create'
     | '/manage/form/create'
+    | '/manage/location/create'
     | '/manage/social-images/monthly'
     | '/manage/social-images/qtbipoc'
     | '/manage/social-images/'
     | '/manage/email/$id/edit'
     | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
+    | '/manage/location/$id/edit'
     | '/manage/form/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -249,12 +269,14 @@ export interface FileRouteTypes {
     | '/manage'
     | '/manage/email/create'
     | '/manage/form/create'
+    | '/manage/location/create'
     | '/manage/social-images/monthly'
     | '/manage/social-images/qtbipoc'
     | '/manage/social-images'
     | '/manage/email/$id/edit'
     | '/manage/form/$id/duplicate'
     | '/manage/form/$id/edit'
+    | '/manage/location/$id/edit'
     | '/manage/form/$id'
   id:
     | '__root__'
@@ -272,12 +294,14 @@ export interface FileRouteTypes {
     | '/manage_/'
     | '/manage_/email_/create'
     | '/manage_/form_/create'
+    | '/manage_/location_/create'
     | '/manage_/social-images/monthly'
     | '/manage_/social-images/qtbipoc'
     | '/manage_/social-images/'
     | '/manage_/email_/$id/edit'
     | '/manage_/form_/$id/duplicate'
     | '/manage_/form_/$id/edit'
+    | '/manage_/location_/$id/edit'
     | '/manage_/form_/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -296,12 +320,14 @@ export interface RootRouteChildren {
   ManageIndexRoute: typeof ManageIndexRoute
   ManageEmailCreateRoute: typeof ManageEmailCreateRoute
   ManageFormCreateRoute: typeof ManageFormCreateRoute
+  ManageLocationCreateRoute: typeof ManageLocationCreateRoute
   ManageSocialImagesMonthlyRoute: typeof ManageSocialImagesMonthlyRoute
   ManageSocialImagesQtbipocRoute: typeof ManageSocialImagesQtbipocRoute
   ManageSocialImagesIndexRoute: typeof ManageSocialImagesIndexRoute
   ManageEmailIdEditRoute: typeof ManageEmailIdEditRoute
   ManageFormIdDuplicateRoute: typeof ManageFormIdDuplicateRoute
   ManageFormIdEditRoute: typeof ManageFormIdEditRoute
+  ManageLocationIdEditRoute: typeof ManageLocationIdEditRoute
   ManageFormIdIndexRoute: typeof ManageFormIdIndexRoute
 }
 
@@ -405,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageFormCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage_/location_/create': {
+      id: '/manage_/location_/create'
+      path: '/manage/location/create'
+      fullPath: '/manage/location/create'
+      preLoaderRoute: typeof ManageLocationCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage_/social-images/': {
       id: '/manage_/social-images/'
       path: '/manage/social-images'
@@ -454,6 +487,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageFormIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage_/location_/$id/edit': {
+      id: '/manage_/location_/$id/edit'
+      path: '/manage/location/$id/edit'
+      fullPath: '/manage/location/$id/edit'
+      preLoaderRoute: typeof ManageLocationIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -472,12 +512,14 @@ const rootRouteChildren: RootRouteChildren = {
   ManageIndexRoute: ManageIndexRoute,
   ManageEmailCreateRoute: ManageEmailCreateRoute,
   ManageFormCreateRoute: ManageFormCreateRoute,
+  ManageLocationCreateRoute: ManageLocationCreateRoute,
   ManageSocialImagesMonthlyRoute: ManageSocialImagesMonthlyRoute,
   ManageSocialImagesQtbipocRoute: ManageSocialImagesQtbipocRoute,
   ManageSocialImagesIndexRoute: ManageSocialImagesIndexRoute,
   ManageEmailIdEditRoute: ManageEmailIdEditRoute,
   ManageFormIdDuplicateRoute: ManageFormIdDuplicateRoute,
   ManageFormIdEditRoute: ManageFormIdEditRoute,
+  ManageLocationIdEditRoute: ManageLocationIdEditRoute,
   ManageFormIdIndexRoute: ManageFormIdIndexRoute,
 }
 export const routeTree = rootRouteImport

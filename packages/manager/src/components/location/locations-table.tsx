@@ -3,26 +3,19 @@
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { RowActions } from '@/components/row-actions'
 import { Pencil, Trash2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import type { Location } from '@/types/location'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function LocationsTable({
   data,
   canEdit,
-  onEdit,
   onDelete,
 }: {
   data: Array<Location>
   canEdit: boolean
-  onEdit: (id: number) => void
   onDelete: (id: number) => void
 }) {
-  const handleEdit = (id: number) => {
-    return () => {
-      onEdit(id)
-    }
-  }
-
   const handleDelete = (id: number) => {
     return () => {
       onDelete(id)
@@ -57,9 +50,11 @@ export function LocationsTable({
               {canEdit && (
                 <TableCell>
                   <RowActions label={item.name}>
-                    <DropdownMenuItem onSelect={handleEdit(item.id)}>
-                      <Pencil />
-                      Edit
+                    <DropdownMenuItem asChild>
+                      <Link to="/manage/location/$id/edit" params={{ id: String(item.id) }}>
+                        <Pencil />
+                        Edit
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
