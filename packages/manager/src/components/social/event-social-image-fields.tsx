@@ -41,6 +41,14 @@ export function EventSocialImageFields({
   disabled,
   onChange,
 }: EventSocialImageFieldsProps) {
+  const formatAddress = (loc: Location | undefined) => {
+    if (!loc || !loc.address || !loc.city || !loc.state || !loc.zip) {
+      return ''
+    }
+
+    return `${loc.address}\n${loc.city}, ${loc.state} ${loc.zip}`
+  }
+
   const handleLocationChange = useCallback(
     (value: string) => {
       const locationId = parseInt(value, 10)
@@ -48,8 +56,8 @@ export function EventSocialImageFields({
       const newLocation = locations.find((loc) => loc.id === locationId)
 
       let newAddress = address
-      if (address === '' || address === oldLocation?.address) {
-        newAddress = newLocation?.address || ''
+      if (address === '' || address === formatAddress(oldLocation)) {
+        newAddress = formatAddress(newLocation)
       }
 
       let newStartTime = startTime
