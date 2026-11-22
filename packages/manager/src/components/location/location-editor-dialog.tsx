@@ -30,6 +30,9 @@ interface FormData {
   backgroundImagePath: string
   color: string
   address: string
+  city: string
+  state: string
+  zip: string
   startTime: string
   endTime: string
   description: string
@@ -43,6 +46,9 @@ const emptyFormData: FormData = {
   backgroundImagePath: '',
   color: '',
   address: '',
+  city: '',
+  state: '',
+  zip: '',
   startTime: '',
   endTime: '',
   description: '',
@@ -55,6 +61,9 @@ const emptyFormError = {
   backgroundImagePath: '',
   color: '',
   address: '',
+  city: '',
+  state: '',
+  zip: '',
   startTime: '',
   endTime: '',
   description: '',
@@ -69,6 +78,9 @@ function dataFromLocation(location: Location): FormData {
     backgroundImagePath: location.backgroundImagePath,
     color: location.color,
     address: location.address,
+    city: location.city,
+    state: location.state,
+    zip: location.zip,
     startTime: location.startTime,
     endTime: location.endTime,
     description: location.description,
@@ -101,6 +113,9 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
       formData.backgroundImagePath !== '' ||
       formData.color !== '' ||
       formData.address !== '' ||
+      formData.city !== '' ||
+      formData.state !== '' ||
+      formData.zip !== '' ||
       formData.startTime !== '' ||
       formData.endTime !== '' ||
       formData.description !== '')
@@ -169,6 +184,21 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
         nextError.address = 'This field must be 2 lines'
       }
 
+      if (!formData.city.trim()) {
+        hasError = true
+        nextError.city = 'Please fill in this field'
+      }
+
+      if (!formData.state.trim()) {
+        hasError = true
+        nextError.state = 'Please fill in this field'
+      }
+
+      if (!formData.zip.trim()) {
+        hasError = true
+        nextError.zip = 'Please fill in this field'
+      }
+
       if (!formData.startTime.trim()) {
         hasError = true
         nextError.startTime = 'Please fill in this field'
@@ -197,6 +227,9 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
             backgroundImagePath: formData.backgroundImagePath.trim(),
             color: formData.color.trim(),
             address: formData.address.trim(),
+            city: formData.city.trim(),
+            state: formData.state.trim(),
+            zip: formData.zip.trim(),
             startTime: formData.startTime.trim(),
             endTime: formData.endTime.trim(),
             description: formData.description.trim(),
@@ -256,6 +289,47 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                   />
                   <FieldError>{formError.address}</FieldError>
                 </Field>
+                <div className="grid grid-cols-3 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="city">City</FieldLabel>
+                    <Input
+                      id="city"
+                      name="city"
+                      type="text"
+                      value={formData.city}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                    <FieldError>{formError.city}</FieldError>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="state">State</FieldLabel>
+                    <Input
+                      id="state"
+                      name="state"
+                      type="text"
+                      value={formData.state}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                    <FieldError>{formError.state}</FieldError>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="zip">Zip</FieldLabel>
+                    <Input
+                      id="zip"
+                      name="zip"
+                      type="text"
+                      value={formData.zip}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                    <FieldError>{formError.zip}</FieldError>
+                  </Field>
+                </div>
                 <Field>
                   <FieldLabel htmlFor="description">Description</FieldLabel>
                   <Textarea

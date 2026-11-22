@@ -36,6 +36,7 @@ export function LocationsTable({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Address</TableHead>
+            <TableHead>City, State</TableHead>
             <TableHead>Normal Start Time</TableHead>
             <TableHead>Normal End Time</TableHead>
             {canEdit && (
@@ -50,6 +51,7 @@ export function LocationsTable({
             <TableRow key={item.id}>
               <TableCell>{item.name}</TableCell>
               <TableCell>{item.address.replaceAll('\n', ', ')}</TableCell>
+              <TableCell>{[item.city, item.state].filter(Boolean).join(', ')}</TableCell>
               <TableCell>{item.startTime}</TableCell>
               <TableCell>{item.endTime}</TableCell>
               {canEdit && (

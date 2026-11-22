@@ -11,6 +11,9 @@ export interface Location {
   backgroundImagePath: string
   color: string
   address: string
+  city: string
+  state: string
+  zip: string
   startTime: string
   endTime: string
   description: string
