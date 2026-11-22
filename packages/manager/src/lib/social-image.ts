@@ -69,7 +69,7 @@ export async function generateQtbipocSocialImage(data: QtbipocSocialImageFormDat
   fillMultiLineText(ctx, whenText, 235, 1207, 1769)
 
   // Where
-  const whereText = `${location.name}\n${location.address}`
+  const whereText = `${location.name}\n${location.address}\n${location.city}, ${location.state} ${location.zip}`
   fillMultiLineText(ctx, whereText, 235, 1207, 2955)
 
   // Cost
