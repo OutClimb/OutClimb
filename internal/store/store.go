@@ -45,7 +45,7 @@ type StoreLayer interface {
 	CreateEmail(createdBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
 	CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
-	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error)
 	CreatePermission(roleId uint, level PermissionLevel, entity string) (*Permission, error)
 	CreateRedirect(createdBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)
 	CreateRole(createdBy, name string, order uint, requireTwoFactor bool) (*Role, error)
@@ -110,7 +110,7 @@ type StoreLayer interface {
 	UpdateEmail(id uint, updatedBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
 	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
-	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error)
+	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error)
 	UpdatePermission(id uint, level PermissionLevel) (*Permission, error)
 	UpdatePassword(id uint, password, updatedBy string) error
 	UpdateRedirect(id uint, updatedBy, fromPath, toUrl string, startsOn, stopsOn *time.Time) (*Redirect, error)

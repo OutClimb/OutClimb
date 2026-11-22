@@ -29,6 +29,9 @@ type LocationInternal struct {
 	BackgroundImagePath string
 	Color               string
 	Address             string
+	City                string
+	State               string
+	Zip                 string
 	StartTime           string
 	EndTime             string
 	Description         string
@@ -42,6 +45,9 @@ func (l *LocationInternal) Internalize(location *store.Location) {
 	l.BackgroundImagePath = location.BackgroundImagePath
 	l.Color = location.Color
 	l.Address = location.Address
+	l.City = location.City
+	l.State = location.State
+	l.Zip = location.Zip
 	l.StartTime = location.StartTime
 	l.EndTime = location.EndTime
 	l.Description = location.Description

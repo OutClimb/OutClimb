@@ -40,7 +40,7 @@ type AppLayer interface {
 	CreateDonationCheckout(amountCents int64) (string, error)
 	CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
-	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
+	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	CreateRole(user *models.UserInternal, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error)
 	CreateSubmission(slug string, values map[string]string) (*models.SubmissionInternal, error)
@@ -79,7 +79,7 @@ type AppLayer interface {
 	UpdateEmail(user *models.UserInternal, id uint, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
 	UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	UpdateFormViewableBy(user *models.UserInternal, id uint, viewableBy []uint) (*models.FormInternal, error)
-	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*models.LocationInternal, error)
+	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*models.LocationInternal, error)
 	UpdatePassword(user *models.UserInternal, password string) error
 	UpdateRedirect(user *models.UserInternal, id uint, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
 	UpdateRole(user *models.UserInternal, id uint, name string, order uint, requireTwoFactor bool, permissions map[string]uint) (*models.RoleInternal, error)

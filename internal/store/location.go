@@ -25,12 +25,15 @@ type Location struct {
 	BackgroundImagePath string
 	Color               string
 	Address             string
+	City                string
+	State               string
+	Zip                 string
 	StartTime           string
 	EndTime             string
 	Description         string
 }
 
-func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error) {
+func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error) {
 	location := Location{
 		Name:                name,
 		MainImageName:       mainImageName,
@@ -38,6 +41,9 @@ func (s *storeLayer) CreateLocation(createdBy, name, mainImageName, individualIm
 		BackgroundImagePath: backgroundImagePath,
 		Color:               color,
 		Address:             address,
+		City:                city,
+		State:               state,
+		Zip:                 zip,
 		StartTime:           startTime,
 		EndTime:             endTime,
 		Description:         description,
@@ -81,7 +87,7 @@ func (s *storeLayer) GetLocation(id uint) (*Location, error) {
 	return &location, nil
 }
 
-func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, startTime, endTime, description string) (*Location, error) {
+func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description string) (*Location, error) {
 	location, err := s.GetLocation(id)
 	if err != nil {
 		return nil, err
@@ -94,6 +100,9 @@ func (s *storeLayer) UpdateLocation(id uint, updatedBy, name, mainImageName, ind
 	location.BackgroundImagePath = backgroundImagePath
 	location.Color = color
 	location.Address = address
+	location.City = city
+	location.State = state
+	location.Zip = zip
 	location.StartTime = startTime
 	location.EndTime = endTime
 	location.Description = description

@@ -27,6 +27,9 @@ type LocationPublic struct {
 	BackgroundImagePath string `json:"backgroundImagePath"`
 	Color               string `json:"color"`
 	Address             string `json:"address"`
+	City                string `json:"city"`
+	State               string `json:"state"`
+	Zip                 string `json:"zip"`
 	StartTime           string `json:"startTime"`
 	EndTime             string `json:"endTime"`
 	Description         string `json:"description"`
@@ -40,6 +43,9 @@ func (l *LocationPublic) Publicize(location *models.LocationInternal) {
 	l.BackgroundImagePath = location.BackgroundImagePath
 	l.Color = location.Color
 	l.Address = location.Address
+	l.City = location.City
+	l.State = location.State
+	l.Zip = location.Zip
 	l.StartTime = location.StartTime
 	l.EndTime = location.EndTime
 	l.Description = location.Description
