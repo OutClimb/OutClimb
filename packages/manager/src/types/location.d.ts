@@ -17,4 +17,6 @@ export interface Location {
   startTime: string
   endTime: string
   description: string
+  excerpt: string
+  longDescription: string
 }

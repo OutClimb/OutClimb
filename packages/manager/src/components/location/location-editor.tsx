@@ -31,6 +31,8 @@ const emptyData: EditorData = {
   startTime: '',
   endTime: '',
   description: '',
+  excerpt: '',
+  longDescription: '',
 }
 
 const emptyErrors: EditorErrors = {
@@ -46,6 +48,8 @@ const emptyErrors: EditorErrors = {
   startTime: '',
   endTime: '',
   description: '',
+  excerpt: '',
+  longDescription: '',
 }
 
 function dataFromLocation(location: Location): EditorData {
@@ -62,6 +66,8 @@ function dataFromLocation(location: Location): EditorData {
     startTime: location.startTime,
     endTime: location.endTime,
     description: location.description,
+    excerpt: location.excerpt,
+    longDescription: location.longDescription,
   }
 }
 
@@ -199,47 +205,73 @@ export function LocationEditor({ initialLocation, onSave, submitLabel, submitLoa
                 <FieldError>{formErrors.zip}</FieldError>
               </Field>
             </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="startTime">Default Start time</FieldLabel>
+                <Input
+                  id="startTime"
+                  name="startTime"
+                  type="text"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.startTime}</FieldError>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="endTime">Default End time</FieldLabel>
+                <Input
+                  id="endTime"
+                  name="endTime"
+                  type="text"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <FieldError>{formErrors.endTime}</FieldError>
+              </Field>
+            </div>
           </FieldGroup>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Default times</CardTitle>
+          <CardTitle>Events</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="startTime">Start time</FieldLabel>
-              <Input
-                id="startTime"
-                name="startTime"
-                type="text"
-                value={formData.startTime}
+              <FieldLabel htmlFor="description">Excerpt</FieldLabel>
+              <Textarea
+                id="excerpt"
+                name="excerpt"
+                rows={2}
+                value={formData.excerpt}
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              <FieldError>{formErrors.startTime}</FieldError>
+              <FieldError>{formErrors.excerpt}</FieldError>
             </Field>
             <Field>
-              <FieldLabel htmlFor="endTime">End time</FieldLabel>
-              <Input
-                id="endTime"
-                name="endTime"
-                type="text"
-                value={formData.endTime}
+              <FieldLabel htmlFor="description">Description</FieldLabel>
+              <Textarea
+                id="longDescription"
+                name="longDescription"
+                rows={2}
+                value={formData.longDescription}
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              <FieldError>{formErrors.endTime}</FieldError>
+              <FieldError>{formErrors.longDescription}</FieldError>
             </Field>
-          </div>
+          </FieldGroup>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Social images</CardTitle>
+          <CardTitle>Social Media Images</CardTitle>
         </CardHeader>
         <CardContent>
           <FieldGroup>
