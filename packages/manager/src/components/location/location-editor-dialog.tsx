@@ -274,7 +274,6 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="address">Address</FieldLabel>
-                  <FieldDescription>This needs to be two lines</FieldDescription>
                   <Textarea
                     id="address"
                     value={formData.address}
