@@ -179,9 +179,6 @@ export function LocationEditorDialog({ open, onOpenChange, initialLocation }: Lo
       if (!formData.address.trim()) {
         hasError = true
         nextError.address = 'Please fill in this field'
-      } else if (formData.address.trim().split('\n').length !== 2) {
-        hasError = true
-        nextError.address = 'This field must be 2 lines'
       }
 
       if (!formData.city.trim()) {
