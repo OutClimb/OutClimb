@@ -1,6 +1,7 @@
 import { BlobReader, BlobWriter, ZipWriter } from '@zip.js/zip.js'
 import type { EventSocialImageFormData, QtbipocSocialImageFormData, SocialImageFieldData } from '@/types/social-image'
 import { format } from 'date-fns/format'
+import formatAddress from '@/lib/address'
 import { getTime } from 'date-fns/getTime'
 import type { Location } from '@/types/location'
 
@@ -69,7 +70,7 @@ export async function generateQtbipocSocialImage(data: QtbipocSocialImageFormDat
   fillMultiLineText(ctx, whenText, 235, 1207, 1769)
 
   // Where
-  const whereText = `${location.name}\n${location.address}\n${location.city}, ${location.state} ${location.zip}`
+  const whereText = `${location.name}\n${formatAddress(location)}`
   fillMultiLineText(ctx, whereText, 235, 1207, 2955)
 
   // Cost

@@ -6,6 +6,7 @@ import { CalendarIcon } from 'lucide-react'
 import type { EventSocialImageFormData } from '@/types/social-image'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { format } from 'date-fns'
+import formatAddress from '@/lib/address'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type React from 'react'
@@ -41,14 +42,6 @@ export function EventSocialImageFields({
   disabled,
   onChange,
 }: EventSocialImageFieldsProps) {
-  const formatAddress = (loc: Location | undefined) => {
-    if (!loc || !loc.address || !loc.city || !loc.state || !loc.zip) {
-      return ''
-    }
-
-    return `${loc.address}\n${loc.city}, ${loc.state} ${loc.zip}`
-  }
-
   const handleLocationChange = useCallback(
     (value: string) => {
       const locationId = parseInt(value, 10)
