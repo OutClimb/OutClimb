@@ -30,7 +30,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"gorm.io/gorm"
 )
+
+var ErrAssetNotFound = errors.New("asset not found")
 
 type Asset struct {
 	StandardAudit
@@ -135,6 +138,9 @@ func (s *storeLayer) GetAsset(id uint) (*Asset, error) {
 	asset := Asset{}
 
 	if result := s.db.First(&asset, id); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return &Asset{}, ErrAssetNotFound
+		}
 		return &Asset{}, result.Error
 	}
 

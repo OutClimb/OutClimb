@@ -16,9 +16,11 @@
 package app
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
 )
 
@@ -28,6 +30,26 @@ type fakeEventStore struct {
 	rangeStart  time.Time
 	rangeEnd    time.Time
 	assetURLFor map[string]string
+	knownAssets map[uint]bool
+	savedEvent  *store.Event
+}
+
+func (f *fakeEventStore) GetAsset(id uint) (*store.Asset, error) {
+	if !f.knownAssets[id] {
+		return &store.Asset{}, store.ErrAssetNotFound
+	}
+
+	return &store.Asset{}, nil
+}
+
+func (f *fakeEventStore) CreateEvent(createdBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+	f.savedEvent = &store.Event{Title: title, StartsAt: startsAt, EndsAt: endsAt}
+	return f.savedEvent, nil
+}
+
+func (f *fakeEventStore) UpdateEvent(id uint, updatedBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+	f.savedEvent = &store.Event{Title: title, StartsAt: startsAt, EndsAt: endsAt}
+	return f.savedEvent, nil
 }
 
 func (f *fakeEventStore) GetEventsBetween(start, end time.Time) (*[]store.Event, error) {
@@ -144,5 +166,122 @@ func TestGetEventsForMonthRendersBodyMarkdownAsHTML(t *testing.T) {
 	want := "<p><strong>Bring</strong> shoes ]]&gt;</p>\n"
 	if feed.Events[0].BodyHTML != want {
 		t.Errorf("body html = %q, want %q", feed.Events[0].BodyHTML, want)
+	}
+}
+
+type eventInput struct {
+	title        string
+	startsAt     time.Time
+	endsAt       time.Time
+	locationName string
+	address      string
+	city         string
+	state        string
+	zip          string
+	assetID      uint
+	excerpt      string
+	body         string
+}
+
+const knownAssetID uint = 7
+
+func newValidEventInput() eventInput {
+	startsAt := time.Date(2026, time.December, 5, 18, 0, 0, 0, time.UTC)
+
+	return eventInput{
+		title:        "Climb Night",
+		startsAt:     startsAt,
+		endsAt:       startsAt.Add(2 * time.Hour),
+		locationName: "Gym",
+		address:      "1 Main St",
+		city:         "Minneapolis",
+		state:        "MN",
+		zip:          "55401",
+		assetID:      knownAssetID,
+		excerpt:      "Come climb",
+		body:         "All welcome",
+	}
+}
+
+func TestCreateAndUpdateEventValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		mutate  func(*eventInput)
+		wantErr string
+	}{
+		{"valid", func(*eventInput) {}, ""},
+		{"missing title", func(in *eventInput) { in.title = "" }, "bad request"},
+		{"missing start", func(in *eventInput) { in.startsAt = time.Time{} }, "bad request"},
+		{"missing end", func(in *eventInput) { in.endsAt = time.Time{} }, "bad request"},
+		{"missing location name", func(in *eventInput) { in.locationName = "" }, "bad request"},
+		{"missing address", func(in *eventInput) { in.address = "" }, "bad request"},
+		{"missing city", func(in *eventInput) { in.city = "" }, "bad request"},
+		{"missing state", func(in *eventInput) { in.state = "" }, "bad request"},
+		{"missing zip", func(in *eventInput) { in.zip = "" }, "bad request"},
+		{"missing excerpt", func(in *eventInput) { in.excerpt = "" }, "bad request"},
+		{"missing body", func(in *eventInput) { in.body = "" }, "bad request"},
+		{"end before start", func(in *eventInput) { in.endsAt = in.startsAt.Add(-time.Minute) }, "bad request"},
+		{"end equals start", func(in *eventInput) { in.endsAt = in.startsAt }, "bad request"},
+		{"no featured image", func(in *eventInput) { in.assetID = 0 }, "bad request"},
+		{"unknown featured image", func(in *eventInput) { in.assetID = 99 }, "bad request"},
+	}
+
+	user := &models.UserInternal{Username: "tester"}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := newValidEventInput()
+			tt.mutate(&input)
+
+			createApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
+			_, createErr := createApp.CreateEvent(user, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, "", input.excerpt, input.body)
+
+			updateApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
+			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, "", input.excerpt, input.body)
+
+			for _, err := range []error{createErr, updateErr} {
+				if tt.wantErr == "" && err != nil {
+					t.Errorf("unexpected error %v", err)
+				}
+				if tt.wantErr != "" && (err == nil || err.Error() != tt.wantErr) {
+					t.Errorf("error = %v, want %q", err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateEventDoesNotSaveInvalidEvent(t *testing.T) {
+	fake := &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}
+	app := &appLayer{store: fake}
+	input := newValidEventInput()
+	input.endsAt = input.startsAt
+
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, "", input.excerpt, input.body)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if fake.savedEvent != nil {
+		t.Error("invalid event reached the store")
+	}
+}
+
+type failingAssetStore struct {
+	fakeEventStore
+}
+
+func (f *failingAssetStore) GetAsset(id uint) (*store.Asset, error) {
+	return &store.Asset{}, errors.New("database down")
+}
+
+func TestCreateEventPassesThroughAssetLookupFailure(t *testing.T) {
+	app := &appLayer{store: &failingAssetStore{}}
+	input := newValidEventInput()
+
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, "", input.excerpt, input.body)
+
+	if err == nil || err.Error() != "database down" {
+		t.Errorf("error = %v, want database down", err)
 	}
 }

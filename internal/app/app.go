@@ -39,6 +39,7 @@ type AppLayer interface {
 	CreateAsset(user *models.UserInternal, fileName, contentType, data string) (*models.AssetInternal, error)
 	CreateDonationCheckout(amountCents int64) (string, error)
 	CreateEmail(user *models.UserInternal, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
+	CreateEvent(user *models.UserInternal, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error)
 	CreateForm(user *models.UserInternal, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	CreateLocation(user *models.UserInternal, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*models.LocationInternal, error)
 	CreateRedirect(user *models.UserInternal, fromPath, toUrl string, startsOn, stopsOn int64) (*models.RedirectInternal, error)
@@ -47,6 +48,7 @@ type AppLayer interface {
 	CreateUser(user *models.UserInternal, disabled bool, email, name, password string, requirePasswordReset bool, username, roleName string) (*models.UserInternal, error)
 	DeleteAsset(id uint) error
 	DeleteEmail(id uint) error
+	DeleteEvent(id uint) error
 	DeleteForm(user *models.UserInternal, id uint) error
 	DeleteLocation(id uint) error
 	DeleteRedirect(id uint) error
@@ -58,6 +60,7 @@ type AppLayer interface {
 	GetAllAssets() (*[]models.AssetInternal, error)
 	GetAllDonations() (*[]models.DonationInternal, error)
 	GetAllEmails() (*[]models.EmailInternal, error)
+	GetAllEvents() (*[]models.EventInternal, error)
 	GetAllForms(user *models.UserInternal) (*[]models.FormInternal, error)
 	GetAllLocations() (*[]models.LocationInternal, error)
 	GetAllRedirects() (*[]models.RedirectInternal, error)
@@ -65,6 +68,7 @@ type AppLayer interface {
 	GetAllUsers() (*[]models.UserInternal, error)
 	GetAsset(id uint) (*models.AssetInternal, error)
 	GetEmail(id uint) (*models.EmailInternal, error)
+	GetEvent(id uint) (*models.EventInternal, error)
 	GetEventsForMonth(year int, month time.Month) (*models.EventFeedInternal, error)
 	GetForm(user *models.UserInternal, id uint) (*models.FormInternal, error)
 	GetFormBySlug(slug string) (*models.FormInternal, error)
@@ -77,6 +81,7 @@ type AppLayer interface {
 	HandleStripeWebhook(payload []byte, signature string) error
 	UpdateAsset(user *models.UserInternal, id uint, fileName, contentType, data string) (*models.AssetInternal, error)
 	UpdateEmail(user *models.UserInternal, id uint, name, slug, subject, htmlBody, textBody string) (*models.EmailInternal, error)
+	UpdateEvent(user *models.UserInternal, id uint, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error)
 	UpdateForm(user *models.UserInternal, id uint, name, slug string, opensOn, closesOn *int64, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string, viewableBy []uint, fields []FormFieldInput) (*models.FormInternal, error)
 	UpdateFormViewableBy(user *models.UserInternal, id uint, viewableBy []uint) (*models.FormInternal, error)
 	UpdateLocation(user *models.UserInternal, id uint, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*models.LocationInternal, error)

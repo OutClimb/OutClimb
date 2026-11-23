@@ -18,6 +18,7 @@
 package app
 
 import (
+	"errors"
 	"mime"
 	"path"
 	"time"
@@ -88,4 +89,92 @@ func (a *appLayer) buildFeedEvent(storedEvent *store.Event) (*models.EventIntern
 	event.FeaturedImageType = mime.TypeByExtension(path.Ext(storedEvent.FeaturedImage.FileName))
 
 	return event, nil
+}
+
+func (a *appLayer) CreateEvent(user *models.UserInternal, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, excerpt, body); err != nil {
+		return &models.EventInternal{}, err
+	}
+
+	event, err := a.store.CreateEvent(user.Username, title, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	if err != nil {
+		return &models.EventInternal{}, err
+	}
+
+	eventInternal := models.EventInternal{}
+	eventInternal.Internalize(event)
+
+	return &eventInternal, nil
+}
+
+func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, excerpt, body); err != nil {
+		return &models.EventInternal{}, err
+	}
+
+	event, err := a.store.UpdateEvent(id, user.Username, title, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	if err != nil {
+		return &models.EventInternal{}, err
+	}
+
+	eventInternal := models.EventInternal{}
+	eventInternal.Internalize(event)
+
+	return &eventInternal, nil
+}
+
+func (a *appLayer) DeleteEvent(id uint) error {
+	return a.store.DeleteEvent(id)
+}
+
+func (a *appLayer) GetEvent(id uint) (*models.EventInternal, error) {
+	event, err := a.store.GetEvent(id)
+	if err != nil {
+		return &models.EventInternal{}, err
+	}
+
+	eventInternal := models.EventInternal{}
+	eventInternal.Internalize(event)
+
+	return &eventInternal, nil
+}
+
+func (a *appLayer) GetAllEvents() (*[]models.EventInternal, error) {
+	events, err := a.store.GetAllEvents()
+	if err != nil {
+		return &[]models.EventInternal{}, err
+	}
+
+	eventsInternal := make([]models.EventInternal, len(*events))
+	for i := range *events {
+		eventsInternal[i].Internalize(&(*events)[i])
+	}
+
+	return &eventsInternal, nil
+}
+
+func (a *appLayer) validateEvent(title string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, excerpt, body string) error {
+	requiredTexts := []string{title, locationName, address, city, state, zip, excerpt, body}
+	for _, text := range requiredTexts {
+		if len(text) == 0 {
+			return errors.New("bad request")
+		}
+	}
+
+	if startsAt.IsZero() || endsAt.IsZero() || !endsAt.After(startsAt) {
+		return errors.New("bad request")
+	}
+
+	if featuredImageAssetID == 0 {
+		return errors.New("bad request")
+	}
+
+	if _, err := a.store.GetAsset(featuredImageAssetID); err != nil {
+		if errors.Is(err, store.ErrAssetNotFound) {
+			return errors.New("bad request")
+		}
+		return err
+	}
+
+	return nil
 }
