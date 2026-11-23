@@ -242,7 +242,7 @@ export function LocationEditor({ initialLocation, onSave, submitLabel, submitLoa
         <CardContent>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Excerpt</FieldLabel>
+              <FieldLabel htmlFor="excerpt">Excerpt</FieldLabel>
               <Textarea
                 id="excerpt"
                 name="excerpt"
@@ -254,7 +254,7 @@ export function LocationEditor({ initialLocation, onSave, submitLabel, submitLoa
               <FieldError>{formErrors.excerpt}</FieldError>
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">Description</FieldLabel>
+              <FieldLabel htmlFor="longDescription">Description</FieldLabel>
               <Textarea
                 id="longDescription"
                 name="longDescription"
