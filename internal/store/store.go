@@ -71,9 +71,9 @@ type StoreLayer interface {
 	DeleteUser(id uint) error
 	EnableTotp(id uint, step int64, updatedBy string) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
-	GetAllDonations() (*[]Donation, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
+	GetAllDonations() (*[]Donation, error)
 	GetAllEmails() (*[]Email, error)
 	GetAllEvents() (*[]Event, error)
 	GetAllForms() (*[]Form, error)
@@ -131,10 +131,9 @@ type storeLayer struct {
 	db            *gorm.DB
 	s3            *s3.Client
 	storageConfig *utils.StorageConfig
-	storeConfig   *utils.StoreConfig
 }
 
-func New(databaseConfig *utils.DatabaseConfig, storeConfig *utils.StoreConfig, storageConfig *utils.StorageConfig) *storeLayer {
+func New(databaseConfig *utils.DatabaseConfig, storageConfig *utils.StorageConfig) *storeLayer {
 	// Postgres
 	dsn := "host=" + databaseConfig.Host
 	dsn = dsn + " user=" + databaseConfig.Username
@@ -191,7 +190,6 @@ func New(databaseConfig *utils.DatabaseConfig, storeConfig *utils.StoreConfig, s
 		db:            db,
 		s3:            client,
 		storageConfig: storageConfig,
-		storeConfig:   storeConfig,
 	}
 }
 
@@ -231,6 +229,6 @@ func (s *storeLayer) Migrate() {
 
 func (s *storeLayer) WithTransaction(fn func(StoreLayer) error) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		return fn(&storeLayer{db: tx, s3: s.s3, storageConfig: s.storageConfig, storeConfig: s.storeConfig})
+		return fn(&storeLayer{db: tx, s3: s.s3, storageConfig: s.storageConfig})
 	})
 }

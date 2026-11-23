@@ -37,7 +37,7 @@ Then from the root of the project directory run:
 docker compose up -d
 ```
 
-This will start the backend, frontend, and PostgreSQL database. The backend and frontend will automatically rebuild on changes. Once running, the url shortner is available at `http://outclimb.local`, registration at `http://register.outclimb.local`, donations at `http://donate.outclimb.local`, and assets at `http://assets.outclimb.local`. The management portal can be accessed via `/manage` on any domain.
+This will start the backend, frontend, and PostgreSQL database. The backend and frontend will automatically rebuild on changes. Once running, the url shortner is available at `http://outclimb.local`, registration at `http://register.outclimb.local`, donations at `http://donate.outclimb.local`, and assets at `http://assets.outclimb.local`. The management portal can be accessed via `/manage` on any domain. Events are created in the management portal and served as an RSS feed at `/events/:month`.
 
 To follow logs:
 
