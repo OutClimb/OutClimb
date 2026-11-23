@@ -20,6 +20,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stripe/stripe-go/v87 v87.2.0
+	github.com/yuin/goldmark v1.8.7
 	golang.org/x/crypto v0.59.0
 	golang.org/x/time v0.16.0
 	gorm.io/driver/postgres v1.6.3

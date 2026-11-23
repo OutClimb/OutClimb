@@ -18,7 +18,6 @@
 package app
 
 import (
-	"html"
 	"mime"
 	"path"
 	"time"
@@ -69,7 +68,12 @@ func (a *appLayer) GetEventsForMonth(year int, month time.Month) (*models.EventF
 func (a *appLayer) buildFeedEvent(storedEvent *store.Event) (*models.EventInternal, error) {
 	event := &models.EventInternal{}
 	event.Internalize(storedEvent)
-	event.BodyHTML = html.EscapeString(storedEvent.Body)
+
+	bodyHTML, err := RenderEventBodyHTML(storedEvent.Body)
+	if err != nil {
+		return nil, err
+	}
+	event.BodyHTML = bodyHTML
 
 	if storedEvent.FeaturedImage.ID == 0 {
 		return event, nil

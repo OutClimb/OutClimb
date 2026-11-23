@@ -131,9 +131,9 @@ func TestGetEventsForMonthIncludesFeaturedImageURLAndType(t *testing.T) {
 	}
 }
 
-func TestGetEventsForMonthEscapesBodyHTML(t *testing.T) {
+func TestGetEventsForMonthRendersBodyMarkdownAsHTML(t *testing.T) {
 	event := newEventAt(t, 1, "2026-12-05T18:00:00-06:00")
-	event.Body = "<script>alert(1)</script> ]]>"
+	event.Body = "**Bring** shoes ]]>"
 	app := newEventTestApp(t, event)
 
 	feed, err := app.GetEventsForMonth(2026, time.December)
@@ -141,7 +141,7 @@ func TestGetEventsForMonthEscapesBodyHTML(t *testing.T) {
 		t.Fatalf("unexpected error %v", err)
 	}
 
-	want := "&lt;script&gt;alert(1)&lt;/script&gt; ]]&gt;"
+	want := "<p><strong>Bring</strong> shoes ]]&gt;</p>\n"
 	if feed.Events[0].BodyHTML != want {
 		t.Errorf("body html = %q, want %q", feed.Events[0].BodyHTML, want)
 	}
