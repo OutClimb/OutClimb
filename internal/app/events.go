@@ -194,7 +194,7 @@ func (a *appLayer) validateEvent(title string, startsAt, endsAt time.Time, locat
 		{"city", city},
 		{"state", state},
 		{"zip", zip},
-		{"featuredImageAltText", featuredImageAltText},
+		{"featured image alt text", featuredImageAltText},
 		{"excerpt", excerpt},
 		{"body", body},
 	}
