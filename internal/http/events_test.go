@@ -57,7 +57,7 @@ func (f *fakeEventApp) GetUser(userID uint) (*models.UserInternal, error) {
 
 func (f *fakeEventApp) GetEvent(id uint) (*models.EventInternal, error) {
 	if id != eventTestExistingID {
-		return &models.EventInternal{}, http.ErrMissingFile
+		return &models.EventInternal{}, app.ErrEventNotFound
 	}
 
 	return newTestEventInternal(id), nil

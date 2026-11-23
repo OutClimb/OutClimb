@@ -17,7 +17,14 @@
 
 package store
 
-import "time"
+import (
+	"errors"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+var ErrEventNotFound = errors.New("event not found")
 
 type Event struct {
 	StandardAudit
@@ -65,8 +72,13 @@ func (s *storeLayer) CreateEvent(createdBy, title string, startsAt, endsAt time.
 }
 
 func (s *storeLayer) DeleteEvent(id uint) error {
-	if result := s.db.Delete(&Event{}, id); result.Error != nil {
+	result := s.db.Delete(&Event{}, id)
+	if result.Error != nil {
 		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return ErrEventNotFound
 	}
 
 	return nil
@@ -86,6 +98,9 @@ func (s *storeLayer) GetEvent(id uint) (*Event, error) {
 	event := Event{}
 
 	if result := s.db.Preload("FeaturedImage").First(&event, id); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return &Event{}, ErrEventNotFound
+		}
 		return &Event{}, result.Error
 	}
 

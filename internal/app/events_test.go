@@ -207,23 +207,23 @@ func TestCreateAndUpdateEventValidation(t *testing.T) {
 	tests := []struct {
 		name    string
 		mutate  func(*eventInput)
-		wantErr string
+		wantErr error
 	}{
-		{"valid", func(*eventInput) {}, ""},
-		{"missing title", func(in *eventInput) { in.title = "" }, "bad request"},
-		{"missing start", func(in *eventInput) { in.startsAt = time.Time{} }, "bad request"},
-		{"missing end", func(in *eventInput) { in.endsAt = time.Time{} }, "bad request"},
-		{"missing location name", func(in *eventInput) { in.locationName = "" }, "bad request"},
-		{"missing address", func(in *eventInput) { in.address = "" }, "bad request"},
-		{"missing city", func(in *eventInput) { in.city = "" }, "bad request"},
-		{"missing state", func(in *eventInput) { in.state = "" }, "bad request"},
-		{"missing zip", func(in *eventInput) { in.zip = "" }, "bad request"},
-		{"missing excerpt", func(in *eventInput) { in.excerpt = "" }, "bad request"},
-		{"missing body", func(in *eventInput) { in.body = "" }, "bad request"},
-		{"end before start", func(in *eventInput) { in.endsAt = in.startsAt.Add(-time.Minute) }, "bad request"},
-		{"end equals start", func(in *eventInput) { in.endsAt = in.startsAt }, "bad request"},
-		{"no featured image", func(in *eventInput) { in.assetID = 0 }, "bad request"},
-		{"unknown featured image", func(in *eventInput) { in.assetID = 99 }, "bad request"},
+		{"valid", func(*eventInput) {}, nil},
+		{"missing title", func(in *eventInput) { in.title = "" }, ErrInvalidEvent},
+		{"missing start", func(in *eventInput) { in.startsAt = time.Time{} }, ErrInvalidEvent},
+		{"missing end", func(in *eventInput) { in.endsAt = time.Time{} }, ErrInvalidEvent},
+		{"missing location name", func(in *eventInput) { in.locationName = "" }, ErrInvalidEvent},
+		{"missing address", func(in *eventInput) { in.address = "" }, ErrInvalidEvent},
+		{"missing city", func(in *eventInput) { in.city = "" }, ErrInvalidEvent},
+		{"missing state", func(in *eventInput) { in.state = "" }, ErrInvalidEvent},
+		{"missing zip", func(in *eventInput) { in.zip = "" }, ErrInvalidEvent},
+		{"missing excerpt", func(in *eventInput) { in.excerpt = "" }, ErrInvalidEvent},
+		{"missing body", func(in *eventInput) { in.body = "" }, ErrInvalidEvent},
+		{"end before start", func(in *eventInput) { in.endsAt = in.startsAt.Add(-time.Minute) }, ErrInvalidEvent},
+		{"end equals start", func(in *eventInput) { in.endsAt = in.startsAt }, ErrInvalidEvent},
+		{"no featured image", func(in *eventInput) { in.assetID = 0 }, ErrInvalidEvent},
+		{"unknown featured image", func(in *eventInput) { in.assetID = 99 }, ErrInvalidEvent},
 	}
 
 	user := &models.UserInternal{Username: "tester"}
@@ -240,11 +240,8 @@ func TestCreateAndUpdateEventValidation(t *testing.T) {
 			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, "", input.excerpt, input.body)
 
 			for _, err := range []error{createErr, updateErr} {
-				if tt.wantErr == "" && err != nil {
-					t.Errorf("unexpected error %v", err)
-				}
-				if tt.wantErr != "" && (err == nil || err.Error() != tt.wantErr) {
-					t.Errorf("error = %v, want %q", err, tt.wantErr)
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("error = %v, want %v", err, tt.wantErr)
 				}
 			}
 		})
@@ -283,5 +280,30 @@ func TestCreateEventPassesThroughAssetLookupFailure(t *testing.T) {
 
 	if err == nil || err.Error() != "database down" {
 		t.Errorf("error = %v, want database down", err)
+	}
+}
+
+type missingEventStore struct {
+	store.StoreLayer
+}
+
+func (m *missingEventStore) GetEvent(id uint) (*store.Event, error) {
+	return &store.Event{}, store.ErrEventNotFound
+}
+
+func (m *missingEventStore) DeleteEvent(id uint) error {
+	return store.ErrEventNotFound
+}
+
+func TestMissingEventReturnsEventNotFound(t *testing.T) {
+	app := &appLayer{store: &missingEventStore{}}
+
+	_, getErr := app.GetEvent(1)
+	deleteErr := app.DeleteEvent(1)
+
+	for _, err := range []error{getErr, deleteErr} {
+		if !errors.Is(err, ErrEventNotFound) {
+			t.Errorf("error = %v, want ErrEventNotFound", err)
+		}
 	}
 }

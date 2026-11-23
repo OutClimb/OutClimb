@@ -20,11 +20,13 @@ package http
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/OutClimb/OutClimb/internal/app"
 	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
@@ -41,7 +43,7 @@ func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 	feed, err := h.app.GetEventsForMonth(month.Year(), month.Month())
 	if err != nil {
 		slog.Error("Unable to fetch events", "err", err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to fetch events"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch events"})
 		return
 	}
 
@@ -73,7 +75,7 @@ func (h *httpLayer) createEvent(c *gin.Context) {
 
 	event, err := h.app.CreateEvent(user, body.Title, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create event"})
+		respondWithEventError(c, err, "Unable to create event")
 		return
 	}
 
@@ -103,7 +105,7 @@ func (h *httpLayer) updateEvent(c *gin.Context) {
 
 	event, err := h.app.UpdateEvent(user, uint(id), body.Title, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update event"})
+		respondWithEventError(c, err, "Unable to update event")
 		return
 	}
 
@@ -120,7 +122,7 @@ func (h *httpLayer) deleteEvent(c *gin.Context) {
 	}
 
 	if err := h.app.DeleteEvent(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete event"})
+		respondWithEventError(c, err, "Unable to delete event")
 		return
 	}
 
@@ -136,7 +138,7 @@ func (h *httpLayer) getEvent(c *gin.Context) {
 
 	event, err := h.app.GetEvent(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		respondWithEventError(c, err, "Unable to retrieve event")
 		return
 	}
 
@@ -148,7 +150,7 @@ func (h *httpLayer) getEvent(c *gin.Context) {
 func (h *httpLayer) getEvents(c *gin.Context) {
 	events, err := h.app.GetAllEvents()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve events"})
+		respondWithEventError(c, err, "Unable to retrieve events")
 		return
 	}
 
@@ -158,6 +160,18 @@ func (h *httpLayer) getEvents(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func respondWithEventError(c *gin.Context, err error, fallbackMessage string) {
+	switch {
+	case errors.Is(err, app.ErrInvalidEvent):
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case errors.Is(err, app.ErrEventNotFound):
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+	default:
+		slog.Error(fallbackMessage, "err", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fallbackMessage})
+	}
 }
 
 func parseEventRequest(c *gin.Context) (responses.EventRequestPublic, bool) {

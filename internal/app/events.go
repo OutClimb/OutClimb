@@ -19,6 +19,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"mime"
 	"path"
 	"time"
@@ -32,6 +33,11 @@ const (
 	eventsFeedTitle       = "OutClimb Events"
 	eventsFeedLink        = "https://outclimb.gay/events"
 	eventsFeedDescription = "Upcoming events from OutClimb"
+)
+
+var (
+	ErrEventNotFound = errors.New("event not found")
+	ErrInvalidEvent  = errors.New("invalid event")
 )
 
 func (a *appLayer) GetEventsForMonth(year int, month time.Month) (*models.EventFeedInternal, error) {
@@ -109,7 +115,7 @@ func (a *appLayer) internalizeEvent(storedEvent *store.Event) (*models.EventInte
 }
 
 func (a *appLayer) CreateEvent(user *models.UserInternal, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, excerpt, body); err != nil {
+	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
 		return &models.EventInternal{}, err
 	}
 
@@ -122,26 +128,26 @@ func (a *appLayer) CreateEvent(user *models.UserInternal, title string, startsAt
 }
 
 func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, excerpt, body); err != nil {
+	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
 		return &models.EventInternal{}, err
 	}
 
 	event, err := a.store.UpdateEvent(id, user.Username, title, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
 	if err != nil {
-		return &models.EventInternal{}, err
+		return &models.EventInternal{}, translateEventStoreError(err)
 	}
 
 	return a.internalizeEvent(event)
 }
 
 func (a *appLayer) DeleteEvent(id uint) error {
-	return a.store.DeleteEvent(id)
+	return translateEventStoreError(a.store.DeleteEvent(id))
 }
 
 func (a *appLayer) GetEvent(id uint) (*models.EventInternal, error) {
 	event, err := a.store.GetEvent(id)
 	if err != nil {
-		return &models.EventInternal{}, err
+		return &models.EventInternal{}, translateEventStoreError(err)
 	}
 
 	return a.internalizeEvent(event)
@@ -165,25 +171,54 @@ func (a *appLayer) GetAllEvents() (*[]models.EventInternal, error) {
 	return &eventsInternal, nil
 }
 
-func (a *appLayer) validateEvent(title string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, excerpt, body string) error {
-	requiredTexts := []string{title, locationName, address, city, state, zip, excerpt, body}
+func translateEventStoreError(err error) error {
+	if errors.Is(err, store.ErrEventNotFound) {
+		return ErrEventNotFound
+	}
+
+	return err
+}
+
+func newInvalidEventError(reason string) error {
+	return fmt.Errorf("%w: %s", ErrInvalidEvent, reason)
+}
+
+func (a *appLayer) validateEvent(title string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) error {
+	requiredTexts := []struct {
+		field string
+		value string
+	}{
+		{"title", title},
+		{"location name", locationName},
+		{"address", address},
+		{"city", city},
+		{"state", state},
+		{"zip", zip},
+		{"featuredImageAltText", featuredImageAltText},
+		{"excerpt", excerpt},
+		{"body", body},
+	}
 	for _, text := range requiredTexts {
-		if len(text) == 0 {
-			return errors.New("bad request")
+		if len(text.value) == 0 {
+			return newInvalidEventError(text.field + " is required")
 		}
 	}
 
-	if startsAt.IsZero() || endsAt.IsZero() || !endsAt.After(startsAt) {
-		return errors.New("bad request")
+	if startsAt.IsZero() || endsAt.IsZero() {
+		return newInvalidEventError("start and end times are required")
+	}
+
+	if !endsAt.After(startsAt) {
+		return newInvalidEventError("end time must be after start time")
 	}
 
 	if featuredImageAssetID == 0 {
-		return errors.New("bad request")
+		return newInvalidEventError("featured image is required")
 	}
 
 	if _, err := a.store.GetAsset(featuredImageAssetID); err != nil {
 		if errors.Is(err, store.ErrAssetNotFound) {
-			return errors.New("bad request")
+			return newInvalidEventError("featured image does not exist")
 		}
 		return err
 	}
