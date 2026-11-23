@@ -182,7 +182,7 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./web/manager")
-	h.engine.GET("/events/:month", middleware.Domain(h.config.AssetsDomain), h.getEventsForMonth)
+	h.engine.GET("/events/:month", middleware.Domain(h.config.AssetsDomain), h.newEventRateLimit(), h.getEventsForMonth)
 
 	assets := h.engine.Group("/q/")
 	{
@@ -220,6 +220,8 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		}
 		api.GET("/form/:slug", middleware.OptionalAuth(h.config), middleware.UnauthenticatedRateLimit(h.config.FormRateLimit, formRateLimitWindow, h.useClientIP()), h.getForm)
 		api.GET("/captcha", middleware.RateLimit(h.config.FormRateLimit, formRateLimitWindow, h.useClientIP()), h.getCaptcha)
+		api.GET("/events", h.newEventRateLimit(), h.getEvents)
+		api.GET("/events/:id", h.newEventRateLimit(), h.getEvent)
 
 		submissionRateLimitWindow, err := time.ParseDuration(h.config.SubmissionRateLimitWindow)
 		if err != nil {
@@ -324,7 +326,30 @@ func (h *httpLayer) setupV1ApiRoutes() {
 			emailApi.PUT("/:id", h.updateEmail)
 			emailApi.DELETE("/:id", h.deleteEmail)
 		}
+
+		eventApi := api.Group("/event").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false, false)).Use(middleware.Permission("event"))
+		{
+			eventApi.GET("", h.getEvents)
+			eventApi.GET("/:id", h.getEvent)
+			eventApi.POST("", h.createEvent)
+			eventApi.PUT("/:id", h.updateEvent)
+			eventApi.DELETE("/:id", h.deleteEvent)
+		}
 	}
+}
+
+func (h *httpLayer) newEventRateLimit() gin.HandlerFunc {
+	eventRateLimitWindow, err := time.ParseDuration(h.config.EventRateLimitWindow)
+	if err != nil {
+		slog.Error(
+			"Failed to parse event rate limit window, defaulting to 1 min",
+			"input", h.config.EventRateLimitWindow,
+			"error", err,
+		)
+		eventRateLimitWindow = time.Minute
+	}
+
+	return middleware.RateLimit(h.config.EventRateLimit, eventRateLimitWindow, h.useClientIP())
 }
 
 func (h *httpLayer) useClientIP() bool {

@@ -93,3 +93,61 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 		f.Channel.Items = append(f.Channel.Items, ep)
 	}
 }
+
+type EventRequestPublic struct {
+	Title                string    `json:"title"`
+	StartsAt             time.Time `json:"startsAt"`
+	EndsAt               time.Time `json:"endsAt"`
+	LocationID           *uint     `json:"locationId"`
+	LocationName         string    `json:"locationName"`
+	Address              string    `json:"address"`
+	City                 string    `json:"city"`
+	State                string    `json:"state"`
+	Zip                  string    `json:"zip"`
+	FeaturedImageAssetID uint      `json:"featuredImageAssetId"`
+	FeaturedImageAltText string    `json:"featuredImageAltText"`
+	Excerpt              string    `json:"excerpt"`
+	Body                 string    `json:"body"`
+}
+
+type eventFeaturedImageResponsePublic struct {
+	AssetID uint   `json:"assetId"`
+	URL     string `json:"url"`
+	AltText string `json:"altText"`
+}
+
+type EventResponsePublic struct {
+	ID            uint                             `json:"id"`
+	Title         string                           `json:"title"`
+	StartsAt      time.Time                        `json:"startsAt"`
+	EndsAt        time.Time                        `json:"endsAt"`
+	LocationID    *uint                            `json:"locationId"`
+	LocationName  string                           `json:"locationName"`
+	Address       string                           `json:"address"`
+	City          string                           `json:"city"`
+	State         string                           `json:"state"`
+	Zip           string                           `json:"zip"`
+	FeaturedImage eventFeaturedImageResponsePublic `json:"featuredImage"`
+	Excerpt       string                           `json:"excerpt"`
+	Body          string                           `json:"body"`
+}
+
+func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
+	e.ID = event.ID
+	e.Title = event.Title
+	e.StartsAt = event.StartsAt
+	e.EndsAt = event.EndsAt
+	e.LocationID = event.LocationID
+	e.LocationName = event.LocationName
+	e.Address = event.Address
+	e.City = event.City
+	e.State = event.State
+	e.Zip = event.Zip
+	e.FeaturedImage = eventFeaturedImageResponsePublic{
+		AssetID: event.FeaturedImageAssetID,
+		URL:     event.FeaturedImageURL,
+		AltText: event.FeaturedImageAltText,
+	}
+	e.Excerpt = event.Excerpt
+	e.Body = event.Body
+}

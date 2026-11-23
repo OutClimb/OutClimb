@@ -64,6 +64,8 @@ type HttpConfig struct {
 	BehindTLS                 bool      `mapstructure:"OC_BEHIND_TLS"`
 	DefaultRedirectURL        string    `mapstructure:"OC_DEFAULT_REDIRECT_URL"`
 	DonateDomain              string    `mapstructure:"OC_DONATE_DOMAIN"`
+	EventRateLimit            int       `mapstructure:"OC_EVENT_RATE_LIMIT"`
+	EventRateLimitWindow      string    `mapstructure:"OC_EVENT_RATE_LIMIT_WINDOW"`
 	FormRateLimit             int       `mapstructure:"OC_FORM_RATE_LIMIT"`
 	FormRateLimitWindow       string    `mapstructure:"OC_FORM_RATE_LIMIT_WINDOW"`
 	Jwt                       JwtConfig `mapstructure:",squash"`

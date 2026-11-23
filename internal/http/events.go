@@ -18,11 +18,14 @@
 package http
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/OutClimb/OutClimb/internal/http/middleware"
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 )
@@ -53,4 +56,122 @@ func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/rss+xml; charset=utf-8", append([]byte(xml.Header), output...))
+}
+
+func (h *httpLayer) createEvent(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	body, ok := parseEventRequest(c)
+	if !ok {
+		return
+	}
+
+	event, err := h.app.CreateEvent(user, body.Title, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create event"})
+		return
+	}
+
+	resp := responses.EventResponsePublic{}
+	resp.Publicize(event)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *httpLayer) updateEvent(c *gin.Context) {
+	userClaim, _ := c.MustGet("user").(middleware.JwtUserClaim)
+	user, err := h.app.GetUser(userClaim.ID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	body, ok := parseEventRequest(c)
+	if !ok {
+		return
+	}
+
+	event, err := h.app.UpdateEvent(user, uint(id), body.Title, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update event"})
+		return
+	}
+
+	resp := responses.EventResponsePublic{}
+	resp.Publicize(event)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *httpLayer) deleteEvent(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	if err := h.app.DeleteEvent(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete event"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (h *httpLayer) getEvent(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	event, err := h.app.GetEvent(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	resp := responses.EventResponsePublic{}
+	resp.Publicize(event)
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *httpLayer) getEvents(c *gin.Context) {
+	events, err := h.app.GetAllEvents()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve events"})
+		return
+	}
+
+	result := make([]responses.EventResponsePublic, len(*events))
+	for i := range *events {
+		result[i].Publicize(&(*events)[i])
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func parseEventRequest(c *gin.Context) (responses.EventRequestPublic, bool) {
+	bodyBytes, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve request body"})
+		return responses.EventRequestPublic{}, false
+	}
+
+	body := responses.EventRequestPublic{}
+	if err := json.Unmarshal(bodyBytes, &body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to parse request body"})
+		return responses.EventRequestPublic{}, false
+	}
+
+	return body, true
 }
