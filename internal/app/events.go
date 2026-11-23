@@ -18,32 +18,70 @@
 package app
 
 import (
-	"sort"
+	"html"
+	"mime"
+	"path"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
+	"github.com/OutClimb/OutClimb/internal/store"
+)
+
+const (
+	eventsTimezoneName    = "America/Chicago"
+	eventsFeedTitle       = "OutClimb Events"
+	eventsFeedLink        = "https://outclimb.gay/events"
+	eventsFeedDescription = "Upcoming events from OutClimb"
 )
 
 func (a *appLayer) GetEventsForMonth(year int, month time.Month) (*models.EventFeedInternal, error) {
-	feed, err := a.store.GetAllEvents()
+	centralTime, err := time.LoadLocation(eventsTimezoneName)
 	if err != nil {
 		return nil, err
 	}
 
-	feedInternal := &models.EventFeedInternal{}
-	feedInternal.Internalize(feed)
+	monthStart := time.Date(year, month, 1, 0, 0, 0, 0, centralTime)
+	nextMonthStart := monthStart.AddDate(0, 1, 0)
 
-	var filtered []*models.EventInternal
-	for _, event := range feedInternal.Events {
-		if event.EventDate.Year() == year && event.EventDate.Month() == month {
-			filtered = append(filtered, event)
-		}
+	events, err := a.store.GetEventsBetween(monthStart, nextMonthStart)
+	if err != nil {
+		return nil, err
 	}
 
-	sort.Slice(filtered, func(i, j int) bool {
-		return filtered[i].EventDate.Before(filtered[j].EventDate)
-	})
+	feed := &models.EventFeedInternal{
+		Title:       eventsFeedTitle,
+		Link:        eventsFeedLink,
+		Description: eventsFeedDescription,
+		Events:      make([]*models.EventInternal, 0, len(*events)),
+	}
 
-	feedInternal.Events = filtered
-	return feedInternal, nil
+	for i := range *events {
+		event, err := a.buildFeedEvent(&(*events)[i])
+		if err != nil {
+			return nil, err
+		}
+		feed.Events = append(feed.Events, event)
+	}
+
+	return feed, nil
+}
+
+func (a *appLayer) buildFeedEvent(storedEvent *store.Event) (*models.EventInternal, error) {
+	event := &models.EventInternal{}
+	event.Internalize(storedEvent)
+	event.BodyHTML = html.EscapeString(storedEvent.Body)
+
+	if storedEvent.FeaturedImage.ID == 0 {
+		return event, nil
+	}
+
+	imageURL, err := a.store.FindAsset(storedEvent.FeaturedImage.FileName)
+	if err != nil {
+		return nil, err
+	}
+
+	event.FeaturedImageURL = imageURL
+	event.FeaturedImageType = mime.TypeByExtension(path.Ext(storedEvent.FeaturedImage.FileName))
+
+	return event, nil
 }

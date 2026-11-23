@@ -34,7 +34,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role", "donation"}
+var Entities = [...]string{"asset", "email", "form", "redirect", "location", "social", "user", "role", "donation", "event"}
 
 //go:embed migrations/*.sql
 var migrations embed.FS
@@ -43,6 +43,7 @@ type StoreLayer interface {
 	CountSubmissionsForForm(formId uint) (int64, error)
 	CreateAsset(createdBy, filename, key, contentType, data string) (*Asset, error)
 	CreateEmail(createdBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
+	CreateEvent(createdBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error)
 	CreateForm(createdBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	CreateFormField(createdBy string, formId uint, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	CreateLocation(createdBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*Location, error)
@@ -54,6 +55,7 @@ type StoreLayer interface {
 	CreateUser(createdBy string, disabled bool, email, name, password string, requirePasswordReset bool, username string, roleId uint) (*User, error)
 	DeleteAsset(id uint) error
 	DeleteEmail(id uint) error
+	DeleteEvent(id uint) error
 	DeleteForm(id uint) error
 	DeleteFormField(id uint) error
 	DeleteFormFieldForForm(formId uint) error
@@ -69,11 +71,11 @@ type StoreLayer interface {
 	DeleteUser(id uint) error
 	EnableTotp(id uint, step int64, updatedBy string) error
 	FindActiveRedirectByPath(path string) (*Redirect, error)
-	GetAllEvents() (*EventFeed, error)
 	GetAllDonations() (*[]Donation, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)
 	GetAllEmails() (*[]Email, error)
+	GetAllEvents() (*[]Event, error)
 	GetAllForms() (*[]Form, error)
 	GetAllFormFields() (*[]FormField, error)
 	GetAllFormFieldsForForm(formId uint) (*[]FormField, error)
@@ -88,6 +90,8 @@ type StoreLayer interface {
 	GetAsset(id uint) (*Asset, error)
 	GetEmail(id uint) (*Email, error)
 	GetEmailWithSlug(slug string) (*Email, error)
+	GetEvent(id uint) (*Event, error)
+	GetEventsBetween(start, end time.Time) (*[]Event, error)
 	GetForm(id uint) (*Form, error)
 	GetFormField(id uint) (*FormField, error)
 	GetFormWithSlug(slug string) (*Form, error)
@@ -108,6 +112,7 @@ type StoreLayer interface {
 	SetTotpSecret(id uint, secret, updatedBy string) error
 	UpdateAsset(id uint, updatedBy, filename, contentType, data string) (*Asset, error)
 	UpdateEmail(id uint, updatedBy, name, slug, subject, htmlBody, textBody string) (*Email, error)
+	UpdateEvent(id uint, updatedBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error)
 	UpdateForm(id uint, updatedBy, name, slug string, opensOn, closesOn *time.Time, maxSubmissions *uint, notOpenMessage, closedMessage, filledMessage, successMessage, confirmationEmailFieldSlug, confirmationEmailSlug, notificationEmailTo, notificationEmailSlug *string) (*Form, error)
 	UpdateFormField(id uint, updatedBy, name, slug, fieldType string, metadata, validation *string, required bool, order uint) (*FormField, error)
 	UpdateLocation(id uint, updatedBy, name, mainImageName, individualImageName, backgroundImagePath, color, address, city, state, zip, startTime, endTime, description, excerpt, longDescription string) (*Location, error)

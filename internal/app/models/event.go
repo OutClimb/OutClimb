@@ -24,25 +24,40 @@ import (
 )
 
 type EventInternal struct {
-	Title          string
-	Link           string
-	Description    string
-	ContentEncoded string
-	MediaURL       string
-	MediaType      string
-	EventDate      time.Time
-	GUID           string
+	ID                   uint
+	Title                string
+	StartsAt             time.Time
+	EndsAt               time.Time
+	LocationID           *uint
+	LocationName         string
+	Address              string
+	City                 string
+	State                string
+	Zip                  string
+	FeaturedImageAssetID uint
+	FeaturedImageAltText string
+	FeaturedImageURL     string
+	FeaturedImageType    string
+	Excerpt              string
+	Body                 string
+	BodyHTML             string
 }
 
 func (e *EventInternal) Internalize(event *store.Event) {
+	e.ID = event.ID
 	e.Title = event.Title
-	e.Link = event.Link
-	e.Description = event.Description
-	e.ContentEncoded = event.ContentEncoded
-	e.MediaURL = event.MediaURL
-	e.MediaType = event.MediaType
-	e.EventDate = event.EventDate
-	e.GUID = event.GUID
+	e.StartsAt = event.StartsAt
+	e.EndsAt = event.EndsAt
+	e.LocationID = event.LocationID
+	e.LocationName = event.LocationName
+	e.Address = event.Address
+	e.City = event.City
+	e.State = event.State
+	e.Zip = event.Zip
+	e.FeaturedImageAssetID = event.FeaturedImageAssetID
+	e.FeaturedImageAltText = event.FeaturedImageAltText
+	e.Excerpt = event.Excerpt
+	e.Body = event.Body
 }
 
 type EventFeedInternal struct {
@@ -50,16 +65,4 @@ type EventFeedInternal struct {
 	Link        string
 	Description string
 	Events      []*EventInternal
-}
-
-func (f *EventFeedInternal) Internalize(feed *store.EventFeed) {
-	f.Title = feed.Title
-	f.Link = feed.Link
-	f.Description = feed.Description
-	f.Events = make([]*EventInternal, 0, len(feed.Events))
-	for _, e := range feed.Events {
-		ei := &EventInternal{}
-		ei.Internalize(e)
-		f.Events = append(f.Events, ei)
-	}
 }

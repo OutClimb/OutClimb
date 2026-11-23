@@ -19,10 +19,13 @@ package responses
 
 import (
 	"encoding/xml"
+	"strconv"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
 )
+
+const eventsFeedTimezoneName = "America/Chicago"
 
 type EventFeedPublic struct {
 	XMLName xml.Name           `xml:"rss"`
@@ -45,19 +48,30 @@ type cdataContent struct {
 type mediaContentPublic struct {
 	URL  string `xml:"url,attr"`
 	Type string `xml:"type,attr,omitempty"`
+
+	Description string `xml:"http://www.rssboard.org/media-rss description,omitempty"`
+}
+
+type guidPublic struct {
+	IsPermaLink bool   `xml:"isPermaLink,attr"`
+	Value       string `xml:",chardata"`
 }
 
 type EventPublic struct {
 	Title          string              `xml:"title"`
-	Link           string              `xml:"link"`
 	Description    string              `xml:"description"`
 	PubDate        string              `xml:"pubDate"`
-	GUID           string              `xml:"guid"`
+	GUID           guidPublic          `xml:"guid"`
 	ContentEncoded *cdataContent       `xml:"http://purl.org/rss/1.0/modules/content/ encoded"`
 	MediaContent   *mediaContentPublic `xml:"http://www.rssboard.org/media-rss content"`
 }
 
 func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
+	centralTime, err := time.LoadLocation(eventsFeedTimezoneName)
+	if err != nil {
+		centralTime = time.UTC
+	}
+
 	f.Version = "2.0"
 	f.Channel.Title = feed.Title
 	f.Channel.Link = feed.Link
@@ -66,16 +80,15 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 	for _, event := range feed.Events {
 		ep := EventPublic{
 			Title:       event.Title,
-			Link:        event.Link,
-			Description: event.Description,
-			PubDate:     event.EventDate.Format(time.RFC1123Z),
-			GUID:        event.GUID,
+			Description: event.Excerpt,
+			PubDate:     event.StartsAt.In(centralTime).Format(time.RFC1123Z),
+			GUID:        guidPublic{Value: "event-" + strconv.FormatUint(uint64(event.ID), 10)},
 		}
-		if event.ContentEncoded != "" {
-			ep.ContentEncoded = &cdataContent{Inner: []byte("<![CDATA[" + event.ContentEncoded + "]]>")}
+		if event.BodyHTML != "" {
+			ep.ContentEncoded = &cdataContent{Inner: []byte("<![CDATA[" + event.BodyHTML + "]]>")}
 		}
-		if event.MediaURL != "" {
-			ep.MediaContent = &mediaContentPublic{URL: event.MediaURL, Type: event.MediaType}
+		if event.FeaturedImageURL != "" {
+			ep.MediaContent = &mediaContentPublic{URL: event.FeaturedImageURL, Type: event.FeaturedImageType, Description: event.FeaturedImageAltText}
 		}
 		f.Channel.Items = append(f.Channel.Items, ep)
 	}

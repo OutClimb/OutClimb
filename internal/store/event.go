@@ -17,109 +17,119 @@
 
 package store
 
-import (
-	"encoding/xml"
-	"fmt"
-	"io"
-	"net/http"
-	"time"
-)
-
-var eventsHTTPClient = &http.Client{Timeout: 10 * time.Second}
+import "time"
 
 type Event struct {
-	Title          string
-	Link           string
-	Description    string
-	ContentEncoded string
-	MediaURL       string
-	MediaType      string
-	EventDate      time.Time
-	GUID           string
+	StandardAudit
+	Title                string
+	StartsAt             time.Time
+	EndsAt               time.Time
+	LocationID           *uint
+	LocationName         string
+	Address              string
+	City                 string
+	State                string
+	Zip                  string
+	FeaturedImageAssetID uint
+	FeaturedImage        Asset `gorm:"foreignKey:FeaturedImageAssetID"`
+	FeaturedImageAltText string
+	Excerpt              string
+	Body                 string
 }
 
-type EventFeed struct {
-	Title       string
-	Link        string
-	Description string
-	Events      []*Event
-}
-
-type rssRoot struct {
-	XMLName xml.Name   `xml:"rss"`
-	Channel rssChannel `xml:"channel"`
-}
-
-type rssChannel struct {
-	Title       string    `xml:"title"`
-	Link        string    `xml:"link"`
-	Description string    `xml:"description"`
-	Items       []rssItem `xml:"item"`
-}
-
-type rssMediaContent struct {
-	URL  string `xml:"url,attr"`
-	Type string `xml:"type,attr"`
-}
-
-type rssItem struct {
-	Title          string          `xml:"title"`
-	Link           string          `xml:"link"`
-	Description    string          `xml:"description"`
-	GUID           string          `xml:"guid"`
-	ContentEncoded string          `xml:"http://purl.org/rss/1.0/modules/content/ encoded"`
-	MediaContent   rssMediaContent `xml:"http://www.rssboard.org/media-rss content"`
-}
-
-// parseEventDateFromURL extracts the event date from the trailing YYYY-MM-DD in the event URL.
-func parseEventDateFromURL(link string) (time.Time, error) {
-	if len(link) < 10 {
-		return time.Time{}, fmt.Errorf("link too short to contain a date: %s", link)
+func (s *storeLayer) CreateEvent(createdBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+	event := Event{
+		Title:                title,
+		StartsAt:             startsAt,
+		EndsAt:               endsAt,
+		LocationID:           locationID,
+		LocationName:         locationName,
+		Address:              address,
+		City:                 city,
+		State:                state,
+		Zip:                  zip,
+		FeaturedImageAssetID: featuredImageAssetID,
+		FeaturedImageAltText: featuredImageAltText,
+		Excerpt:              excerpt,
+		Body:                 body,
 	}
-	return time.Parse("2006-01-02", link[len(link)-10:])
+
+	event.CreatedBy = createdBy
+	event.UpdatedBy = createdBy
+
+	if result := s.db.Create(&event); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return s.GetEvent(event.ID)
 }
 
-func (s *storeLayer) GetAllEvents() (*EventFeed, error) {
-	resp, err := eventsHTTPClient.Get(s.storeConfig.EventsRSSURL)
+func (s *storeLayer) DeleteEvent(id uint) error {
+	if result := s.db.Delete(&Event{}, id); result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (s *storeLayer) GetAllEvents() (*[]Event, error) {
+	events := []Event{}
+
+	if result := s.db.Preload("FeaturedImage").Order("starts_at").Find(&events); result.Error != nil {
+		return &[]Event{}, result.Error
+	}
+
+	return &events, nil
+}
+
+func (s *storeLayer) GetEvent(id uint) (*Event, error) {
+	event := Event{}
+
+	if result := s.db.Preload("FeaturedImage").First(&event, id); result.Error != nil {
+		return &Event{}, result.Error
+	}
+
+	return &event, nil
+}
+
+// GetEventsBetween returns events starting at or after start and before end.
+func (s *storeLayer) GetEventsBetween(start, end time.Time) (*[]Event, error) {
+	events := []Event{}
+
+	query := s.db.Preload("FeaturedImage").
+		Where("starts_at >= ? AND starts_at < ?", start, end).
+		Order("starts_at")
+	if result := query.Find(&events); result.Error != nil {
+		return &[]Event{}, result.Error
+	}
+
+	return &events, nil
+}
+
+func (s *storeLayer) UpdateEvent(id uint, updatedBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+	event, err := s.GetEvent(id)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	event.UpdatedBy = updatedBy
+	event.Title = title
+	event.StartsAt = startsAt
+	event.EndsAt = endsAt
+	event.LocationID = locationID
+	event.LocationName = locationName
+	event.Address = address
+	event.City = city
+	event.State = state
+	event.Zip = zip
+	event.FeaturedImageAssetID = featuredImageAssetID
+	event.FeaturedImageAltText = featuredImageAltText
+	event.Excerpt = excerpt
+	event.Body = body
+
+	if result := s.db.Omit("FeaturedImage").Save(event); result.Error != nil {
+		return nil, result.Error
 	}
 
-	var raw rssRoot
-	if err := xml.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-
-	feed := &EventFeed{
-		Title:       raw.Channel.Title,
-		Link:        raw.Channel.Link,
-		Description: raw.Channel.Description,
-	}
-
-	for _, item := range raw.Channel.Items {
-		eventDate, err := parseEventDateFromURL(item.Link)
-		if err != nil {
-			continue
-		}
-		feed.Events = append(feed.Events, &Event{
-			Title:          item.Title,
-			Link:           item.Link,
-			Description:    item.Description,
-			ContentEncoded: item.ContentEncoded,
-			MediaURL:       item.MediaContent.URL,
-			MediaType:      item.MediaContent.Type,
-			EventDate:      eventDate,
-			GUID:           item.GUID,
-		})
-	}
-
-	return feed, nil
+	return s.GetEvent(id)
 }
