@@ -7,6 +7,7 @@ import { fetchAssets } from '@/api/asset'
 import { fetchLocations } from '@/api/location'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormActions } from '@/components/form-actions'
+import { applyLocationTimesToEvent, applyLocationToEvent } from '@/lib/event'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -24,6 +25,7 @@ const REQUIRED_FIELD_MESSAGE = 'Please fill in this field'
 const END_BEFORE_START_MESSAGE = 'End must be after the start'
 const SAVE_FAILED_MESSAGE = 'An error occurred while saving the event. Please try again.'
 const NO_LOCATION_VALUE = 'none'
+const DATE_FORMAT = 'yyyy-MM-dd'
 const DATETIME_LOCAL_FORMAT = "yyyy-MM-dd'T'HH:mm"
 const IMAGE_FILE_NAME_PATTERN = /\.(jpe?g|png|svg|webp)$/i
 
@@ -192,14 +194,32 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
     loadOptions()
   }, [token, populateLocations, populateAssets, navigate])
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }, [])
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target
+      setFormData((prev) => {
+        const next = { ...prev, [name]: value }
+        const isDateField = name === 'startsAt' || name === 'endsAt'
+        const linkedLocation = locationsById[Number(prev.locationId)]
+        return isDateField ? applyLocationTimesToEvent(next, linkedLocation, linkedLocation) : next
+      })
+    },
+    [locationsById],
+  )
 
-  const handleLocationChange = useCallback((value: string) => {
-    setFormData((prev) => ({ ...prev, locationId: value }))
-  }, [])
+  const handleLocationChange = useCallback(
+    (value: string) => {
+      setFormData((prev) => {
+        const previousLocation = locationsById[Number(prev.locationId)]
+        const newLocation = locationsById[Number(value)]
+        return {
+          ...applyLocationToEvent(prev, previousLocation, newLocation, formatInTimezone(Date.now(), DATE_FORMAT)),
+          locationId: value,
+        }
+      })
+    },
+    [locationsById],
+  )
 
   const handleFeaturedImageChange = useCallback((value: string) => {
     setFormData((prev) => ({ ...prev, featuredImageAssetId: value }))
