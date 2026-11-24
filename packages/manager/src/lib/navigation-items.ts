@@ -1,4 +1,4 @@
-import { FileText, HandHeart, Image, Mail, MapPin, Upload, User, Users, Waypoints } from 'lucide-react'
+import { CalendarDays, FileText, HandHeart, Image, Mail, MapPin, Upload, User, Users, Waypoints } from 'lucide-react'
 
 export const NAVIGATION_ITEMS = [
   {
@@ -28,6 +28,13 @@ export const NAVIGATION_ITEMS = [
     icon: FileText,
     entity: 'form',
     group: 'forms',
+  },
+  {
+    title: 'Events',
+    href: '/manage/event',
+    icon: CalendarDays,
+    entity: 'event',
+    group: 'events',
   },
   {
     title: 'Event Locations',

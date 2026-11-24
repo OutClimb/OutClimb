@@ -13,6 +13,7 @@ import { Route as ManageIndexRouteImport } from './routes/manage_/index'
 import { Route as ManageAssetRouteImport } from './routes/manage_/asset'
 import { Route as ManageDonationRouteImport } from './routes/manage_/donation'
 import { Route as ManageEmailRouteImport } from './routes/manage_/email'
+import { Route as ManageEventRouteImport } from './routes/manage_/event'
 import { Route as ManageFormRouteImport } from './routes/manage_/form'
 import { Route as ManageLocationRouteImport } from './routes/manage_/location'
 import { Route as ManageLoginRouteImport } from './routes/manage_/login'
@@ -51,6 +52,11 @@ const ManageDonationRoute = ManageDonationRouteImport.update({
 const ManageEmailRoute = ManageEmailRouteImport.update({
   id: '/manage_/email',
   path: '/manage/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageEventRoute = ManageEventRouteImport.update({
+  id: '/manage_/event',
+  path: '/manage/event',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageFormRoute = ManageFormRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/manage/asset': typeof ManageAssetRoute
   '/manage/donation': typeof ManageDonationRoute
   '/manage/email': typeof ManageEmailRoute
+  '/manage/event': typeof ManageEventRoute
   '/manage/form': typeof ManageFormRoute
   '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/manage/asset': typeof ManageAssetRoute
   '/manage/donation': typeof ManageDonationRoute
   '/manage/email': typeof ManageEmailRoute
+  '/manage/event': typeof ManageEventRoute
   '/manage/form': typeof ManageFormRoute
   '/manage/location': typeof ManageLocationRoute
   '/manage/login': typeof ManageLoginRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/manage_/asset': typeof ManageAssetRoute
   '/manage_/donation': typeof ManageDonationRoute
   '/manage_/email': typeof ManageEmailRoute
+  '/manage_/event': typeof ManageEventRoute
   '/manage_/form': typeof ManageFormRoute
   '/manage_/location': typeof ManageLocationRoute
   '/manage_/login': typeof ManageLoginRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/manage/asset'
     | '/manage/donation'
     | '/manage/email'
+    | '/manage/event'
     | '/manage/form'
     | '/manage/location'
     | '/manage/login'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/manage/asset'
     | '/manage/donation'
     | '/manage/email'
+    | '/manage/event'
     | '/manage/form'
     | '/manage/location'
     | '/manage/login'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/manage_/asset'
     | '/manage_/donation'
     | '/manage_/email'
+    | '/manage_/event'
     | '/manage_/form'
     | '/manage_/location'
     | '/manage_/login'
@@ -309,6 +321,7 @@ export interface RootRouteChildren {
   ManageAssetRoute: typeof ManageAssetRoute
   ManageDonationRoute: typeof ManageDonationRoute
   ManageEmailRoute: typeof ManageEmailRoute
+  ManageEventRoute: typeof ManageEventRoute
   ManageFormRoute: typeof ManageFormRoute
   ManageLocationRoute: typeof ManageLocationRoute
   ManageLoginRoute: typeof ManageLoginRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/manage/email'
       fullPath: '/manage/email'
       preLoaderRoute: typeof ManageEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage_/event': {
+      id: '/manage_/event'
+      path: '/manage/event'
+      fullPath: '/manage/event'
+      preLoaderRoute: typeof ManageEventRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manage_/form': {
@@ -501,6 +521,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageAssetRoute: ManageAssetRoute,
   ManageDonationRoute: ManageDonationRoute,
   ManageEmailRoute: ManageEmailRoute,
+  ManageEventRoute: ManageEventRoute,
   ManageFormRoute: ManageFormRoute,
   ManageLocationRoute: ManageLocationRoute,
   ManageLoginRoute: ManageLoginRoute,
