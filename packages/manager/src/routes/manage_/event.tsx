@@ -1,10 +1,11 @@
 'use client'
 
 import authGuard from '@/lib/auth-guard'
-import { CalendarDays } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { CalendarDays, Plus } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Content } from '@/components/content'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { DeleteDialog } from '@/components/delete-dialog'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { EventsTable } from '@/components/event/events-table'
@@ -64,9 +65,27 @@ function Events() {
     }
   })
 
+  const canWriteEvents =
+    hasPermission('event', WRITE_PERMISSION) &&
+    hasPermission('location', READ_PERMISSION) &&
+    hasPermission('asset', READ_PERMISSION)
+
   return (
     <>
-      <Header isLoading={isLoading}>Events</Header>
+      <Header
+        isLoading={isLoading}
+        actions={
+          canWriteEvents && (
+            <Button asChild disabled={isLoading}>
+              <Link to="/manage/event/create">
+                <Plus />
+                Create Event
+              </Link>
+            </Button>
+          )
+        }>
+        Events
+      </Header>
 
       <Content>
         <Card className="p-0">
@@ -94,7 +113,12 @@ function Events() {
             )}
 
             {!isLoading && !isEmpty() && (
-              <EventsTable data={list()} canEdit={hasPermission('event', WRITE_PERMISSION)} onDelete={handleDelete} />
+              <EventsTable
+                data={list()}
+                canDelete={hasPermission('event', WRITE_PERMISSION)}
+                canEdit={canWriteEvents}
+                onDelete={handleDelete}
+              />
             )}
           </CardContent>
         </Card>
