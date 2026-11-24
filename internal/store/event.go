@@ -29,6 +29,7 @@ var ErrEventNotFound = errors.New("event not found")
 type Event struct {
 	StandardAudit
 	Title                string
+	Slug                 string
 	StartsAt             time.Time
 	EndsAt               time.Time
 	LocationID           *uint
@@ -44,9 +45,10 @@ type Event struct {
 	Body                 string
 }
 
-func (s *storeLayer) CreateEvent(createdBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+func (s *storeLayer) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
 	event := Event{
 		Title:                title,
+		Slug:                 slug,
 		StartsAt:             startsAt,
 		EndsAt:               endsAt,
 		LocationID:           locationID,
@@ -121,7 +123,7 @@ func (s *storeLayer) GetEventsBetween(start, end time.Time) (*[]Event, error) {
 	return &events, nil
 }
 
-func (s *storeLayer) UpdateEvent(id uint, updatedBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+func (s *storeLayer) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
 	event, err := s.GetEvent(id)
 	if err != nil {
 		return nil, err
@@ -129,6 +131,7 @@ func (s *storeLayer) UpdateEvent(id uint, updatedBy, title string, startsAt, end
 
 	event.UpdatedBy = updatedBy
 	event.Title = title
+	event.Slug = slug
 	event.StartsAt = startsAt
 	event.EndsAt = endsAt
 	event.LocationID = locationID

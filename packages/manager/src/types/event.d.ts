@@ -12,6 +12,7 @@ export interface EventFeaturedImage {
 export interface Event {
   id: number
   title: string
+  slug: string
   startsAt: string
   endsAt: string
   locationId: number | null
@@ -27,6 +28,7 @@ export interface Event {
 
 export interface EventRequest {
   title: string
+  slug: string
   startsAt: string
   endsAt: string
   locationId: number | null

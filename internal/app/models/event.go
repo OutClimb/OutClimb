@@ -26,6 +26,7 @@ import (
 type EventInternal struct {
 	ID                   uint
 	Title                string
+	Slug                 string
 	StartsAt             time.Time
 	EndsAt               time.Time
 	LocationID           *uint
@@ -46,6 +47,7 @@ type EventInternal struct {
 func (e *EventInternal) Internalize(event *store.Event) {
 	e.ID = event.ID
 	e.Title = event.Title
+	e.Slug = event.Slug
 	e.StartsAt = event.StartsAt
 	e.EndsAt = event.EndsAt
 	e.LocationID = event.LocationID

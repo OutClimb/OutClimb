@@ -8,6 +8,7 @@ import { fetchLocations } from '@/api/location'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormActions } from '@/components/form-actions'
 import { applyLocationTimesToEvent, applyLocationToEvent } from '@/lib/event'
+import { slugify } from '@/lib/slug'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -31,6 +32,7 @@ const IMAGE_FILE_NAME_PATTERN = /\.(jpe?g|png|svg|webp)$/i
 
 interface EditorData {
   title: string
+  slug: string
   startsAt: string
   endsAt: string
   locationId: string
@@ -49,6 +51,7 @@ type EditorErrors = Record<keyof EditorData, string>
 
 const emptyData: EditorData = {
   title: '',
+  slug: '',
   startsAt: '',
   endsAt: '',
   locationId: NO_LOCATION_VALUE,
@@ -65,6 +68,7 @@ const emptyData: EditorData = {
 
 const emptyErrors: EditorErrors = {
   title: '',
+  slug: '',
   startsAt: '',
   endsAt: '',
   locationId: '',
@@ -81,6 +85,7 @@ const emptyErrors: EditorErrors = {
 
 const requiredTextFields: Array<keyof EditorData> = [
   'title',
+  'slug',
   'startsAt',
   'endsAt',
   'locationName',
@@ -101,6 +106,7 @@ function formatForDateTimeInput(isoString: string): string {
 function dataFromEvent(event: Event): EditorData {
   return {
     title: event.title,
+    slug: event.slug,
     startsAt: formatForDateTimeInput(event.startsAt),
     endsAt: formatForDateTimeInput(event.endsAt),
     locationId: event.locationId === null ? NO_LOCATION_VALUE : String(event.locationId),
@@ -137,6 +143,7 @@ function validate(data: EditorData): EditorErrors {
 function buildRequest(data: EditorData): EventRequest {
   return {
     title: data.title.trim(),
+    slug: data.slug.trim(),
     startsAt: new Date(parseInTimezone(data.startsAt) ?? 0).toISOString(),
     endsAt: new Date(parseInTimezone(data.endsAt) ?? 0).toISOString(),
     locationId: data.locationId === NO_LOCATION_VALUE ? null : Number(data.locationId),
@@ -169,6 +176,7 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
   const [saveError, setSaveError] = useState('')
   const [formData, setFormData] = useState<EditorData>(() => (initialEvent ? dataFromEvent(initialEvent) : emptyData))
   const [formErrors, setFormErrors] = useState<EditorErrors>(emptyErrors)
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(initialEvent))
 
   const locations = useMemo(() => Object.values(locationsById), [locationsById])
   const imageAssets = useMemo(
@@ -206,6 +214,20 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
     },
     [locationsById],
   )
+
+  const handleTitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const title = e.target.value
+      setFormData((prev) => ({ ...prev, title, slug: isSlugManuallyEdited ? prev.slug : slugify(title) }))
+    },
+    [isSlugManuallyEdited],
+  )
+
+  const handleSlugChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const slug = e.target.value
+    setFormData((prev) => ({ ...prev, slug }))
+    setIsSlugManuallyEdited(true)
+  }, [])
 
   const handleLocationChange = useCallback(
     (value: string) => {
@@ -290,10 +312,22 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
                 name="title"
                 type="text"
                 value={formData.title}
-                onChange={handleChange}
+                onChange={handleTitleChange}
                 disabled={isLoading}
               />
               <FieldError>{formErrors.title}</FieldError>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="slug">Slug</FieldLabel>
+              <Input
+                id="slug"
+                name="slug"
+                type="text"
+                value={formData.slug}
+                onChange={handleSlugChange}
+                disabled={isLoading}
+              />
+              <FieldError>{formErrors.slug}</FieldError>
             </Field>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field>

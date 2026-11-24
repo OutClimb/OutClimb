@@ -67,7 +67,7 @@ func (f *fakeEventApp) GetAllEvents() (*[]models.EventInternal, error) {
 	return &[]models.EventInternal{*newTestEventInternal(eventTestExistingID)}, nil
 }
 
-func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
 	f.createdTitle = title
 	return newTestEventInternal(eventTestExistingID), nil
 }

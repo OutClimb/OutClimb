@@ -42,13 +42,13 @@ func (f *fakeEventStore) GetAsset(id uint) (*store.Asset, error) {
 	return &store.Asset{}, nil
 }
 
-func (f *fakeEventStore) CreateEvent(createdBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
-	f.savedEvent = &store.Event{Title: title, StartsAt: startsAt, EndsAt: endsAt}
+func (f *fakeEventStore) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+	f.savedEvent = &store.Event{Title: title, Slug: slug, StartsAt: startsAt, EndsAt: endsAt}
 	return f.savedEvent, nil
 }
 
-func (f *fakeEventStore) UpdateEvent(id uint, updatedBy, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
-	f.savedEvent = &store.Event{Title: title, StartsAt: startsAt, EndsAt: endsAt}
+func (f *fakeEventStore) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+	f.savedEvent = &store.Event{Title: title, Slug: slug, StartsAt: startsAt, EndsAt: endsAt}
 	return f.savedEvent, nil
 }
 
@@ -171,6 +171,7 @@ func TestGetEventsForMonthRendersBodyMarkdownAsHTML(t *testing.T) {
 
 type eventInput struct {
 	title                string
+	slug                 string
 	startsAt             time.Time
 	endsAt               time.Time
 	locationName         string
@@ -191,6 +192,7 @@ func newValidEventInput() eventInput {
 
 	return eventInput{
 		title:                "Climb Night",
+		slug:                 "climb-night",
 		startsAt:             startsAt,
 		endsAt:               startsAt.Add(2 * time.Hour),
 		locationName:         "Gym",
@@ -213,6 +215,7 @@ func TestCreateAndUpdateEventValidation(t *testing.T) {
 	}{
 		{"valid", func(*eventInput) {}, nil},
 		{"missing title", func(in *eventInput) { in.title = "" }, ErrInvalidEvent},
+		{"missing slug", func(in *eventInput) { in.slug = "" }, ErrInvalidEvent},
 		{"missing start", func(in *eventInput) { in.startsAt = time.Time{} }, ErrInvalidEvent},
 		{"missing end", func(in *eventInput) { in.endsAt = time.Time{} }, ErrInvalidEvent},
 		{"missing location name", func(in *eventInput) { in.locationName = "" }, ErrInvalidEvent},
@@ -237,10 +240,10 @@ func TestCreateAndUpdateEventValidation(t *testing.T) {
 			tt.mutate(&input)
 
 			createApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
-			_, createErr := createApp.CreateEvent(user, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+			_, createErr := createApp.CreateEvent(user, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
 
 			updateApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
-			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
 
 			for _, err := range []error{createErr, updateErr} {
 				if !errors.Is(err, tt.wantErr) {
@@ -257,7 +260,7 @@ func TestCreateEventDoesNotSaveInvalidEvent(t *testing.T) {
 	input := newValidEventInput()
 	input.endsAt = input.startsAt
 
-	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -279,7 +282,7 @@ func TestCreateEventPassesThroughAssetLookupFailure(t *testing.T) {
 	app := &appLayer{store: &failingAssetStore{}}
 	input := newValidEventInput()
 
-	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
 
 	if err == nil || err.Error() != "database down" {
 		t.Errorf("error = %v, want database down", err)

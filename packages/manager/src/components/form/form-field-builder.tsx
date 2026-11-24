@@ -26,6 +26,7 @@ import {
   isBoolField,
   isChoiceField,
 } from '@/lib/form-field'
+import { slugify } from '@/lib/slug'
 import type { FieldConditions, FormField } from '@/types/form'
 
 const FIELD_TYPES = [
@@ -49,15 +50,6 @@ const TYPES_WITH_OPTIONS = new Set(['checkboxes', 'radios', 'select'])
 const TYPES_WITH_PLACEHOLDER = new Set(['text-input', 'text-area', 'select'])
 const NO_FIELD = '__none__'
 const DEFAULT_CONTENT_NAMES: Record<string, string> = { divider: 'Divider', paragraph: 'Paragraph' }
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
 
 function fieldTypeLabel(type: string): string {
   return FIELD_TYPES.find((t) => t.value === type)?.label ?? type

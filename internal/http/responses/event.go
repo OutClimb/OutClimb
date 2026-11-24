@@ -96,6 +96,7 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 
 type EventRequestPublic struct {
 	Title                string    `json:"title"`
+	Slug                 string    `json:"slug"`
 	StartsAt             time.Time `json:"startsAt"`
 	EndsAt               time.Time `json:"endsAt"`
 	LocationID           *uint     `json:"locationId"`
@@ -119,6 +120,7 @@ type eventFeaturedImageResponsePublic struct {
 type EventResponsePublic struct {
 	ID            uint                             `json:"id"`
 	Title         string                           `json:"title"`
+	Slug          string                           `json:"slug"`
 	StartsAt      time.Time                        `json:"startsAt"`
 	EndsAt        time.Time                        `json:"endsAt"`
 	LocationID    *uint                            `json:"locationId"`
@@ -135,6 +137,7 @@ type EventResponsePublic struct {
 func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
 	e.ID = event.ID
 	e.Title = event.Title
+	e.Slug = event.Slug
 	e.StartsAt = event.StartsAt
 	e.EndsAt = event.EndsAt
 	e.LocationID = event.LocationID

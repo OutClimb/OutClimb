@@ -114,12 +114,12 @@ func (a *appLayer) internalizeEvent(storedEvent *store.Event) (*models.EventInte
 	return event, nil
 }
 
-func (a *appLayer) CreateEvent(user *models.UserInternal, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
+func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.CreateEvent(user.Username, title, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	event, err := a.store.CreateEvent(user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
 	if err != nil {
 		return &models.EventInternal{}, err
 	}
@@ -127,12 +127,12 @@ func (a *appLayer) CreateEvent(user *models.UserInternal, title string, startsAt
 	return a.internalizeEvent(event)
 }
 
-func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
+func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.UpdateEvent(id, user.Username, title, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	event, err := a.store.UpdateEvent(id, user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
 	if err != nil {
 		return &models.EventInternal{}, translateEventStoreError(err)
 	}
@@ -183,12 +183,13 @@ func newInvalidEventError(reason string) error {
 	return fmt.Errorf("%w: %s", ErrInvalidEvent, reason)
 }
 
-func (a *appLayer) validateEvent(title string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) error {
+func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) error {
 	requiredTexts := []struct {
 		field string
 		value string
 	}{
 		{"title", title},
+		{"slug", slug},
 		{"location name", locationName},
 		{"address", address},
 		{"city", city},
