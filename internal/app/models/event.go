@@ -42,6 +42,7 @@ type EventInternal struct {
 	Excerpt              string
 	Body                 string
 	BodyHTML             string
+	Tags                 []string
 }
 
 func (e *EventInternal) Internalize(event *store.Event) {
@@ -60,6 +61,11 @@ func (e *EventInternal) Internalize(event *store.Event) {
 	e.FeaturedImageAltText = event.FeaturedImageAltText
 	e.Excerpt = event.Excerpt
 	e.Body = event.Body
+
+	e.Tags = make([]string, len(event.Tags))
+	for i, tag := range event.Tags {
+		e.Tags[i] = tag.Name
+	}
 }
 
 type EventFeedInternal struct {

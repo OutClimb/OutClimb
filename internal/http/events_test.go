@@ -20,6 +20,7 @@ package http
 import (
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -43,12 +44,13 @@ const (
 	eventPermissionWrite    = 2
 	eventTestRemoteAddress  = "192.0.2.10:4321"
 	eventTestAssetsDomain   = "assets.example.test"
-	eventTestCreateBodyJSON = `{"title":"Night Climb","startsAt":"2026-12-01T18:00:00-06:00","endsAt":"2026-12-01T20:00:00-06:00","locationName":"Gym","address":"1 Main St","city":"Austin","state":"TX","zip":"78701","featuredImageAssetId":3,"excerpt":"Climb","body":"Hello"}`
+	eventTestCreateBodyJSON = `{"title":"Night Climb","startsAt":"2026-12-01T18:00:00-06:00","endsAt":"2026-12-01T20:00:00-06:00","locationName":"Gym","address":"1 Main St","city":"Austin","state":"TX","zip":"78701","featuredImageAssetId":3,"excerpt":"Climb","body":"Hello","tags":["Bouldering","Free"]}`
 )
 
 type fakeEventApp struct {
 	app.AppLayer
 	createdTitle string
+	createdTags  []string
 }
 
 func (f *fakeEventApp) GetUser(userID uint) (*models.UserInternal, error) {
@@ -67,9 +69,14 @@ func (f *fakeEventApp) GetAllEvents() (*[]models.EventInternal, error) {
 	return &[]models.EventInternal{*newTestEventInternal(eventTestExistingID)}, nil
 }
 
-func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
+func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
 	f.createdTitle = title
+	f.createdTags = tags
 	return newTestEventInternal(eventTestExistingID), nil
+}
+
+func (f *fakeEventApp) GetAllTags() ([]string, error) {
+	return []string{"Bouldering", "Free"}, nil
 }
 
 func (f *fakeEventApp) DeleteEvent(id uint) error {
@@ -206,6 +213,9 @@ func TestCreateEventParsesCamelCaseBodyAndReturnsEvent(t *testing.T) {
 	if fake.createdTitle != "Night Climb" {
 		t.Errorf("app received title %q, want %q", fake.createdTitle, "Night Climb")
 	}
+	if !slices.Equal(fake.createdTags, []string{"Bouldering", "Free"}) {
+		t.Errorf("app received tags %q, want [Bouldering Free]", fake.createdTags)
+	}
 	for _, fragment := range []string{`"startsAt":"2026-12-02T00:00:00Z"`, `"featuredImage":{"assetId":3,"url":"https://assets.example.test/poster"`, `"locationName":"Gym"`} {
 		if !strings.Contains(recorder.Body.String(), fragment) {
 			t.Errorf("response missing %s in %s", fragment, recorder.Body.String())
@@ -262,5 +272,19 @@ func TestEventsFeedIsRateLimited(t *testing.T) {
 
 	if lastStatus != http.StatusTooManyRequests {
 		t.Errorf("status after exceeding limit = %d, want 429", lastStatus)
+	}
+}
+
+func TestGetTagsIsNotShadowedByEventIDRoute(t *testing.T) {
+	handler := newEventTestEngine(&fakeEventApp{})
+	token := signEventToken(t, "Editor", eventPermissionRead)
+
+	recorder := performEventRequest(handler, http.MethodGet, "/api/v1/event/tags", token, "")
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", recorder.Code, recorder.Body.String())
+	}
+	if recorder.Body.String() != `["Bouldering","Free"]` {
+		t.Errorf("body = %s, want tag names", recorder.Body.String())
 	}
 }

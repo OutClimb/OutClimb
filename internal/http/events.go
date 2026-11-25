@@ -73,7 +73,7 @@ func (h *httpLayer) createEvent(c *gin.Context) {
 		return
 	}
 
-	event, err := h.app.CreateEvent(user, body.Title, body.Slug, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
+	event, err := h.app.CreateEvent(user, body.Title, body.Slug, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body, body.Tags)
 	if err != nil {
 		respondWithEventError(c, err, "Unable to create event")
 		return
@@ -103,7 +103,7 @@ func (h *httpLayer) updateEvent(c *gin.Context) {
 		return
 	}
 
-	event, err := h.app.UpdateEvent(user, uint(id), body.Title, body.Slug, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body)
+	event, err := h.app.UpdateEvent(user, uint(id), body.Title, body.Slug, body.StartsAt, body.EndsAt, body.LocationID, body.LocationName, body.Address, body.City, body.State, body.Zip, body.FeaturedImageAssetID, body.FeaturedImageAltText, body.Excerpt, body.Body, body.Tags)
 	if err != nil {
 		respondWithEventError(c, err, "Unable to update event")
 		return
@@ -188,4 +188,15 @@ func parseEventRequest(c *gin.Context) (responses.EventRequestPublic, bool) {
 	}
 
 	return body, true
+}
+
+func (h *httpLayer) getTags(c *gin.Context) {
+	tags, err := h.app.GetAllTags()
+	if err != nil {
+		slog.Error("Unable to retrieve tags", "err", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve tags"})
+		return
+	}
+
+	c.JSON(http.StatusOK, tags)
 }

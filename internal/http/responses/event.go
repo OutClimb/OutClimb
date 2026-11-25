@@ -64,6 +64,7 @@ type EventPublic struct {
 	GUID           guidPublic          `xml:"guid"`
 	ContentEncoded *cdataContent       `xml:"http://purl.org/rss/1.0/modules/content/ encoded"`
 	MediaContent   *mediaContentPublic `xml:"http://www.rssboard.org/media-rss content"`
+	Categories     []string            `xml:"category"`
 }
 
 func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
@@ -83,6 +84,7 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 			Description: event.Excerpt,
 			PubDate:     event.StartsAt.In(centralTime).Format(time.RFC1123Z),
 			GUID:        guidPublic{Value: "event-" + strconv.FormatUint(uint64(event.ID), 10)},
+			Categories:  event.Tags,
 		}
 		if event.BodyHTML != "" {
 			ep.ContentEncoded = &cdataContent{Inner: []byte("<![CDATA[" + event.BodyHTML + "]]>")}
@@ -109,6 +111,7 @@ type EventRequestPublic struct {
 	FeaturedImageAltText string    `json:"featuredImageAltText"`
 	Excerpt              string    `json:"excerpt"`
 	Body                 string    `json:"body"`
+	Tags                 []string  `json:"tags"`
 }
 
 type eventFeaturedImageResponsePublic struct {
@@ -132,6 +135,7 @@ type EventResponsePublic struct {
 	FeaturedImage eventFeaturedImageResponsePublic `json:"featuredImage"`
 	Excerpt       string                           `json:"excerpt"`
 	Body          string                           `json:"body"`
+	Tags          []string                         `json:"tags"`
 }
 
 func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
@@ -153,4 +157,5 @@ func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
 	}
 	e.Excerpt = event.Excerpt
 	e.Body = event.Body
+	e.Tags = event.Tags
 }

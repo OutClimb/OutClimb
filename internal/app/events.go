@@ -22,7 +22,9 @@ import (
 	"fmt"
 	"mime"
 	"path"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/OutClimb/OutClimb/internal/app/models"
 	"github.com/OutClimb/OutClimb/internal/store"
@@ -33,6 +35,7 @@ const (
 	eventsFeedTitle       = "OutClimb Events"
 	eventsFeedLink        = "https://outclimb.gay/events"
 	eventsFeedDescription = "Upcoming events from OutClimb"
+	maxEventTagLength     = 50
 )
 
 var (
@@ -114,12 +117,13 @@ func (a *appLayer) internalizeEvent(storedEvent *store.Event) (*models.EventInte
 	return event, nil
 }
 
-func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
+func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
+	tags = normalizeEventTags(tags)
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.CreateEvent(user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	event, err := a.store.CreateEvent(user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags)
 	if err != nil {
 		return &models.EventInternal{}, err
 	}
@@ -127,12 +131,13 @@ func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, st
 	return a.internalizeEvent(event)
 }
 
-func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*models.EventInternal, error) {
-	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body); err != nil {
+func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
+	tags = normalizeEventTags(tags)
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.UpdateEvent(id, user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body)
+	event, err := a.store.UpdateEvent(id, user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags)
 	if err != nil {
 		return &models.EventInternal{}, translateEventStoreError(err)
 	}
@@ -183,7 +188,7 @@ func newInvalidEventError(reason string) error {
 	return fmt.Errorf("%w: %s", ErrInvalidEvent, reason)
 }
 
-func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) error {
+func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) error {
 	requiredTexts := []struct {
 		field string
 		value string
@@ -224,5 +229,42 @@ func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time,
 		return err
 	}
 
+	for _, tag := range tags {
+		if utf8.RuneCountInString(tag) > maxEventTagLength {
+			return newInvalidEventError(fmt.Sprintf("tag %q is longer than %d characters", tag, maxEventTagLength))
+		}
+	}
+
 	return nil
+}
+
+func normalizeEventTags(tags []string) []string {
+	normalized := make([]string, 0, len(tags))
+	seen := map[string]bool{}
+
+	for _, tag := range tags {
+		trimmed := strings.Join(strings.Fields(tag), " ")
+		key := strings.ToLower(trimmed)
+		if trimmed == "" || seen[key] {
+			continue
+		}
+		seen[key] = true
+		normalized = append(normalized, trimmed)
+	}
+
+	return normalized
+}
+
+func (a *appLayer) GetAllTags() ([]string, error) {
+	tags, err := a.store.GetAllTags()
+	if err != nil {
+		return []string{}, err
+	}
+
+	names := make([]string, len(*tags))
+	for i, tag := range *tags {
+		names[i] = tag.Name
+	}
+
+	return names, nil
 }

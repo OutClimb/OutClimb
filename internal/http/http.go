@@ -330,6 +330,7 @@ func (h *httpLayer) setupV1ApiRoutes() {
 		eventApi := api.Group("/event").Use(middleware.RequestBodyLimit(h.config.MaxJsonBodySize)).Use(middleware.Auth(h.config, false, false)).Use(middleware.Permission("event"))
 		{
 			eventApi.GET("", h.getEvents)
+			eventApi.GET("/tags", h.getTags)
 			eventApi.GET("/:id", h.getEvent)
 			eventApi.POST("", h.createEvent)
 			eventApi.PUT("/:id", h.updateEvent)

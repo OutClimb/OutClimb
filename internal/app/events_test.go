@@ -17,6 +17,8 @@ package app
 
 import (
 	"errors"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,12 +28,13 @@ import (
 
 type fakeEventStore struct {
 	store.StoreLayer
-	events      []store.Event
-	rangeStart  time.Time
-	rangeEnd    time.Time
-	assetURLFor map[string]string
-	knownAssets map[uint]bool
-	savedEvent  *store.Event
+	events        []store.Event
+	rangeStart    time.Time
+	rangeEnd      time.Time
+	assetURLFor   map[string]string
+	knownAssets   map[uint]bool
+	savedEvent    *store.Event
+	savedTagNames []string
 }
 
 func (f *fakeEventStore) GetAsset(id uint) (*store.Asset, error) {
@@ -42,13 +45,15 @@ func (f *fakeEventStore) GetAsset(id uint) (*store.Asset, error) {
 	return &store.Asset{}, nil
 }
 
-func (f *fakeEventStore) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+func (f *fakeEventStore) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tagNames []string) (*store.Event, error) {
 	f.savedEvent = &store.Event{Title: title, Slug: slug, StartsAt: startsAt, EndsAt: endsAt}
+	f.savedTagNames = tagNames
 	return f.savedEvent, nil
 }
 
-func (f *fakeEventStore) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*store.Event, error) {
+func (f *fakeEventStore) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tagNames []string) (*store.Event, error) {
 	f.savedEvent = &store.Event{Title: title, Slug: slug, StartsAt: startsAt, EndsAt: endsAt}
+	f.savedTagNames = tagNames
 	return f.savedEvent, nil
 }
 
@@ -240,10 +245,10 @@ func TestCreateAndUpdateEventValidation(t *testing.T) {
 			tt.mutate(&input)
 
 			createApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
-			_, createErr := createApp.CreateEvent(user, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+			_, createErr := createApp.CreateEvent(user, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, nil)
 
 			updateApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
-			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+			_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, nil)
 
 			for _, err := range []error{createErr, updateErr} {
 				if !errors.Is(err, tt.wantErr) {
@@ -260,7 +265,7 @@ func TestCreateEventDoesNotSaveInvalidEvent(t *testing.T) {
 	input := newValidEventInput()
 	input.endsAt = input.startsAt
 
-	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, nil)
 
 	if err == nil {
 		t.Fatal("expected error")
@@ -282,7 +287,7 @@ func TestCreateEventPassesThroughAssetLookupFailure(t *testing.T) {
 	app := &appLayer{store: &failingAssetStore{}}
 	input := newValidEventInput()
 
-	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body)
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, nil)
 
 	if err == nil || err.Error() != "database down" {
 		t.Errorf("error = %v, want database down", err)
@@ -310,6 +315,41 @@ func TestMissingEventReturnsEventNotFound(t *testing.T) {
 	for _, err := range []error{getErr, deleteErr} {
 		if !errors.Is(err, ErrEventNotFound) {
 			t.Errorf("error = %v, want ErrEventNotFound", err)
+		}
+	}
+}
+
+func TestCreateEventNormalizesTags(t *testing.T) {
+	fake := &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}
+	app := &appLayer{store: fake}
+	input := newValidEventInput()
+	tags := []string{"  Bouldering ", "rope   climbing", "", "bouldering", "Free"}
+
+	_, err := app.CreateEvent(&models.UserInternal{Username: "tester"}, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, tags)
+	if err != nil {
+		t.Fatalf("unexpected error %v", err)
+	}
+
+	want := []string{"Bouldering", "rope climbing", "Free"}
+	if !slices.Equal(fake.savedTagNames, want) {
+		t.Errorf("saved tags = %q, want %q", fake.savedTagNames, want)
+	}
+}
+
+func TestCreateAndUpdateEventRejectOverlongTag(t *testing.T) {
+	user := &models.UserInternal{Username: "tester"}
+	input := newValidEventInput()
+	tags := []string{strings.Repeat("a", maxEventTagLength+1)}
+
+	createApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
+	_, createErr := createApp.CreateEvent(user, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, tags)
+
+	updateApp := &appLayer{store: &fakeEventStore{knownAssets: map[uint]bool{knownAssetID: true}}}
+	_, updateErr := updateApp.UpdateEvent(user, 1, input.title, input.slug, input.startsAt, input.endsAt, nil, input.locationName, input.address, input.city, input.state, input.zip, input.assetID, input.featuredImageAltText, input.excerpt, input.body, tags)
+
+	for _, err := range []error{createErr, updateErr} {
+		if !errors.Is(err, ErrInvalidEvent) {
+			t.Errorf("error = %v, want %v", err, ErrInvalidEvent)
 		}
 	}
 }

@@ -43,9 +43,10 @@ type Event struct {
 	FeaturedImageAltText string
 	Excerpt              string
 	Body                 string
+	Tags                 []Tag `gorm:"many2many:event_tags"`
 }
 
-func (s *storeLayer) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+func (s *storeLayer) CreateEvent(createdBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tagNames []string) (*Event, error) {
 	event := Event{
 		Title:                title,
 		Slug:                 slug,
@@ -66,8 +67,15 @@ func (s *storeLayer) CreateEvent(createdBy, title, slug string, startsAt, endsAt
 	event.CreatedBy = createdBy
 	event.UpdatedBy = createdBy
 
-	if result := s.db.Create(&event); result.Error != nil {
-		return nil, result.Error
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		if result := tx.Create(&event); result.Error != nil {
+			return result.Error
+		}
+
+		return replaceEventTags(tx, &event, tagNames)
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return s.GetEvent(event.ID)
@@ -89,7 +97,7 @@ func (s *storeLayer) DeleteEvent(id uint) error {
 func (s *storeLayer) GetAllEvents() (*[]Event, error) {
 	events := []Event{}
 
-	if result := s.db.Preload("FeaturedImage").Order("starts_at").Find(&events); result.Error != nil {
+	if result := s.db.Preload("FeaturedImage").Preload("Tags", orderTagsByName).Order("starts_at").Find(&events); result.Error != nil {
 		return &[]Event{}, result.Error
 	}
 
@@ -99,7 +107,7 @@ func (s *storeLayer) GetAllEvents() (*[]Event, error) {
 func (s *storeLayer) GetEvent(id uint) (*Event, error) {
 	event := Event{}
 
-	if result := s.db.Preload("FeaturedImage").First(&event, id); result.Error != nil {
+	if result := s.db.Preload("FeaturedImage").Preload("Tags", orderTagsByName).First(&event, id); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return &Event{}, ErrEventNotFound
 		}
@@ -113,7 +121,7 @@ func (s *storeLayer) GetEvent(id uint) (*Event, error) {
 func (s *storeLayer) GetEventsBetween(start, end time.Time) (*[]Event, error) {
 	events := []Event{}
 
-	query := s.db.Preload("FeaturedImage").
+	query := s.db.Preload("FeaturedImage").Preload("Tags", orderTagsByName).
 		Where("starts_at >= ? AND starts_at < ?", start, end).
 		Order("starts_at")
 	if result := query.Find(&events); result.Error != nil {
@@ -123,7 +131,7 @@ func (s *storeLayer) GetEventsBetween(start, end time.Time) (*[]Event, error) {
 	return &events, nil
 }
 
-func (s *storeLayer) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string) (*Event, error) {
+func (s *storeLayer) UpdateEvent(id uint, updatedBy, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tagNames []string) (*Event, error) {
 	event, err := s.GetEvent(id)
 	if err != nil {
 		return nil, err
@@ -145,8 +153,15 @@ func (s *storeLayer) UpdateEvent(id uint, updatedBy, title, slug string, startsA
 	event.Excerpt = excerpt
 	event.Body = body
 
-	if result := s.db.Omit("FeaturedImage").Save(event); result.Error != nil {
-		return nil, result.Error
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if result := tx.Omit("FeaturedImage", "Tags").Save(event); result.Error != nil {
+			return result.Error
+		}
+
+		return replaceEventTags(tx, event, tagNames)
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return s.GetEvent(id)
