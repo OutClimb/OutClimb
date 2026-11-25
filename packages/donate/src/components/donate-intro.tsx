@@ -26,10 +26,10 @@ function InfoCard({ icon, title, description, linkLabel, linkHref }: InfoCardPro
 export function DonateHero() {
   return (
     <div className="flex flex-col gap-3.5">
-      <span className="text-sm font-semibold tracking-widest text-brand uppercase">Donate</span>
       <h1 className="text-[1.875rem] leading-[1.15] font-extrabold tracking-tight text-ink md:text-5xl lg:text-[3.2rem]">
-        Help us make climbing accessible.
+        Donate
       </h1>
+      <span className="text-xl font-semibold text-brand">Help us make climbing accessible.</span>
       <p className="max-w-[540px] text-lg leading-relaxed text-ink-soft">
         OutClimb is a 501(c)(3) nonprofit working to make climbing accessible to as many trans and queer people as
         possible. Every dollar goes toward getting more of our community on the wall.
