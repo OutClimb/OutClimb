@@ -12,7 +12,6 @@ import {
   STRIPE_FEE_PERCENT,
   validateAmount,
 } from '@/api/donation'
-import { HandHeart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FieldError } from '@/components/ui/field'
@@ -68,7 +67,6 @@ export function DonationForm() {
   }
 
   const totalCents = 'cents' in validation ? validation.cents : null
-  const donateLabel = totalCents === null ? 'Donate' : `Donate ${formatCentsAsDollars(totalCents)}`
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -222,8 +220,7 @@ export function DonationForm() {
           type="submit"
           className="h-[52px] w-full rounded-[10px] text-base shadow-xs"
           disabled={submitting || hasAmountError}>
-          <HandHeart aria-hidden="true" className="size-[18px]" />
-          {submitting ? 'Redirecting to Stripe…' : donateLabel}
+          {submitting ? 'Redirecting to Stripe…' : 'Donate'}
         </Button>
 
         <p className="text-[13px] leading-normal text-ink-muted">

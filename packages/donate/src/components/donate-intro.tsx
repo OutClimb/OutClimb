@@ -1,9 +1,8 @@
-import { FileText, ShieldCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { CONTACT_EMAIL, EIN, FINANCIAL_REPORT_URL } from '@/lib/site-links'
 
 interface InfoCardProps {
-  icon: ReactNode
+  icon?: ReactNode
   title: string
   description: string
   linkLabel: string
@@ -13,7 +12,7 @@ interface InfoCardProps {
 function InfoCard({ icon, title, description, linkLabel, linkHref }: InfoCardProps) {
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-white p-5 shadow-xs">
-      <span className="text-brand">{icon}</span>
+      {icon && <span className="text-brand">{icon}</span>}
       <strong className="font-semibold text-ink">{title}</strong>
       <span className="text-sm leading-relaxed text-ink-soft">{description}</span>
       <a href={linkHref} className="text-sm font-medium text-brand hover:underline">
@@ -49,14 +48,12 @@ export function DonateInfo() {
       />
       <div className="grid gap-4 md:grid-cols-2">
         <InfoCard
-          icon={<FileText aria-hidden="true" className="size-[22px]" />}
           title="See where it goes"
           description="We publish our finances every year."
           linkLabel="2025 Financial Report →"
           linkHref={FINANCIAL_REPORT_URL}
         />
         <InfoCard
-          icon={<ShieldCheck aria-hidden="true" className="size-[22px]" />}
           title="Tax deductible"
           description={`All donations are tax deductible. EIN ${EIN}.`}
           linkLabel="Questions? Email us →"
