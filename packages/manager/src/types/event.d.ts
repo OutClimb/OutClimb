@@ -2,6 +2,7 @@ export type CreateEventResponse = Event
 export type GetEventsResponse = Array<Event>
 export type GetEventResponse = Event
 export type UpdateEventResponse = Event
+export type GetEventTagsResponse = Array<string>
 
 export interface EventFeaturedImage {
   assetId: number
@@ -24,6 +25,7 @@ export interface Event {
   featuredImage: EventFeaturedImage
   excerpt: string
   body: string
+  tags: Array<string>
 }
 
 export interface EventRequest {
@@ -41,4 +43,5 @@ export interface EventRequest {
   featuredImageAltText: string
   excerpt: string
   body: string
+  tags: Array<string>
 }

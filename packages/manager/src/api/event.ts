@@ -2,6 +2,7 @@ import type {
   CreateEventResponse,
   EventRequest,
   GetEventResponse,
+  GetEventTagsResponse,
   GetEventsResponse,
   UpdateEventResponse,
 } from '@/types/event'
@@ -13,6 +14,10 @@ export async function createEvent(token: string, event: EventRequest): Promise<C
 
 export async function fetchEvent(token: string, id: number): Promise<GetEventResponse> {
   return apiFetch<GetEventResponse>(token, 'GET', `/api/v1/event/${id}`)
+}
+
+export async function fetchEventTags(token: string): Promise<GetEventTagsResponse> {
+  return apiFetch<GetEventTagsResponse>(token, 'GET', '/api/v1/event/tags')
 }
 
 export async function fetchEvents(token: string): Promise<GetEventsResponse> {

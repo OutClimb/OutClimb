@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchAssets } from '@/api/asset'
+import { fetchEventTags } from '@/api/event'
 import { fetchLocations } from '@/api/location'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormActions } from '@/components/form-actions'
@@ -13,6 +14,7 @@ import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
+import { TagInput } from './tag-input'
 import { Textarea } from '@/components/ui/textarea'
 import { UnauthorizedError } from '@/errors/unauthorized'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -45,7 +47,10 @@ interface EditorData {
   featuredImageAltText: string
   excerpt: string
   body: string
+  tags: Array<string>
 }
+
+type EditorTextField = Exclude<keyof EditorData, 'tags'>
 
 type EditorErrors = Record<keyof EditorData, string>
 
@@ -64,6 +69,7 @@ const emptyData: EditorData = {
   featuredImageAltText: '',
   excerpt: '',
   body: '',
+  tags: [],
 }
 
 const emptyErrors: EditorErrors = {
@@ -81,9 +87,10 @@ const emptyErrors: EditorErrors = {
   featuredImageAltText: '',
   excerpt: '',
   body: '',
+  tags: '',
 }
 
-const requiredTextFields: Array<keyof EditorData> = [
+const requiredTextFields: Array<EditorTextField> = [
   'title',
   'slug',
   'startsAt',
@@ -119,6 +126,7 @@ function dataFromEvent(event: Event): EditorData {
     featuredImageAltText: event.featuredImage.altText,
     excerpt: event.excerpt,
     body: event.body,
+    tags: event.tags,
   }
 }
 
@@ -156,6 +164,7 @@ function buildRequest(data: EditorData): EventRequest {
     featuredImageAltText: data.featuredImageAltText.trim(),
     excerpt: data.excerpt.trim(),
     body: data.body.trim(),
+    tags: data.tags,
   }
 }
 
@@ -177,6 +186,7 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
   const [formData, setFormData] = useState<EditorData>(() => (initialEvent ? dataFromEvent(initialEvent) : emptyData))
   const [formErrors, setFormErrors] = useState<EditorErrors>(emptyErrors)
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(initialEvent))
+  const [tagSuggestions, setTagSuggestions] = useState<Array<string>>([])
 
   const locations = useMemo(() => Object.values(locationsById), [locationsById])
   const imageAssets = useMemo(
@@ -187,12 +197,14 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const [fetchedLocations, fetchedAssets] = await Promise.all([
+        const [fetchedLocations, fetchedAssets, fetchedTags] = await Promise.all([
           fetchLocations(token ?? ''),
           fetchAssets(token ?? ''),
+          fetchEventTags(token ?? ''),
         ])
         populateLocations(fetchedLocations)
         populateAssets(fetchedAssets)
+        setTagSuggestions(fetchedTags)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           navigate({ to: '/manage/login' })
@@ -242,6 +254,10 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
     },
     [locationsById],
   )
+
+  const handleTagsChange = useCallback((tags: Array<string>) => {
+    setFormData((prev) => ({ ...prev, tags }))
+  }, [])
 
   const handleFeaturedImageChange = useCallback((value: string) => {
     setFormData((prev) => ({ ...prev, featuredImageAssetId: value }))
@@ -379,6 +395,17 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
                 disabled={isLoading}
               />
               <FieldError>{formErrors.body}</FieldError>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="tags">Tags</FieldLabel>
+              <FieldDescription>Press Enter or comma to add a tag, such as bouldering, rope, or free</FieldDescription>
+              <TagInput
+                id="tags"
+                tags={formData.tags}
+                suggestions={tagSuggestions}
+                onChange={handleTagsChange}
+                disabled={isLoading}
+              />
             </Field>
           </FieldGroup>
         </CardContent>
