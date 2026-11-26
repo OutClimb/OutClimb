@@ -4,6 +4,11 @@ export type GetEventResponse = Event
 export type UpdateEventResponse = Event
 export type GetEventTagsResponse = Array<string>
 
+export interface EventLink {
+  label: string
+  url: string
+}
+
 export interface EventFeaturedImage {
   assetId: number
   url: string
@@ -26,6 +31,7 @@ export interface Event {
   excerpt: string
   body: string
   tags: Array<string>
+  links: Array<EventLink>
 }
 
 export interface EventRequest {
@@ -44,4 +50,5 @@ export interface EventRequest {
   excerpt: string
   body: string
   tags: Array<string>
+  links: Array<EventLink>
 }

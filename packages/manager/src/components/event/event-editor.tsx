@@ -9,9 +9,12 @@ import { fetchLocations } from '@/api/location'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormActions } from '@/components/form-actions'
 import { applyLocationTimesToEvent, applyLocationToEvent } from '@/lib/event'
+import { hasEventLinkErrors, normalizeEventLink, validateEventLink } from '@/lib/event-link'
+import type { EventLinkErrors } from '@/lib/event-link'
 import { slugify } from '@/lib/slug'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
+import { LinkInput } from './link-input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { TagInput } from './tag-input'
@@ -22,7 +25,7 @@ import { useNavigate } from '@tanstack/react-router'
 import useAssetStore from '@/stores/asset'
 import useLocationStore from '@/stores/location'
 import useSelfStore from '@/stores/self'
-import type { Event, EventRequest } from '@/types/event'
+import type { Event, EventLink, EventRequest } from '@/types/event'
 
 const REQUIRED_FIELD_MESSAGE = 'Please fill in this field'
 const END_BEFORE_START_MESSAGE = 'End must be after the start'
@@ -48,11 +51,12 @@ interface EditorData {
   excerpt: string
   body: string
   tags: Array<string>
+  links: Array<EventLink>
 }
 
-type EditorTextField = Exclude<keyof EditorData, 'tags'>
+type EditorTextField = Exclude<keyof EditorData, 'tags' | 'links'>
 
-type EditorErrors = Record<keyof EditorData, string>
+type EditorErrors = Record<Exclude<keyof EditorData, 'links'>, string>
 
 const emptyData: EditorData = {
   title: '',
@@ -70,6 +74,7 @@ const emptyData: EditorData = {
   excerpt: '',
   body: '',
   tags: [],
+  links: [],
 }
 
 const emptyErrors: EditorErrors = {
@@ -127,6 +132,7 @@ function dataFromEvent(event: Event): EditorData {
     excerpt: event.excerpt,
     body: event.body,
     tags: event.tags,
+    links: event.links,
   }
 }
 
@@ -165,6 +171,7 @@ function buildRequest(data: EditorData): EventRequest {
     excerpt: data.excerpt.trim(),
     body: data.body.trim(),
     tags: data.tags,
+    links: data.links.map(normalizeEventLink),
   }
 }
 
@@ -185,6 +192,7 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
   const [saveError, setSaveError] = useState('')
   const [formData, setFormData] = useState<EditorData>(() => (initialEvent ? dataFromEvent(initialEvent) : emptyData))
   const [formErrors, setFormErrors] = useState<EditorErrors>(emptyErrors)
+  const [linkErrors, setLinkErrors] = useState<Array<EventLinkErrors>>([])
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(initialEvent))
   const [tagSuggestions, setTagSuggestions] = useState<Array<string>>([])
 
@@ -259,6 +267,11 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
     setFormData((prev) => ({ ...prev, tags }))
   }, [])
 
+  const handleLinksChange = useCallback((links: Array<EventLink>) => {
+    setFormData((prev) => ({ ...prev, links }))
+    setLinkErrors([])
+  }, [])
+
   const handleFeaturedImageChange = useCallback((value: string) => {
     setFormData((prev) => ({ ...prev, featuredImageAssetId: value }))
   }, [])
@@ -268,8 +281,10 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
       e.preventDefault()
 
       const errors = validate(formData)
+      const nextLinkErrors = formData.links.map(validateEventLink)
       setFormErrors(errors)
-      if (Object.values(errors).some(Boolean)) return
+      setLinkErrors(nextLinkErrors)
+      if (Object.values(errors).some(Boolean) || hasEventLinkErrors(nextLinkErrors)) return
 
       setIsLoading(true)
       setSaveError('')
@@ -404,6 +419,28 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
                 tags={formData.tags}
                 suggestions={tagSuggestions}
                 onChange={handleTagsChange}
+                disabled={isLoading}
+              />
+            </Field>
+          </FieldGroup>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Links</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FieldGroup>
+            <Field>
+              <FieldDescription>
+                External pages for this event, such as a registration form or the gym&apos;s event page
+              </FieldDescription>
+              <LinkInput
+                id="links"
+                links={formData.links}
+                errors={linkErrors}
+                onChange={handleLinksChange}
                 disabled={isLoading}
               />
             </Field>
