@@ -43,6 +43,12 @@ type EventInternal struct {
 	Body                 string
 	BodyHTML             string
 	Tags                 []string
+	Links                []EventLinkInternal
+}
+
+type EventLinkInternal struct {
+	Label string
+	URL   string
 }
 
 func (e *EventInternal) Internalize(event *store.Event) {
@@ -65,6 +71,11 @@ func (e *EventInternal) Internalize(event *store.Event) {
 	e.Tags = make([]string, len(event.Tags))
 	for i, tag := range event.Tags {
 		e.Tags[i] = tag.Name
+	}
+
+	e.Links = make([]EventLinkInternal, len(event.Links))
+	for i, link := range event.Links {
+		e.Links[i] = EventLinkInternal{Label: link.Label, URL: link.URL}
 	}
 }
 

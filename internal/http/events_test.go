@@ -44,13 +44,14 @@ const (
 	eventPermissionWrite    = 2
 	eventTestRemoteAddress  = "192.0.2.10:4321"
 	eventTestAssetsDomain   = "assets.example.test"
-	eventTestCreateBodyJSON = `{"title":"Night Climb","startsAt":"2026-12-01T18:00:00-06:00","endsAt":"2026-12-01T20:00:00-06:00","locationName":"Gym","address":"1 Main St","city":"Austin","state":"TX","zip":"78701","featuredImageAssetId":3,"excerpt":"Climb","body":"Hello","tags":["Bouldering","Free"]}`
+	eventTestCreateBodyJSON = `{"title":"Night Climb","startsAt":"2026-12-01T18:00:00-06:00","endsAt":"2026-12-01T20:00:00-06:00","locationName":"Gym","address":"1 Main St","city":"Austin","state":"TX","zip":"78701","featuredImageAssetId":3,"excerpt":"Climb","body":"Hello","tags":["Bouldering","Free"],"links":[{"label":"Register","url":"https://forms.example.test/register"}]}`
 )
 
 type fakeEventApp struct {
 	app.AppLayer
 	createdTitle string
 	createdTags  []string
+	createdLinks []models.EventLinkInternal
 }
 
 func (f *fakeEventApp) GetUser(userID uint) (*models.UserInternal, error) {
@@ -69,9 +70,10 @@ func (f *fakeEventApp) GetAllEvents() (*[]models.EventInternal, error) {
 	return &[]models.EventInternal{*newTestEventInternal(eventTestExistingID)}, nil
 }
 
-func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
+func (f *fakeEventApp) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string, links []models.EventLinkInternal) (*models.EventInternal, error) {
 	f.createdTitle = title
 	f.createdTags = tags
+	f.createdLinks = links
 	return newTestEventInternal(eventTestExistingID), nil
 }
 
@@ -215,6 +217,10 @@ func TestCreateEventParsesCamelCaseBodyAndReturnsEvent(t *testing.T) {
 	}
 	if !slices.Equal(fake.createdTags, []string{"Bouldering", "Free"}) {
 		t.Errorf("app received tags %q, want [Bouldering Free]", fake.createdTags)
+	}
+	wantLinks := []models.EventLinkInternal{{Label: "Register", URL: "https://forms.example.test/register"}}
+	if !slices.Equal(fake.createdLinks, wantLinks) {
+		t.Errorf("app received links %+v, want %+v", fake.createdLinks, wantLinks)
 	}
 	for _, fragment := range []string{`"startsAt":"2026-12-02T00:00:00Z"`, `"featuredImage":{"assetId":3,"url":"https://assets.example.test/poster"`, `"locationName":"Gym"`} {
 		if !strings.Contains(recorder.Body.String(), fragment) {

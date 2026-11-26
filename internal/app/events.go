@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"mime"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -31,11 +32,14 @@ import (
 )
 
 const (
-	eventsTimezoneName    = "America/Chicago"
-	eventsFeedTitle       = "OutClimb Events"
-	eventsFeedLink        = "https://outclimb.gay/events"
-	eventsFeedDescription = "Upcoming events from OutClimb"
-	maxEventTagLength     = 50
+	eventsTimezoneName      = "America/Chicago"
+	eventsFeedTitle         = "OutClimb Events"
+	eventsFeedLink          = "https://outclimb.gay/events"
+	eventsFeedDescription   = "Upcoming events from OutClimb"
+	maxEventTagLength       = 50
+	maxEventLinkLabelLength = 100
+	maxEventLinkURLLength   = 2048
+	eventLinkURLScheme      = "https"
 )
 
 var (
@@ -117,13 +121,14 @@ func (a *appLayer) internalizeEvent(storedEvent *store.Event) (*models.EventInte
 	return event, nil
 }
 
-func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
+func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string, links []models.EventLinkInternal) (*models.EventInternal, error) {
 	tags = normalizeEventTags(tags)
-	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags); err != nil {
+	links = normalizeEventLinks(links)
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags, links); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.CreateEvent(user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags)
+	event, err := a.store.CreateEvent(user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags, buildStoreEventLinks(links))
 	if err != nil {
 		return &models.EventInternal{}, err
 	}
@@ -131,13 +136,14 @@ func (a *appLayer) CreateEvent(user *models.UserInternal, title, slug string, st
 	return a.internalizeEvent(event)
 }
 
-func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) (*models.EventInternal, error) {
+func (a *appLayer) UpdateEvent(user *models.UserInternal, id uint, title, slug string, startsAt, endsAt time.Time, locationID *uint, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string, links []models.EventLinkInternal) (*models.EventInternal, error) {
 	tags = normalizeEventTags(tags)
-	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags); err != nil {
+	links = normalizeEventLinks(links)
+	if err := a.validateEvent(title, slug, startsAt, endsAt, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags, links); err != nil {
 		return &models.EventInternal{}, err
 	}
 
-	event, err := a.store.UpdateEvent(id, user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags)
+	event, err := a.store.UpdateEvent(id, user.Username, title, slug, startsAt, endsAt, locationID, locationName, address, city, state, zip, featuredImageAssetID, featuredImageAltText, excerpt, body, tags, buildStoreEventLinks(links))
 	if err != nil {
 		return &models.EventInternal{}, translateEventStoreError(err)
 	}
@@ -188,7 +194,7 @@ func newInvalidEventError(reason string) error {
 	return fmt.Errorf("%w: %s", ErrInvalidEvent, reason)
 }
 
-func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string) error {
+func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time, locationName, address, city, state, zip string, featuredImageAssetID uint, featuredImageAltText, excerpt, body string, tags []string, links []models.EventLinkInternal) error {
 	requiredTexts := []struct {
 		field string
 		value string
@@ -235,6 +241,12 @@ func (a *appLayer) validateEvent(title, slug string, startsAt, endsAt time.Time,
 		}
 	}
 
+	for _, link := range links {
+		if err := validateEventLink(link); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -267,4 +279,46 @@ func (a *appLayer) GetAllTags() ([]string, error) {
 	}
 
 	return names, nil
+}
+
+func normalizeEventLinks(links []models.EventLinkInternal) []models.EventLinkInternal {
+	normalized := make([]models.EventLinkInternal, len(links))
+	for i, link := range links {
+		normalized[i] = models.EventLinkInternal{
+			Label: strings.Join(strings.Fields(link.Label), " "),
+			URL:   strings.TrimSpace(link.URL),
+		}
+	}
+
+	return normalized
+}
+
+func validateEventLink(link models.EventLinkInternal) error {
+	if link.Label == "" {
+		return newInvalidEventError("link label is required")
+	}
+
+	if utf8.RuneCountInString(link.Label) > maxEventLinkLabelLength {
+		return newInvalidEventError(fmt.Sprintf("link label %q is longer than %d characters", link.Label, maxEventLinkLabelLength))
+	}
+
+	if len(link.URL) > maxEventLinkURLLength {
+		return newInvalidEventError(fmt.Sprintf("link URL for %q is longer than %d characters", link.Label, maxEventLinkURLLength))
+	}
+
+	parsedURL, err := url.Parse(link.URL)
+	if err != nil || parsedURL.Scheme != eventLinkURLScheme || parsedURL.Host == "" {
+		return newInvalidEventError(fmt.Sprintf("link URL for %q must be a valid https URL", link.Label))
+	}
+
+	return nil
+}
+
+func buildStoreEventLinks(links []models.EventLinkInternal) []store.EventLink {
+	storeLinks := make([]store.EventLink, len(links))
+	for i, link := range links {
+		storeLinks[i] = store.EventLink{Label: link.Label, URL: link.URL}
+	}
+
+	return storeLinks
 }

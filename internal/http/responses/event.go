@@ -97,21 +97,36 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 }
 
 type EventRequestPublic struct {
-	Title                string    `json:"title"`
-	Slug                 string    `json:"slug"`
-	StartsAt             time.Time `json:"startsAt"`
-	EndsAt               time.Time `json:"endsAt"`
-	LocationID           *uint     `json:"locationId"`
-	LocationName         string    `json:"locationName"`
-	Address              string    `json:"address"`
-	City                 string    `json:"city"`
-	State                string    `json:"state"`
-	Zip                  string    `json:"zip"`
-	FeaturedImageAssetID uint      `json:"featuredImageAssetId"`
-	FeaturedImageAltText string    `json:"featuredImageAltText"`
-	Excerpt              string    `json:"excerpt"`
-	Body                 string    `json:"body"`
-	Tags                 []string  `json:"tags"`
+	Title                string            `json:"title"`
+	Slug                 string            `json:"slug"`
+	StartsAt             time.Time         `json:"startsAt"`
+	EndsAt               time.Time         `json:"endsAt"`
+	LocationID           *uint             `json:"locationId"`
+	LocationName         string            `json:"locationName"`
+	Address              string            `json:"address"`
+	City                 string            `json:"city"`
+	State                string            `json:"state"`
+	Zip                  string            `json:"zip"`
+	FeaturedImageAssetID uint              `json:"featuredImageAssetId"`
+	FeaturedImageAltText string            `json:"featuredImageAltText"`
+	Excerpt              string            `json:"excerpt"`
+	Body                 string            `json:"body"`
+	Tags                 []string          `json:"tags"`
+	Links                []EventLinkPublic `json:"links"`
+}
+
+type EventLinkPublic struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
+func (r *EventRequestPublic) InternalizeLinks() []models.EventLinkInternal {
+	links := make([]models.EventLinkInternal, len(r.Links))
+	for i, link := range r.Links {
+		links[i] = models.EventLinkInternal{Label: link.Label, URL: link.URL}
+	}
+
+	return links
 }
 
 type eventFeaturedImageResponsePublic struct {
@@ -136,6 +151,7 @@ type EventResponsePublic struct {
 	Excerpt       string                           `json:"excerpt"`
 	Body          string                           `json:"body"`
 	Tags          []string                         `json:"tags"`
+	Links         []EventLinkPublic                `json:"links"`
 }
 
 func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
@@ -158,4 +174,9 @@ func (e *EventResponsePublic) Publicize(event *models.EventInternal) {
 	e.Excerpt = event.Excerpt
 	e.Body = event.Body
 	e.Tags = event.Tags
+
+	e.Links = make([]EventLinkPublic, len(event.Links))
+	for i, link := range event.Links {
+		e.Links[i] = EventLinkPublic{Label: link.Label, URL: link.URL}
+	}
 }
