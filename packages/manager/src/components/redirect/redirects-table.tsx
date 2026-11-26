@@ -1,11 +1,96 @@
 'use client'
 
+import { ACTIONS_COLUMN_ID, type DataTableFeatures } from '@/components/data-table/data-table-features'
+import { Copy, Pencil, SquareArrowOutUpRight, Trash2 } from 'lucide-react'
+import { createColumnHelper } from '@tanstack/react-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { RowActions } from '@/components/row-actions'
 import { formatDateTime } from '@/lib/timezone'
 import type { Redirect } from '@/types/redirect'
-import { Copy, Pencil, SquareArrowOutUpRight, Trash2 } from 'lucide-react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { RowActions } from '@/components/row-actions'
+import { useMemo } from 'react'
+
+const columnHelper = createColumnHelper<DataTableFeatures, Redirect>()
+
+const NO_TIMESTAMP = 0
+
+function getLink(fromPath: string) {
+  if (import.meta.env.MODE === 'dev') {
+    return `http://outclimb.local/b/${fromPath}`
+  } else {
+    return `https://outcl.im/b/${fromPath}`
+  }
+}
+
+function getOptionalTimestamp(timestamp: number) {
+  return timestamp === NO_TIMESTAMP ? undefined : timestamp
+}
+
+function formatOptionalDateTime(timestamp: number | undefined) {
+  return timestamp === undefined ? '-' : formatDateTime(timestamp)
+}
+
+function ExternalLink({ href, children }: { href: string; children: string }) {
+  return (
+    <a href={href} target="_blank" className="group hover:underline">
+      {children} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
+    </a>
+  )
+}
+
+const dataColumns = columnHelper.columns([
+  columnHelper.accessor('fromPath', {
+    header: 'From',
+    cell: ({ getValue }) => <ExternalLink href={getLink(getValue())}>{getValue()}</ExternalLink>,
+  }),
+  columnHelper.accessor('toUrl', {
+    header: 'To',
+    cell: ({ getValue }) => <ExternalLink href={getValue()}>{getValue()}</ExternalLink>,
+  }),
+  columnHelper.accessor((item) => getOptionalTimestamp(item.startsOn), {
+    id: 'startsOn',
+    header: 'Starts On',
+    enableGlobalFilter: false,
+    sortUndefined: 'last',
+    cell: ({ getValue }) => formatOptionalDateTime(getValue()),
+  }),
+  columnHelper.accessor((item) => getOptionalTimestamp(item.stopsOn), {
+    id: 'stopsOn',
+    header: 'Ends On',
+    enableGlobalFilter: false,
+    sortUndefined: 'last',
+    cell: ({ getValue }) => formatOptionalDateTime(getValue()),
+  }),
+])
+
+function buildActionsColumn(
+  onEdit: (id: number) => void,
+  onDuplicate: (id: number) => void,
+  onDelete: (id: number) => void,
+) {
+  return columnHelper.display({
+    id: ACTIONS_COLUMN_ID,
+    header: () => <span className="sr-only">Actions</span>,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <RowActions label={row.original.fromPath}>
+        <DropdownMenuItem onSelect={() => onEdit(row.original.id)}>
+          <Pencil />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onDuplicate(row.original.id)}>
+          <Copy />
+          Duplicate
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original.id)}>
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </RowActions>
+    ),
+  })
+}
 
 export function RedirectsTable({
   data,
@@ -20,86 +105,10 @@ export function RedirectsTable({
   onDuplicate: (id: number) => void
   onDelete: (id: number) => void
 }) {
-  const handleEdit = (id: number) => {
-    return () => {
-      onEdit(id)
-    }
-  }
-
-  const handleDuplicate = (id: number) => {
-    return () => {
-      onDuplicate(id)
-    }
-  }
-
-  const handleDelete = (id: number) => {
-    return () => {
-      onDelete(id)
-    }
-  }
-
-  const getLink = (fromPath: string) => {
-    if (import.meta.env.MODE === 'dev') {
-      return `http://outclimb.local/b/${fromPath}`
-    } else {
-      return `https://outcl.im/b/${fromPath}`
-    }
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>From</TableHead>
-            <TableHead>To</TableHead>
-            <TableHead>Starts On</TableHead>
-            <TableHead>Ends On</TableHead>
-            {canEdit && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>
-                <a href={getLink(item.fromPath)} target="_blank" className="group hover:underline">
-                  {item.fromPath} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
-                </a>
-              </TableCell>
-              <TableCell>
-                <a href={item.toUrl} target="_blank" className="group hover:underline">
-                  {item.toUrl} <SquareArrowOutUpRight className="size-3 inline invisible group-hover:visible" />
-                </a>
-              </TableCell>
-              <TableCell>{item.startsOn === 0 ? '-' : formatDateTime(item.startsOn)}</TableCell>
-              <TableCell>{item.stopsOn === 0 ? '-' : formatDateTime(item.stopsOn)}</TableCell>
-              {canEdit && (
-                <TableCell>
-                  <RowActions label={item.fromPath}>
-                    <DropdownMenuItem onSelect={handleEdit(item.id)}>
-                      <Pencil />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={handleDuplicate(item.id)}>
-                      <Copy />
-                      Duplicate
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </RowActions>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+  const columns = useMemo(
+    () => (canEdit ? [...dataColumns, buildActionsColumn(onEdit, onDuplicate, onDelete)] : dataColumns),
+    [canEdit, onEdit, onDuplicate, onDelete],
   )
+
+  return <DataTable tableId="redirects" columns={columns} data={data} searchPlaceholder="Search redirects..." />
 }

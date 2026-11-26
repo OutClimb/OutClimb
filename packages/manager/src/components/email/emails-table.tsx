@@ -1,11 +1,47 @@
 'use client'
 
+import { ACTIONS_COLUMN_ID, type DataTableFeatures } from '@/components/data-table/data-table-features'
+import { createColumnHelper, type SortingState } from '@tanstack/react-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { RowActions } from '@/components/row-actions'
-import { Pencil, Trash2 } from 'lucide-react'
 import type { Email } from '@/types/email'
 import { Link } from '@tanstack/react-router'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Pencil, Trash2 } from 'lucide-react'
+import { RowActions } from '@/components/row-actions'
+import { useMemo } from 'react'
+
+const columnHelper = createColumnHelper<DataTableFeatures, Email>()
+
+const SORT_BY_NAME: SortingState = [{ id: 'name', desc: false }]
+
+const dataColumns = columnHelper.columns([
+  columnHelper.accessor('name', { header: 'Name' }),
+  columnHelper.accessor('slug', { header: 'Slug' }),
+  columnHelper.accessor('subject', { header: 'Subject' }),
+])
+
+function buildActionsColumn(onDelete: (id: number) => void) {
+  return columnHelper.display({
+    id: ACTIONS_COLUMN_ID,
+    header: () => <span className="sr-only">Actions</span>,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <RowActions label={row.original.name}>
+        <DropdownMenuItem asChild>
+          <Link to="/manage/email/$id/edit" params={{ id: row.original.id.toString() }}>
+            <Pencil />
+            Edit
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original.id)}>
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </RowActions>
+    ),
+  })
+}
 
 export function EmailsTable({
   data,
@@ -16,54 +52,18 @@ export function EmailsTable({
   canEdit: boolean
   onDelete: (id: number) => void
 }) {
-  const handleDelete = (id: number) => {
-    return () => {
-      onDelete(id)
-    }
-  }
+  const columns = useMemo(
+    () => (canEdit ? [...dataColumns, buildActionsColumn(onDelete)] : dataColumns),
+    [canEdit, onDelete],
+  )
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>Subject</TableHead>
-            {canEdit && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.slug}</TableCell>
-              <TableCell>{item.subject}</TableCell>
-              {canEdit && (
-                <TableCell>
-                  <RowActions label={item.name}>
-                    <DropdownMenuItem asChild>
-                      <Link to="/manage/email/$id/edit" params={{ id: item.id.toString() }}>
-                        <Pencil />
-                        Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </RowActions>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      tableId="emails"
+      columns={columns}
+      data={data}
+      searchPlaceholder="Search emails..."
+      initialSorting={SORT_BY_NAME}
+    />
   )
 }

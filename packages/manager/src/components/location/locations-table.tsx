@@ -1,11 +1,52 @@
 'use client'
 
+import { ACTIONS_COLUMN_ID, type DataTableFeatures } from '@/components/data-table/data-table-features'
+import { createColumnHelper, type SortingState } from '@tanstack/react-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { RowActions } from '@/components/row-actions'
-import { Pencil, Trash2 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { Location } from '@/types/location'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Pencil, Trash2 } from 'lucide-react'
+import { RowActions } from '@/components/row-actions'
+import { useMemo } from 'react'
+
+const columnHelper = createColumnHelper<DataTableFeatures, Location>()
+
+const SORT_BY_NAME: SortingState = [{ id: 'name', desc: false }]
+
+const dataColumns = columnHelper.columns([
+  columnHelper.accessor('name', { header: 'Name' }),
+  columnHelper.accessor((item) => item.address.replaceAll('\n', ', '), { id: 'address', header: 'Address' }),
+  columnHelper.accessor((item) => [item.city, item.state].filter(Boolean).join(', '), {
+    id: 'cityState',
+    header: 'City, State',
+  }),
+  columnHelper.accessor('startTime', { header: 'Normal Start Time' }),
+  columnHelper.accessor('endTime', { header: 'Normal End Time' }),
+])
+
+function buildActionsColumn(onDelete: (id: number) => void) {
+  return columnHelper.display({
+    id: ACTIONS_COLUMN_ID,
+    header: () => <span className="sr-only">Actions</span>,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <RowActions label={row.original.name}>
+        <DropdownMenuItem asChild>
+          <Link to="/manage/location/$id/edit" params={{ id: String(row.original.id) }}>
+            <Pencil />
+            Edit
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original.id)}>
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </RowActions>
+    ),
+  })
+}
 
 export function LocationsTable({
   data,
@@ -16,58 +57,18 @@ export function LocationsTable({
   canEdit: boolean
   onDelete: (id: number) => void
 }) {
-  const handleDelete = (id: number) => {
-    return () => {
-      onDelete(id)
-    }
-  }
+  const columns = useMemo(
+    () => (canEdit ? [...dataColumns, buildActionsColumn(onDelete)] : dataColumns),
+    [canEdit, onDelete],
+  )
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead>City, State</TableHead>
-            <TableHead>Normal Start Time</TableHead>
-            <TableHead>Normal End Time</TableHead>
-            {canEdit && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.address.replaceAll('\n', ', ')}</TableCell>
-              <TableCell>{[item.city, item.state].filter(Boolean).join(', ')}</TableCell>
-              <TableCell>{item.startTime}</TableCell>
-              <TableCell>{item.endTime}</TableCell>
-              {canEdit && (
-                <TableCell>
-                  <RowActions label={item.name}>
-                    <DropdownMenuItem asChild>
-                      <Link to="/manage/location/$id/edit" params={{ id: String(item.id) }}>
-                        <Pencil />
-                        Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </RowActions>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      tableId="locations"
+      columns={columns}
+      data={data}
+      searchPlaceholder="Search locations..."
+      initialSorting={SORT_BY_NAME}
+    />
   )
 }

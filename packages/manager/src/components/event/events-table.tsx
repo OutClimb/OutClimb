@@ -1,12 +1,58 @@
 'use client'
 
+import { ACTIONS_COLUMN_ID, type DataTableFeatures } from '@/components/data-table/data-table-features'
+import { createColumnHelper, type SortingState } from '@tanstack/react-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import type { Event } from '@/types/event'
 import { formatDateTime } from '@/lib/timezone'
-import { RowActions } from '@/components/row-actions'
 import { Link } from '@tanstack/react-router'
 import { Pencil, Trash2 } from 'lucide-react'
-import type { Event } from '@/types/event'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { RowActions } from '@/components/row-actions'
+import { useMemo } from 'react'
+
+const columnHelper = createColumnHelper<DataTableFeatures, Event>()
+
+const SORT_BY_NEWEST_START: SortingState = [{ id: 'startsAt', desc: true }]
+
+const dataColumns = columnHelper.columns([
+  columnHelper.accessor('title', { header: 'Title' }),
+  columnHelper.accessor((item) => new Date(item.startsAt).getTime(), {
+    id: 'startsAt',
+    header: 'Starts',
+    enableGlobalFilter: false,
+    cell: ({ getValue }) => formatDateTime(getValue()),
+  }),
+  columnHelper.accessor('locationName', { header: 'Location' }),
+  columnHelper.accessor('city', { header: 'City' }),
+])
+
+function buildActionsColumn(canDelete: boolean, canEdit: boolean, onDelete: (id: number) => void) {
+  return columnHelper.display({
+    id: ACTIONS_COLUMN_ID,
+    header: () => <span className="sr-only">Actions</span>,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <RowActions label={row.original.title}>
+        {canEdit && (
+          <DropdownMenuItem asChild>
+            <Link to="/manage/event/$id/edit" params={{ id: String(row.original.id) }}>
+              <Pencil />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {canDelete && canEdit && <DropdownMenuSeparator />}
+        {canDelete && (
+          <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original.id)}>
+            <Trash2 />
+            Delete
+          </DropdownMenuItem>
+        )}
+      </RowActions>
+    ),
+  })
+}
 
 export function EventsTable({
   data,
@@ -19,60 +65,18 @@ export function EventsTable({
   canEdit: boolean
   onDelete: (id: number) => void
 }) {
-  const handleDelete = (id: number) => {
-    return () => {
-      onDelete(id)
-    }
-  }
+  const columns = useMemo(
+    () => (canDelete || canEdit ? [...dataColumns, buildActionsColumn(canDelete, canEdit, onDelete)] : dataColumns),
+    [canDelete, canEdit, onDelete],
+  )
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Starts</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>City</TableHead>
-            {(canDelete || canEdit) && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.title}</TableCell>
-              <TableCell>{formatDateTime(new Date(item.startsAt).getTime())}</TableCell>
-              <TableCell>{item.locationName}</TableCell>
-              <TableCell>{item.city}</TableCell>
-              {(canDelete || canEdit) && (
-                <TableCell>
-                  <RowActions label={item.title}>
-                    {canEdit && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/manage/event/$id/edit" params={{ id: String(item.id) }}>
-                          <Pencil />
-                          Edit
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    {canDelete && canEdit && <DropdownMenuSeparator />}
-                    {canDelete && (
-                      <DropdownMenuItem variant="destructive" onSelect={handleDelete(item.id)}>
-                        <Trash2 />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </RowActions>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      tableId="events"
+      columns={columns}
+      data={data}
+      searchPlaceholder="Search events..."
+      initialSorting={SORT_BY_NEWEST_START}
+    />
   )
 }

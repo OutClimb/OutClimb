@@ -1,63 +1,76 @@
 'use client'
 
+import { ACTIONS_COLUMN_ID, type DataTableFeatures } from '@/components/data-table/data-table-features'
+import { createColumnHelper, type SortingState } from '@tanstack/react-table'
+import { DataTable } from '@/components/data-table/data-table'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { FormField, Submission } from '@/types/form'
 import { formatDateTime } from '@/lib/timezone'
 import { getSubmissionValue } from '@/lib/submission'
-import { Trash2 } from 'lucide-react'
 import { RowActions } from '@/components/row-actions'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Trash2 } from 'lucide-react'
+import { useMemo } from 'react'
+
+const columnHelper = createColumnHelper<DataTableFeatures, Submission>()
+
+const SORT_BY_NEWEST_SUBMISSION: SortingState = [{ id: 'submittedOn', desc: true }]
+
+const submittedOnColumn = columnHelper.accessor('submittedOn', {
+  header: 'Submitted On',
+  enableGlobalFilter: false,
+  cell: ({ getValue }) => formatDateTime(getValue()),
+})
+
+function buildFieldColumn(field: FormField) {
+  return columnHelper.accessor((submission) => getSubmissionValue(submission, field), {
+    id: `field-${field.id}`,
+    header: field.name,
+    meta: { cellClassName: 'max-w-xs truncate' },
+    cell: ({ getValue }) => getValue() || '-',
+  })
+}
+
+function buildActionsColumn(onDelete: (id: number) => void) {
+  return columnHelper.display({
+    id: ACTIONS_COLUMN_ID,
+    header: () => <span className="sr-only">Actions</span>,
+    enableHiding: false,
+    cell: ({ row }) => (
+      <RowActions label={`submission from ${formatDateTime(row.original.submittedOn)}`}>
+        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original.id)}>
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </RowActions>
+    ),
+  })
+}
 
 export function SubmissionsTable({
+  formId,
   fields,
   data,
   canEdit,
   onDelete,
 }: {
+  formId: number
   fields: Array<FormField>
   data: Array<Submission>
   canEdit: boolean
   onDelete: (id: number) => void
 }) {
+  const columns = useMemo(() => {
+    const dataColumns = columnHelper.columns([submittedOnColumn, ...fields.map(buildFieldColumn)])
+    return canEdit ? [...dataColumns, buildActionsColumn(onDelete)] : dataColumns
+  }, [fields, canEdit, onDelete])
+
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Submitted On</TableHead>
-            {fields.map((field) => (
-              <TableHead key={field.id}>{field.name}</TableHead>
-            ))}
-            {canEdit && (
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((submission) => (
-            <TableRow key={submission.id}>
-              <TableCell>{formatDateTime(submission.submittedOn)}</TableCell>
-              {fields.map((field) => (
-                <TableCell key={field.id} className="max-w-xs truncate">
-                  {getSubmissionValue(submission, field) || '-'}
-                </TableCell>
-              ))}
-              {canEdit && (
-                <TableCell>
-                  <RowActions label={`submission from ${formatDateTime(submission.submittedOn)}`}>
-                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(submission.id)}>
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </RowActions>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      tableId={`submissions:${formId}`}
+      columns={columns}
+      data={data}
+      searchPlaceholder="Search submissions..."
+      initialSorting={SORT_BY_NEWEST_SUBMISSION}
+    />
   )
 }

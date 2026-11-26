@@ -206,7 +206,13 @@ function FormDetails() {
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <SubmissionsTable fields={fields} data={submissions} canEdit={canEdit} onDelete={handleDelete} />
+                  <SubmissionsTable
+                    formId={form.id}
+                    fields={fields}
+                    data={submissions}
+                    canEdit={canEdit}
+                    onDelete={handleDelete}
+                  />
                 )}
               </CardContent>
             </Card>
