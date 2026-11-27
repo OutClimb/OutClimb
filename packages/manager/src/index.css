@@ -210,3 +210,11 @@ button {
     opacity: 0.4;
   }
 }
+
+.dark-theme:is(.mdxeditor, .mdxeditor-popup-container) {
+  --basePageBg: var(--popover);
+}
+
+body > .mdxeditor-popup-container {
+  z-index: 50;
+}

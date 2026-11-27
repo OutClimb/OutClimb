@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ChevronUp, ChevronDown, Pencil, Trash2, Plus, TriangleAlert } from 'lucide-react'
 import { FieldConditionsEditor } from '@/components/form/field-conditions-editor'
+import { MarkdownEditor } from '@/components/markdown-editor'
 import { findBrokenDependents, renameConditionSource, stripBrokenRules } from '@/lib/conditions'
 import {
   CONTENT_FIELD_TYPES,
@@ -198,6 +199,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
   const [dialog, setDialog] = useState<DialogState>(emptyDialog)
   const [errors, setErrors] = useState<DialogErrors>(emptyErrors)
   const [pending, setPending] = useState<PendingChange | null>(null)
+  const [editorPopupContainer, setEditorPopupContainer] = useState<HTMLDivElement | null>(null)
 
   // Applies the new field list, or asks first when it would break other fields' conditions.
   const applyChange = useCallback(
@@ -327,8 +329,8 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
     [nextSlug],
   )
 
-  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDialog((prev) => ({ ...prev, content: e.target.value }))
+  const handleContentChange = useCallback((content: string) => {
+    setDialog((prev) => ({ ...prev, content }))
   }, [])
 
   const handleValidationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -539,6 +541,7 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
+          <div ref={setEditorPopupContainer} className="absolute" />
           <DialogHeader>
             <DialogTitle>{editingIndex !== null ? 'Edit Field' : 'Add Field'}</DialogTitle>
           </DialogHeader>
@@ -601,14 +604,14 @@ export function FormFieldBuilder({ fields, onChange }: FormFieldBuilderProps) {
 
               {dialog.type === 'paragraph' && (
                 <Field>
-                  <FieldLabel htmlFor="field-content">Text</FieldLabel>
-                  <FieldDescription>Line breaks are kept. Use [text](url) to add links</FieldDescription>
-                  <Textarea
-                    id="field-content"
-                    value={dialog.content}
+                  <FieldLabel>Text</FieldLabel>
+                  <FieldDescription>Line breaks are kept</FieldDescription>
+                  <MarkdownEditor
+                    variant="form-paragraphs"
+                    markdown={dialog.content}
                     onChange={handleContentChange}
-                    rows={5}
-                    aria-invalid={!!errors.content}
+                    overlayContainer={editorPopupContainer}
+                    invalid={!!errors.content}
                   />
                   {errors.content && <FieldError>{errors.content}</FieldError>}
                 </Field>

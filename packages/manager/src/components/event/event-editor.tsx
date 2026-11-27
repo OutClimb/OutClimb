@@ -15,6 +15,7 @@ import { slugify } from '@/lib/slug'
 import { formatInTimezone, parseInTimezone } from '@/lib/timezone'
 import { Input } from '@/components/ui/input'
 import { LinkInput } from './link-input'
+import { MarkdownEditor } from '@/components/markdown-editor'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { TagInput } from './tag-input'
@@ -243,6 +244,10 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
     [isSlugManuallyEdited],
   )
 
+  const handleBodyChange = useCallback((body: string) => {
+    setFormData((prev) => ({ ...prev, body }))
+  }, [])
+
   const handleSlugChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const slug = e.target.value
     setFormData((prev) => ({ ...prev, slug }))
@@ -399,14 +404,11 @@ export function EventEditor({ initialEvent, onSave, submitLabel, submitLoadingLa
               <FieldError>{formErrors.excerpt}</FieldError>
             </Field>
             <Field>
-              <FieldLabel htmlFor="body">Body</FieldLabel>
-              <FieldDescription>Written in markdown</FieldDescription>
-              <Textarea
-                id="body"
-                name="body"
-                rows={8}
-                value={formData.body}
-                onChange={handleChange}
+              <FieldLabel>Body</FieldLabel>
+              <MarkdownEditor
+                variant="events"
+                markdown={formData.body}
+                onChange={handleBodyChange}
                 disabled={isLoading}
               />
               <FieldError>{formErrors.body}</FieldError>
