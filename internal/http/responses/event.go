@@ -82,7 +82,7 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal, eventDomain 
 	for _, event := range feed.Events {
 		ep := EventPublic{
 			Title:       event.Title,
-			Link:        "https://" + *eventDomain + "/events/" + event.Slug,
+			Link:        "https://" + *eventDomain + "/" + event.Slug,
 			Description: event.Excerpt,
 			PubDate:     event.StartsAt.In(centralTime).Format(time.RFC1123Z),
 			GUID:        guidPublic{Value: "event-" + strconv.FormatUint(uint64(event.ID), 10)},

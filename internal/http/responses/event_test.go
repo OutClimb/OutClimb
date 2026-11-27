@@ -52,7 +52,7 @@ func TestPublicizeMapsEventToRSSItem(t *testing.T) {
 
 	wantFragments := []string{
 		"<link>L</link>",
-		"<link>https://events.example.test/events/night-climb</link>",
+		"<link>https://events.example.test/night-climb</link>",
 		"<pubDate>Mon, 30 Nov 2026 23:30:00 -0600</pubDate>",
 		"<description>Climb after dark</description>",
 		`<guid isPermaLink="false">event-9</guid>`,
