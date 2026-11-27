@@ -24,10 +24,13 @@ import (
 	"github.com/OutClimb/OutClimb/internal/app/models"
 )
 
+const testEventsDomain = "events.example.test"
+
 func TestPublicizeMapsEventToRSSItem(t *testing.T) {
 	lateNovemberEvent := &models.EventInternal{
 		ID:                   9,
 		Title:                "Night Climb",
+		Slug:                 "night-climb",
 		StartsAt:             time.Date(2026, time.December, 1, 5, 30, 0, 0, time.UTC),
 		Excerpt:              "Climb after dark",
 		BodyHTML:             "&lt;b&gt;hi&lt;/b&gt;",
@@ -38,8 +41,9 @@ func TestPublicizeMapsEventToRSSItem(t *testing.T) {
 	}
 	feed := &models.EventFeedInternal{Title: "T", Link: "L", Description: "D", Events: []*models.EventInternal{lateNovemberEvent}}
 
+	eventsDomain := testEventsDomain
 	var resp EventFeedPublic
-	resp.Publicize(feed)
+	resp.Publicize(feed, &eventsDomain)
 	output, err := xml.Marshal(resp)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
@@ -47,6 +51,8 @@ func TestPublicizeMapsEventToRSSItem(t *testing.T) {
 	got := string(output)
 
 	wantFragments := []string{
+		"<link>L</link>",
+		"<link>https://events.example.test/night-climb</link>",
 		"<pubDate>Mon, 30 Nov 2026 23:30:00 -0600</pubDate>",
 		"<description>Climb after dark</description>",
 		`<guid isPermaLink="false">event-9</guid>`,
@@ -62,16 +68,14 @@ func TestPublicizeMapsEventToRSSItem(t *testing.T) {
 			t.Errorf("feed missing %q in %s", fragment, got)
 		}
 	}
-	if strings.Count(got, "<link>") != 1 {
-		t.Errorf("want only the channel link, got: %s", got)
-	}
 }
 
 func TestPublicizeOmitsMediaAndContentWhenEmpty(t *testing.T) {
 	feed := &models.EventFeedInternal{Events: []*models.EventInternal{{ID: 1, Title: "Bare", StartsAt: time.Now()}}}
 
+	eventsDomain := testEventsDomain
 	var resp EventFeedPublic
-	resp.Publicize(feed)
+	resp.Publicize(feed, &eventsDomain)
 	output, err := xml.Marshal(resp)
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)

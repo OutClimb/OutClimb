@@ -71,7 +71,7 @@ func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 	}
 
 	var resp responses.EventFeedPublic
-	resp.Publicize(feed)
+	resp.Publicize(feed, &h.config.EventsDomain)
 
 	output, err := xml.MarshalIndent(resp, "", "  ")
 	if err != nil {

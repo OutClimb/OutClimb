@@ -59,6 +59,7 @@ type guidPublic struct {
 
 type EventPublic struct {
 	Title          string              `xml:"title"`
+	Link           string              `xml:"link"`
 	Description    string              `xml:"description"`
 	PubDate        string              `xml:"pubDate"`
 	GUID           guidPublic          `xml:"guid"`
@@ -67,7 +68,7 @@ type EventPublic struct {
 	Categories     []string            `xml:"category"`
 }
 
-func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
+func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal, eventDomain *string) {
 	centralTime, err := time.LoadLocation(eventsFeedTimezoneName)
 	if err != nil {
 		centralTime = time.UTC
@@ -81,6 +82,7 @@ func (f *EventFeedPublic) Publicize(feed *models.EventFeedInternal) {
 	for _, event := range feed.Events {
 		ep := EventPublic{
 			Title:       event.Title,
+			Link:        "https://" + *eventDomain + "/" + event.Slug,
 			Description: event.Excerpt,
 			PubDate:     event.StartsAt.In(centralTime).Format(time.RFC1123Z),
 			GUID:        guidPublic{Value: "event-" + strconv.FormatUint(uint64(event.ID), 10)},
