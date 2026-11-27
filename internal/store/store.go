@@ -70,6 +70,7 @@ type StoreLayer interface {
 	DeleteSubmissionValuesForSubmission(submissionId uint) error
 	DeleteUser(id uint) error
 	EnableTotp(id uint, step int64, updatedBy string) error
+	EventExistsWithSlug(slug string) (bool, error)
 	FindActiveRedirectByPath(path string) (*Redirect, error)
 	FindAsset(fileName string) (string, error)
 	GetAllAssets() (*[]Asset, error)

@@ -66,6 +66,7 @@ type HttpConfig struct {
 	DonateDomain              string    `mapstructure:"OC_DONATE_DOMAIN"`
 	EventRateLimit            int       `mapstructure:"OC_EVENT_RATE_LIMIT"`
 	EventRateLimitWindow      string    `mapstructure:"OC_EVENT_RATE_LIMIT_WINDOW"`
+	EventsDomain              string    `mapstructure:"OC_EVENTS_DOMAIN"`
 	FormRateLimit             int       `mapstructure:"OC_FORM_RATE_LIMIT"`
 	FormRateLimitWindow       string    `mapstructure:"OC_FORM_RATE_LIMIT_WINDOW"`
 	Jwt                       JwtConfig `mapstructure:",squash"`

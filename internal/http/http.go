@@ -121,6 +121,11 @@ func New(appLayer app.AppLayer, config *utils.HttpConfig, env string) *httpLayer
 			return
 		}
 
+		if c.Request.Host == config.EventsDomain {
+			h.redirectToEventPage(c)
+			return
+		}
+
 		c.Redirect(http.StatusTemporaryRedirect, config.DefaultRedirectURL)
 	})
 
@@ -182,7 +187,7 @@ func (h *httpLayer) setupFrontendRoutes() {
 	h.engine.StaticFile("/favicon.ico", "./web/favicon.ico")
 	h.engine.StaticFile("/robots.txt", "./web/robots.txt")
 	h.engine.Static("/manage", "./web/manager")
-	h.engine.GET("/events/:month", middleware.Domain(h.config.AssetsDomain), h.newEventRateLimit(), h.getEventsForMonth)
+	h.engine.GET("/events/:month", middleware.Domain(h.config.EventsDomain), h.newEventRateLimit(), h.getEventsForMonth)
 
 	assets := h.engine.Group("/q/")
 	{

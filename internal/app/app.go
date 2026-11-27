@@ -55,6 +55,7 @@ type AppLayer interface {
 	DeleteRole(user *models.UserInternal, id uint) error
 	DeleteSubmission(user *models.UserInternal, submissionId uint) error
 	DeleteUser(user *models.UserInternal, id uint) error
+	EventExistsWithSlug(slug string) (bool, error)
 	FindAsset(fileName string) (string, error)
 	FindRedirect(path string) (*models.RedirectInternal, error)
 	GetAllAssets() (*[]models.AssetInternal, error)

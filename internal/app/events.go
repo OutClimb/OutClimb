@@ -155,6 +155,10 @@ func (a *appLayer) DeleteEvent(id uint) error {
 	return translateEventStoreError(a.store.DeleteEvent(id))
 }
 
+func (a *appLayer) EventExistsWithSlug(slug string) (bool, error) {
+	return a.store.EventExistsWithSlug(slug)
+}
+
 func (a *appLayer) GetEvent(id uint) (*models.EventInternal, error) {
 	event, err := a.store.GetEvent(id)
 	if err != nil {

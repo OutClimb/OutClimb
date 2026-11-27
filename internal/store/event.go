@@ -99,6 +99,16 @@ func (s *storeLayer) DeleteEvent(id uint) error {
 	return nil
 }
 
+func (s *storeLayer) EventExistsWithSlug(slug string) (bool, error) {
+	var count int64
+
+	if result := s.db.Model(&Event{}).Where("slug = ?", slug).Count(&count); result.Error != nil {
+		return false, result.Error
+	}
+
+	return count > 0, nil
+}
+
 func (s *storeLayer) GetAllEvents() (*[]Event, error) {
 	events := []Event{}
 

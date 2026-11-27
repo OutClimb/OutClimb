@@ -23,7 +23,9 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/OutClimb/OutClimb/internal/app"
@@ -31,6 +33,27 @@ import (
 	"github.com/OutClimb/OutClimb/internal/http/responses"
 	"github.com/gin-gonic/gin"
 )
+
+const eventPageURLPrefix = "https://outclimb.gay/events/"
+
+func (h *httpLayer) redirectToEventPage(c *gin.Context) {
+	slug := strings.Trim(c.Request.URL.Path, "/")
+	if slug == "" || strings.Contains(slug, "/") {
+		c.Redirect(http.StatusTemporaryRedirect, h.config.DefaultRedirectURL)
+		return
+	}
+
+	exists, err := h.app.EventExistsWithSlug(slug)
+	if err != nil {
+		slog.Error("Unable to look up event by slug", "slug", slug, "err", err)
+	}
+	if !exists {
+		c.Redirect(http.StatusTemporaryRedirect, h.config.DefaultRedirectURL)
+		return
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, eventPageURLPrefix+url.PathEscape(slug))
+}
 
 func (h *httpLayer) getEventsForMonth(c *gin.Context) {
 	month, err := time.Parse("2006-01", c.Param("month"))

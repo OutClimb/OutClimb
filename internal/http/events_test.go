@@ -43,7 +43,9 @@ const (
 	eventPermissionRead     = 1
 	eventPermissionWrite    = 2
 	eventTestRemoteAddress  = "192.0.2.10:4321"
-	eventTestAssetsDomain   = "assets.example.test"
+	eventTestEventsDomain   = "events.example.test"
+	eventTestDefaultURL     = "https://default.example.test"
+	eventTestExistingSlug   = "event-12-01-2026"
 	eventTestCreateBodyJSON = `{"title":"Night Climb","startsAt":"2026-12-01T18:00:00-06:00","endsAt":"2026-12-01T20:00:00-06:00","locationName":"Gym","address":"1 Main St","city":"Austin","state":"TX","zip":"78701","featuredImageAssetId":3,"excerpt":"Climb","body":"Hello","tags":["Bouldering","Free"],"links":[{"label":"Register","url":"https://forms.example.test/register"}]}`
 )
 
@@ -64,6 +66,10 @@ func (f *fakeEventApp) GetEvent(id uint) (*models.EventInternal, error) {
 	}
 
 	return newTestEventInternal(id), nil
+}
+
+func (f *fakeEventApp) EventExistsWithSlug(slug string) (bool, error) {
+	return slug == eventTestExistingSlug, nil
 }
 
 func (f *fakeEventApp) GetAllEvents() (*[]models.EventInternal, error) {
@@ -101,7 +107,8 @@ func newTestEventInternal(id uint) *models.EventInternal {
 
 func newEventTestEngine(fake *fakeEventApp) http.Handler {
 	config := &utils.HttpConfig{
-		AssetsDomain:         eventTestAssetsDomain,
+		DefaultRedirectURL:   eventTestDefaultURL,
+		EventsDomain:         eventTestEventsDomain,
 		EventRateLimit:       eventTestRateLimit,
 		EventRateLimitWindow: eventTestRateLimitSpan,
 		MaxJsonBodySize:      eventTestMaxBodySize,
@@ -137,7 +144,7 @@ func signEventToken(t *testing.T, role string, eventPermission uint) string {
 func performEventRequest(handler http.Handler, method, target, token, body string) *httptest.ResponseRecorder {
 	request := httptest.NewRequest(method, target, strings.NewReader(body))
 	request.RemoteAddr = eventTestRemoteAddress
-	request.Host = eventTestAssetsDomain
+	request.Host = eventTestEventsDomain
 	if token != "" {
 		request.Header.Set("Authorization", "Bearer "+token)
 	}
@@ -292,5 +299,34 @@ func TestGetTagsIsNotShadowedByEventIDRoute(t *testing.T) {
 	}
 	if recorder.Body.String() != `["Bouldering","Free"]` {
 		t.Errorf("body = %s, want tag names", recorder.Body.String())
+	}
+}
+
+func TestEventsDomainRedirectsToEventPage(t *testing.T) {
+	tests := []struct {
+		name         string
+		target       string
+		wantLocation string
+	}{
+		{"existing event", "/" + eventTestExistingSlug, "https://outclimb.gay/events/" + eventTestExistingSlug},
+		{"existing event with trailing slash", "/" + eventTestExistingSlug + "/", "https://outclimb.gay/events/" + eventTestExistingSlug},
+		{"missing event", "/no-such-event", eventTestDefaultURL},
+		{"root", "/", eventTestDefaultURL},
+		{"nested path", "/" + eventTestExistingSlug + "/extra", eventTestDefaultURL},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler := newEventTestEngine(&fakeEventApp{})
+
+			recorder := performEventRequest(handler, http.MethodGet, test.target, "", "")
+
+			if recorder.Code != http.StatusTemporaryRedirect {
+				t.Fatalf("status = %d, want %d", recorder.Code, http.StatusTemporaryRedirect)
+			}
+			if location := recorder.Header().Get("Location"); location != test.wantLocation {
+				t.Errorf("location = %q, want %q", location, test.wantLocation)
+			}
+		})
 	}
 }
