@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { FormActions } from '@/components/form-actions'
 import { Input } from '@/components/ui/input'
+import { MarkdownEditor } from '@/components/markdown-editor'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { useCallback, useState } from 'react'
@@ -115,6 +116,10 @@ export function LocationEditor({ initialLocation, onSave, submitLabel, submitLoa
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }, [])
+
+  const handleLongDescriptionChange = useCallback((longDescription: string) => {
+    setFormData((prev) => ({ ...prev, longDescription }))
   }, [])
 
   const handleSubmit = useCallback(
@@ -254,13 +259,11 @@ export function LocationEditor({ initialLocation, onSave, submitLabel, submitLoa
               <FieldError>{formErrors.excerpt}</FieldError>
             </Field>
             <Field>
-              <FieldLabel htmlFor="longDescription">Description</FieldLabel>
-              <Textarea
-                id="longDescription"
-                name="longDescription"
-                rows={2}
-                value={formData.longDescription}
-                onChange={handleChange}
+              <FieldLabel>Description</FieldLabel>
+              <MarkdownEditor
+                variant="events"
+                markdown={formData.longDescription}
+                onChange={handleLongDescriptionChange}
                 disabled={isLoading}
               />
               <FieldError>{formErrors.longDescription}</FieldError>

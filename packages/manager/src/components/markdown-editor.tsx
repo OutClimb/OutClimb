@@ -16,9 +16,10 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from '@mdxeditor/editor'
+import type { MDXEditorMethods } from '@mdxeditor/editor'
 import { cn } from 'cn'
 import { removeMarkdownEscapes } from '@/lib/markdown'
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
 
 const DARK_COLOR_SCHEME_QUERY = '(prefers-color-scheme: dark)'
 const DARK_THEME_CLASS_NAME = 'dark-theme'
@@ -113,10 +114,22 @@ export function MarkdownEditor({
   invalid,
 }: MarkdownEditorProps) {
   const isDark = useSyncExternalStore(subscribeToColorScheme, isDarkColorScheme)
+  const editorRef = useRef<MDXEditorMethods>(null)
+  const lastEmittedMarkdownRef = useRef(markdown)
+
+  useEffect(() => {
+    if (markdown !== lastEmittedMarkdownRef.current) {
+      lastEmittedMarkdownRef.current = markdown
+      editorRef.current?.setMarkdown(markdown)
+    }
+  }, [markdown])
 
   const handleChange = useCallback(
-    (changedMarkdown: string) =>
-      onChange(variant === 'form-paragraphs' ? removeMarkdownEscapes(changedMarkdown) : changedMarkdown),
+    (changedMarkdown: string) => {
+      const emittedMarkdown = variant === 'form-paragraphs' ? removeMarkdownEscapes(changedMarkdown) : changedMarkdown
+      lastEmittedMarkdownRef.current = emittedMarkdown
+      onChange(emittedMarkdown)
+    },
     [variant, onChange],
   )
 
@@ -129,6 +142,7 @@ export function MarkdownEditor({
       )}>
       <div className={POPOVER_ANCHOR_CONTAINER_CLASS_NAME}>
         <MDXEditor
+          ref={editorRef}
           className={isDark ? DARK_THEME_CLASS_NAME : undefined}
           contentEditableClassName={VARIANT_MAP[variant].contentClassName}
           markdown={markdown}
